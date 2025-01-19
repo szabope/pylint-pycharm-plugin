@@ -1,0 +1,22 @@
+package works.szabope.plugins.pylint.testutil
+
+import works.szabope.plugins.pylint.dialog.PylintDialog
+
+class TestDialogWrapper(private val lie: Class<out Any>) : PylintDialog {
+    private var isShown = false
+    private var exitCode: Int? = null
+
+    override fun getWrappedClass() = lie
+
+    override fun show() {
+        isShown = true
+    }
+
+    override fun close(exitCode: Int) {
+        this.exitCode = exitCode
+    }
+
+    override fun isShown(): Boolean = isShown
+
+    override fun getExitCode(): Int = requireNotNull(exitCode)
+}

@@ -1,0 +1,31 @@
+{
+  "messages": [
+    {
+      "type": "convention",
+      "symbol": "disallowed-name",
+      "message": "Disallowed name \"tutu\"",
+      "messageId": "C0104",
+      "confidence": "HIGH",
+      "module": "manualScan",
+      "obj": "",
+      "line": 1,
+      "column": 0,
+      "endLine": 1,
+      "endColumn": 4,
+      "path": "manualScan.py",
+      "absolutePath": "/src/manualScan.py"
+    }
+  ],
+  "statistics": {
+    "messageTypeCount": {
+      "fatal": 0,
+      "error": 0,
+      "warning": 0,
+      "refactor": 0,
+      "convention": 1,
+      "info": 0
+    },
+    "modulesLinted": 4,
+    "score": 0
+  }
+}
