@@ -1,0 +1,8 @@
+#!/bin/bash
+if [ "$1" = "--version" ]; then
+  echo "pylint 2.2.2"
+  echo "something 2.1.0"
+  echo "Some other thing 2.3.4 (main, Sep 1 2021, 01:01:01) [GCC 1.1.1]"
+else
+  echo "This line should have never been reached"
+fi

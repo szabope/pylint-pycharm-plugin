@@ -1,0 +1,2 @@
+#!/bin/sh
+echo "Python 3.11.2"

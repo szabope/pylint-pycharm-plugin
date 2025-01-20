@@ -1,0 +1,83 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <id>works.szabope.pylint</id>
+    <name>Pylint</name>
+    <vendor url="https://github.com/szabope">Peter Szabo</vendor>
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.lang</depends>
+    <depends>com.intellij.modules.python</depends>
+    <depends>org.jetbrains.plugins.terminal</depends>
+
+    <resource-bundle>messages.PylintBundle</resource-bundle>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="Pylint " factoryClass="works.szabope.plugins.pylint.toolWindow.PylintToolWindowFactory"
+                    anchor="bottom" canCloseContents="false" icon="/icons/pylintToolWindow.svg"/>
+        <projectConfigurable
+                id="works.szabope.plugins.pylint.configurable.PylintSettingConfigurable"
+                instance="works.szabope.plugins.pylint.configurable.PylintConfigurable"
+                parentId="tools"
+                key="pylint.configurable.name"
+                bundle="messages.PylintBundle"/>
+        <externalAnnotator language="Python"
+                           implementationClass="works.szabope.plugins.pylint.annotator.PylintAnnotator"/>
+        <localInspection language="Python" level="WARNING" shortName="PylintInspection"
+                         implementationClass="works.szabope.plugins.pylint.annotator.PylintInspection"
+                         groupBundle="messages.PylintBundle" groupKey="pylint.inspection.group_name"
+                         bundle="messages.PylintBundle" key="pylint.inspection.name" enabledByDefault="true"/>
+        <backgroundPostStartupActivity
+                implementation="works.szabope.plugins.pylint.activity.SettingsInitializationActivity"/>
+        <notificationGroup displayType="STICKY_BALLOON" id="Pylint Group" toolWindowId="PyLint"/>
+        <applicationService serviceInterface="works.szabope.plugins.pylint.dialog.IDialogManager"
+                            serviceImplementation="works.szabope.plugins.pylint.dialog.DialogManager"
+                            testServiceImplementation="works.szabope.plugins.pylint.testutil.TestDialogManager"/>
+        <checkinHandlerFactory implementation="works.szabope.plugins.pylint.vcs.PylintCheckinHandlerFactory" />
+    </extensions>
+
+    <actions>
+        <group id="works.szabope.plugins.pylint.PylintPluginActions" text="Pylint" popup="true">
+            <action id="works.szabope.plugins.pylint.action.RescanAction"
+                    class="works.szabope.plugins.pylint.action.RescanAction"
+                    icon="AllIcons.Actions.Refresh"/>
+            <action id="works.szabope.plugins.pylint.action.StopCheckAction"
+                    class="works.szabope.plugins.pylint.action.StopCheckAction"
+                    icon="AllIcons.Actions.Suspend"/>
+            <action id="works.szabope.plugins.pylint.action.ScanCurrentlyFocusedOneInEditorAction"
+                    class="works.szabope.plugins.pylint.action.ScanCurrentlyFocusedOneInEditorAction"
+                    icon="AllIcons.Actions.Execute"/>
+            <separator/>
+            <action id="works.szabope.plugins.pylint.action.ScrollToSourceAction"
+                    class="works.szabope.plugins.pylint.action.ScrollToSourceDummyAction"
+                    icon="AllIcons.General.AutoscrollToSource"/>
+            <separator/>
+            <action id="works.szabope.plugins.pylint.action.ExpandAllAction"
+                    class="works.szabope.plugins.pylint.action.ExpandAllAction"
+                    icon="AllIcons.Actions.Expandall"/>
+            <action id="works.szabope.plugins.pylint.action.CollapseAllAction"
+                    class="works.szabope.plugins.pylint.action.CollapseAllAction"
+                    icon="AllIcons.Actions.Collapseall"/>
+            <separator/>
+            <group id="works.szabope.plugins.pylint.ErrorLevelDisplayOptions"
+                   icon="AllIcons.Actions.GroupBy"
+                   popup="true">
+                <separator key="group.works.szabope.plugins.pylint.ErrorLevelDisplayOptions.text"/>
+                <group id="works.szabope.plugins.pylint.ErrorLevelDisplayOptions.SeverityFilters"
+                       class="works.szabope.plugins.pylint.action.SeverityFiltersActionGroup"/>
+            </group>
+            <separator/>
+            <action id="works.szabope.plugins.pylint.action.OpenSettingsAction"
+                    class="works.szabope.plugins.pylint.action.OpenSettingsAction"
+                    icon="AllIcons.General.GearPlain"/>
+        </group>
+        <action id="works.szabope.plugins.pylint.action.ScanAction"
+                class="works.szabope.plugins.pylint.action.ScanAction"
+                icon="/icons/pylintScanAction.svg">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <add-to-group group-id="EditorTabPopupMenu" anchor="last"/>
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+            <add-to-group group-id="ChangesViewPopupMenu" anchor="last"/>
+        </action>
+        <action id="works.szabope.plugins.pylint.action.InstallPylintAction"
+                class="works.szabope.plugins.pylint.action.InstallPylintAction"/>
+    </actions>
+</idea-plugin>

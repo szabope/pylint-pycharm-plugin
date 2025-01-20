@@ -1,0 +1,106 @@
+{
+  "messages": [
+    {
+      "type": "fatal",
+      "symbol": "fake-fatal-symbol",
+      "message": "Fatal issue",
+      "messageId": "F0104",
+      "confidence": "HIGH",
+      "module": "src.manualScan",
+      "obj": "",
+      "line": 1,
+      "column": 0,
+      "endLine": 1,
+      "endColumn": 4,
+      "path": "src/a.py",
+      "absolutePath": "/src/a.py"
+    },
+    {
+      "type": "error",
+      "symbol": "fake-error-symbol",
+      "message": "Error issue",
+      "messageId": "E0104",
+      "confidence": "HIGH",
+      "module": "src.manualScan",
+      "obj": "",
+      "line": 2,
+      "column": 0,
+      "endLine": 2,
+      "endColumn": 4,
+      "path": "src/a.py",
+      "absolutePath": "/src/a.py"
+    },
+    {
+      "type": "warning",
+      "symbol": "fake-warning-symbol",
+      "message": "Warning issue",
+      "messageId": "W0104",
+      "confidence": "HIGH",
+      "module": "src.manualScan",
+      "obj": "",
+      "line": 1,
+      "column": 0,
+      "endLine": 1,
+      "endColumn": 4,
+      "path": "src/a.py",
+      "absolutePath": "/src/a.py"
+    },
+    {
+      "type": "refactor",
+      "symbol": "fake-refactor-symbol",
+      "message": "Refactor issue",
+      "messageId": "R0104",
+      "confidence": "HIGH",
+      "module": "src.manualScan",
+      "obj": "",
+      "line": 2,
+      "column": 0,
+      "endLine": 2,
+      "endColumn": 4,
+      "path": "src/a.py",
+      "absolutePath": "/src/a.py"
+    },
+    {
+      "type": "convention",
+      "symbol": "fake-convention-symbol",
+      "message": "Convention issue",
+      "messageId": "C0104",
+      "confidence": "HIGH",
+      "module": "src.manualScan",
+      "obj": "",
+      "line": 1,
+      "column": 0,
+      "endLine": 1,
+      "endColumn": 4,
+      "path": "src/a.py",
+      "absolutePath": "/src/a.py"
+    },
+    {
+      "type": "info",
+      "symbol": "fake-info-symbol",
+      "message": "Info issue",
+      "messageId": "I0104",
+      "confidence": "HIGH",
+      "module": "src.manualScan",
+      "obj": "",
+      "line": 2,
+      "column": 0,
+      "endLine": 2,
+      "endColumn": 4,
+      "path": "src/a.py",
+      "absolutePath": "/src/a.py"
+    }
+  ],
+  "statistics": {
+    "messageTypeCount": {
+      "fatal": 1,
+      "error": 1,
+      "warning": 1,
+      "refactor": 1,
+      "convention": 1,
+      "info": 1
+    },
+    "modulesLinted": 0,
+    "score": 0
+  }
+}

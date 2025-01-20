@@ -1,0 +1,8 @@
+#!/bin/bash
+if [ "$1" = "--version" ]; then
+  echo "pylint 3.3.3"
+  echo "astroid 3.3.8"
+  echo "Python 3.11.2 (main, Sep 14 2024, 03:00:30) [GCC 12.2.0]"
+else
+  echo "This is an error printed to stdout"
+fi
