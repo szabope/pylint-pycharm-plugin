@@ -21,7 +21,7 @@
                 bundle="messages.PylintBundle"/>
         <externalAnnotator language="Python"
                            implementationClass="works.szabope.plugins.pylint.annotator.PylintAnnotator"/>
-        <localInspection language="Python" level="ERROR" shortName="PylintInspection"
+        <localInspection language="Python" level="WARNING" shortName="PylintInspection"
                          implementationClass="works.szabope.plugins.pylint.annotator.PylintInspection"
                          groupBundle="messages.PylintBundle" groupKey="pylint.inspection.group_name"
                          bundle="messages.PylintBundle" key="pylint.inspection.name" enabledByDefault="true"/>
