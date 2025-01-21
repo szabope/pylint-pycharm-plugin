@@ -165,6 +165,9 @@ class PylintConfigurable(private val project: Project) : BoundSearchableConfigur
                         override fun invoke() = !buttonClicked.get() && PylintPackageUtil.canInstall(project)
                         override fun addListener(listener: (Boolean) -> Unit) = buttonClicked.afterChange(listener)
                     })
+                    if (!PylintPackageUtil.isLocalEnvironment(project)) {
+                        result.comment(PylintBundle.message("pylint.intention.install_pylint.not_supported.system_wide"))
+                    }
                 }.layout(RowLayout.PARENT_GRID)
             }
         }
