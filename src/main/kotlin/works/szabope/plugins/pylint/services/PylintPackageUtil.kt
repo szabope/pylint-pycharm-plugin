@@ -19,6 +19,11 @@ object PylintPackageUtil {
         return !PythonSdkUtil.isRemote(sdk) && !isInstalled(project)
     }
 
+    fun isLocalEnvironment(project: Project): Boolean {
+        val sdk = project.pythonSdk ?: return false
+        return PythonSdkUtil.isVirtualEnv(sdk) || PythonSdkUtil.isCondaVirtualEnv(sdk)
+    }
+
     @Suppress("IncorrectServiceRetrieving")
     fun getPackageManager(project: Project): PackageManagementService? {
         return project.pythonSdk?.let { sdk -> project.service<PackageManagerHolder>().bridgeForSdk(project, sdk) }
