@@ -73,8 +73,6 @@ and currently focused in the Editor.
   in the project and changes views.
 
 ## Known issues
-- `Pylint result mismatch for PylintMessage(type=fatal, message=No module named /tmp/pycharm_pylint_3996175352252216630_...`\
-I've seen it once, but can't reproduce. If you can, please, let me know. (about the steps, not about the fact)
 - If Roberto's plugin is enabled when you install this one, then you get \
 `Conflicting component name 'PylintConfigService': class com.leinardi.pycharm.pylint.PylintConfigService and class works.szabope.plugins.pylint.services.OldPylintSettings`\
 But it still works.

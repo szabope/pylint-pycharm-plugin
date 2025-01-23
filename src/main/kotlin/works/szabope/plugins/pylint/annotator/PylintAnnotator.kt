@@ -43,7 +43,8 @@ internal class PylintAnnotator : ExternalAnnotator<PylintAnnotator.AnnotatorInfo
             "Please, report this issue at https://github.com/szabope/pylint-pycharm-plugin/issues"
         }
 
-        val tempFile = kotlin.io.path.createTempFile(prefix = "pycharm_pylint_", suffix = "_" + info.file.name)
+        val tempFile = kotlin.io.path.createTempFile(prefix = "pycharm_pylint_", suffix = ".py")
+        logger.debug("Temporary file ${tempFile.pathString} created for ${info.file.name}")
         try {
             tempFile.toFile().deleteOnExit()
             tempFile.writeText(document.charsSequence)
