@@ -36,6 +36,9 @@
 
     <actions>
         <group id="works.szabope.plugins.pylint.PylintPluginActions" text="Pylint" popup="true">
+            <action id="works.szabope.plugins.pylint.action.TestOnlyAction"
+                    class="works.szabope.plugins.pylint.action.TestOnlyAction"
+                    icon="AllIcons.Actions.Colors"/>
             <action id="works.szabope.plugins.pylint.action.RescanAction"
                     class="works.szabope.plugins.pylint.action.RescanAction"
                     icon="AllIcons.Actions.Refresh"/>
