@@ -138,6 +138,46 @@ class PylintService(private val project: Project, private val cs: CoroutineScope
             })
         }
 
+    fun scanWithSdkAsync(environment: ExecutionEnvironment) {
+        ProgramRunnerUtil.executeConfigurationAsync(environment, false, false) {
+            val handler = it.processHandler
+            if (handler != null) {
+                cs.launch {
+                    val stdout = handler.collectOutput { _, outputType -> outputType == ProcessOutputType.STDOUT }
+                    val pylintResult = PylintJson2OutputParser.parse(stdout)
+                    PublishingOutputHandler(project).handle(pylintResult)
+                }
+            }
+        }
+    }
+
+    private suspend fun ProcessHandler.collectOutput(handler: (event: ProcessEvent, outputType: Key<*>) -> Boolean): String =
+        suspendCancellableCoroutine { continuation ->
+            val wholeOutput = StringBuilder()
+            val stdout = StringBuilder()
+            addProcessListener(object : ProcessListener {
+                override fun startNotified(event: ProcessEvent) {
+                    event.text?.let(wholeOutput::append)
+                }
+
+                override fun processTerminated(event: ProcessEvent) {
+                    event.text?.let(wholeOutput::append)
+                    if (event.exitCode == 0) {
+                        continuation.resume(stdout.toString())
+                    } else {
+                        continuation.resumeWithException(IllegalStateException("\n=== CONSOLE ===\n$wholeOutput\n=== CONSOLE END ==="))
+                    }
+                }
+
+                override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
+                    event.text?.let(wholeOutput::append)
+                    if (handler(event, outputType)) {
+                        event.text?.let(stdout::append)
+                    }
+                }
+            })
+        }
+
     fun cancelScan() {
         cs.launch {
             manualScanJob?.cancelAndJoin()
