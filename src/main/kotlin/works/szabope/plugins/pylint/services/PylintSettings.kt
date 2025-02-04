@@ -168,7 +168,7 @@ class PylintSettings(internal val project: Project) :
             }
 
             val processResult = runBlocking {
-                Cli.execute("$path --version")
+                Cli.execute(path, "--version")
             }
             if (processResult.resultCode != 0) {
                 return SettingsValidationProblem(
@@ -228,8 +228,8 @@ class PylintSettings(internal val project: Project) :
     }
 
     suspend fun autodetectExecutable(): String? {
-        val locateCommand = if (SystemInfo.isWindows) "where.exe pylint.exe" else "which pylint"
-        val processResult = PythonEnvironmentAwareCli(project).execute(locateCommand)
+        val locateCommand = if (SystemInfo.isWindows) arrayOf("where.exe", "pylint.exe") else arrayOf("which", "pylint")
+        val processResult = PythonEnvironmentAwareCli(project).execute(command = locateCommand)
         return when (processResult.resultCode) { // same for linux and windows
             0 -> processResult.stdout.lines().first().trim().ifBlank { null }
             1 -> null
@@ -242,7 +242,7 @@ class PylintSettings(internal val project: Project) :
                 ) {
                     if (it.eventType == HyperlinkEvent.EventType.ACTIVATED) {
                         IDialogManager.showPylintExecutionErrorDialog(
-                            locateCommand, processResult.stderr, processResult.resultCode
+                            locateCommand.joinToString(" "), processResult.stderr, processResult.resultCode
                         )
                     }
                 }

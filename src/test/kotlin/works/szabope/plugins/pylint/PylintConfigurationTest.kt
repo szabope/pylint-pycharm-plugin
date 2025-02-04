@@ -120,7 +120,7 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
             DialogWrapper.OK_EXIT_CODE
         }
         mockkObject(Cli)
-        coEvery { Cli.execute("which pylint", workDir = any(), env = any()) } returns Cli.Status(2, emptyList(), "")
+        coEvery { Cli.execute("which", "pylint", workDir = any(), env = any()) } returns Cli.Status(2, emptyList(), "")
         runBlocking {
             val result = PylintSettings.getInstance(project).autodetectExecutable()
             assertNull(result)

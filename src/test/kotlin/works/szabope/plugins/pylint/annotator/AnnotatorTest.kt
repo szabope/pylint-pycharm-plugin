@@ -30,4 +30,15 @@ class AnnotatorTest : BasePlatformTestCase() {
         myFixture.configureByText("a.py", "tutu = 8")
         myFixture.doHighlighting()
     }
+
+    fun `test MypyAnnotator does not fail if mypy executable path has a space in it`() {
+        with(PylintSettings.getInstance(project)) {
+            executablePath = Paths.get(testDataPath).resolve("white space/pylint").absolutePathString()
+            configFilePath = Paths.get(testDataPath).resolve("white space/configuration.toml").absolutePathString()
+            projectDirectory = Paths.get(testDataPath).pathString
+            arguments = null
+        }
+        myFixture.configureByText("a.py", "tutu = 8")
+        assertNotEmpty(myFixture.doHighlighting())
+    }
 }
