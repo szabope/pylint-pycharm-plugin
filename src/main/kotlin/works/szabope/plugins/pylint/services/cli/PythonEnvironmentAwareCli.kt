@@ -6,13 +6,13 @@ import com.intellij.util.EnvironmentUtil
 
 class PythonEnvironmentAwareCli(private val project: Project) {
 
-    suspend fun execute(command: String, workDir: String? = null): Cli.Status {
-        require(command.isNotBlank())
+    suspend fun execute(vararg command: String, workDir: String? = null): Cli.Status {
+        require(command.isNotEmpty())
         val environment = getEnvironment().toMutableMap()
         val environmentAwareCommand = PyVirtualEnvTerminalCustomizer().customizeCommandAndEnvironment(
-            project, project.basePath, command.split(" ").toTypedArray(), environment
-        ).filter { it.isNotEmpty() }.joinToString(" ")
-        return Cli.execute(environmentAwareCommand, workDir, environment)
+            project, project.basePath, command, environment
+        ).filter { it.isNotEmpty() }.toTypedArray()
+        return Cli.execute(command = environmentAwareCommand, workDir, environment)
     }
 
     private fun getEnvironment(): Map<String, String> {

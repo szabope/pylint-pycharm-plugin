@@ -24,13 +24,13 @@ object Cli {
         val stderr: String get() = stderrLines.joinToString("\n")
     }
 
-    suspend fun execute(command: String, workDir: String? = null, env: Map<String, String>? = null): Status {
-        require(command.isNotBlank())
+    suspend fun execute(vararg command: String, workDir: String? = null, env: Map<String, String>? = null): Status {
+        require(command.isNotEmpty())
         val directory = workDir?.let { java.io.File(workDir) }
         val handler = StdoutHandler()
         return withContext(Dispatchers.IO) {
             val result = process(
-                *command.split(" ").toTypedArray(),
+                command = command,
                 stdout = Redirect.Consume { handler.handle(it) },
                 stderr = Redirect.CAPTURE,
                 directory = directory,
