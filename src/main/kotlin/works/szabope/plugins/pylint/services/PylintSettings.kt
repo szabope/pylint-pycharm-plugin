@@ -27,7 +27,8 @@ class PylintSettings(internal val project: Project) :
     @ApiStatus.Internal
     class PylintState : BaseState() {
         var executablePath by string()
-        var configFilePath by string()
+        var useProjectSdk: Boolean? = null
+        var configFilePath: String? by string()
         var arguments by string()
         var autoScrollToSource by property(false)
         var excludeNonProjectFiles by property(true)
@@ -35,6 +36,12 @@ class PylintSettings(internal val project: Project) :
         val customExclusions by list<String>()
         var scanBeforeCheckIn by property(false)
     }
+
+    var useProjectSdk
+        get() = state.useProjectSdk
+        set(value) {
+            state.useProjectSdk = value
+        }
 
     var executablePath
         get() = state.executablePath

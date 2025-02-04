@@ -13,13 +13,15 @@ import com.intellij.openapi.options.BoundSearchableConfigurable
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.util.Condition
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.ui.dsl.builder.*
 import com.intellij.ui.layout.ComponentPredicate
+import com.intellij.ui.layout.and
+import com.jetbrains.python.sdk.PySdkPopupFactory
+import com.jetbrains.python.sdk.noInterpreterMarker
+import com.jetbrains.python.sdk.pythonSdk
 import org.jetbrains.annotations.ApiStatus
 import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.PylintBundle
@@ -35,23 +37,35 @@ class PylintConfigurable(private val project: Project) : BoundSearchableConfigur
     private val settings
         get() = PylintSettings.getInstance(project)
 
-    private val executableChooserDescriptor =
-        FileChooserDescriptor(true, false, false, false, false, false).withFileFilter(
-            FileFilter(
-                if (SystemInfo.isWindows) {
-                    listOf("pylint.exe", "pylint.bat")
-                } else {
-                    listOf("pylint")
-                }
-            )
-        )
+    override fun createPanel() = panel {
+        indent {
+            pylintPicker()
+            configFilePicker()
+            argumentsField()
+            projectDirectoryPicker()
+            excludeNonProjectFilesCheckbox()
+        }
+    }
 
-    private val directoryChooserDescriptor = FileChooserDescriptor(false, true, false, false, false, false)
+    override fun apply() {
+        if ((createComponent() as DialogPanel).validateAll().isEmpty()) {
+            super.apply()
+        }
+    }
 
-    private fun Row.installButton() {
-        val pathToExecutableComponent = TextFieldWithBrowseButton() // TODO: doesn't belong here
+    @ApiStatus.Internal
+    class FileFilter(private val fileNames: List<String>) : Condition<VirtualFile> {
+        override fun value(t: VirtualFile?): Boolean {
+            return fileNames.contains(t?.name ?: return false)
+        }
+    }
+
+    private fun Row.installButton(enabled: ComponentPredicate) {
         val buttonClicked = AtomicBooleanProperty(false)
         val action = ActionManager.getInstance().getAction(InstallPylintAction.ID)
+        label(project.pythonSdk?.let { PySdkPopupFactory.shortenNameInPopup(it, 50) } ?: noInterpreterMarker).align(
+            Align.FILL
+        )
         lateinit var result: Cell<JButton>
         result = button(PylintBundle.message("pylint.intention.install_pylint.text")) {
             val dataContext = DataManager.getInstance().getDataContext(result.component)
@@ -60,49 +74,68 @@ class PylintConfigurable(private val project: Project) : BoundSearchableConfigur
             )
             ActionUtil.invokeAction(action, event) {
                 buttonClicked.set(false)
-                if (pathToExecutableComponent.text.isBlank()) {
-                    runWithModalProgressBlocking(
-                        project, PylintBundle.message("pylint.settings.autodetect.in_progress")
-                    ) {
-                        pathToExecutableComponent.text = settings.autodetectExecutable() ?: ""
-                    }
-                }
             }
         }.enabledIf(object : ComponentPredicate() {
             override fun invoke() = !buttonClicked.get() && PylintPackageUtil.canInstall(project)
-            override fun addListener(listener: (Boolean) -> Unit) = buttonClicked.afterChange(listener)
-        })
-        if (!PylintPackageUtil.isLocalEnvironment(project)) {
-            result.comment(PylintBundle.message("pylint.intention.install_pylint.not_supported.system_wide"))
-        }
+            override fun addListener(listener: (Boolean) -> Unit) {
+                buttonClicked.afterChange(listener)
+            }
+        }.and(enabled))
     }
 
-    private fun Panel.pathToExecutable() = row {
-        label(PylintBundle.message("pylint.settings.path_to_executable.label"))
-        val pathToExecutableField = textFieldWithBrowseButton(
-            project = project, fileChooserDescriptor = executableChooserDescriptor
-        )
-        val pathToExecutableComponent = pathToExecutableField.component
-        pathToExecutableField.align(Align.FILL).bindText(
-            getter = { settings.executablePath.orEmpty() },
-            setter = { settings.executablePath = it.trimToNull() },
-        ).validationOnInput { field ->
-            if (field.text.isBlank()) {
-                val message = PylintBundle.message("pylint.settings.path_to_executable.empty_warning")
-                return@validationOnInput warning(message)
-            }
-            null
-        }.validationOnApply {
-            settings.validateExecutable(pathToExecutableComponent.text.trimToNull())?.also {
-                return@validationOnApply error(it.message)
-            }
-            null
-        }.resizableColumn()
-    }.rowComment(
-        PylintBundle.message(
-            "pylint.settings.path_to_executable.comment", PylintArgs.PYLINT_MANDATORY_COMMAND_ARGS
-        ), maxLineLength = MAX_LINE_LENGTH_WORD_WRAP
-    ).layout(RowLayout.PARENT_GRID)
+    private fun Panel.pylintPicker() =
+        buttonsGroup(title = PylintBundle.message("pylint.settings.pylint_picker_title")) {
+            row {
+                val executableOption =
+                    radioButton(PylintBundle.message("pylint.settings.path_to_executable.label"), !USE_PROJECT_SDK)
+                executableOption.component
+                val executableChooserDescriptor =
+                    FileChooserDescriptor(true, false, false, false, false, false).withFileFilter(
+                        FileFilter(
+                            if (SystemInfo.isWindows) {
+                                listOf("pylint.exe", "pylint.bat")
+                            } else {
+                                listOf("pylint")
+                            }
+                        )
+                    )
+                val pathToExecutableField = textFieldWithBrowseButton(
+                    project = project, fileChooserDescriptor = executableChooserDescriptor
+                )
+                val pathToExecutableComponent = pathToExecutableField.component
+                pathToExecutableField.align(Align.FILL).bindText(
+                    getter = { settings.executablePath.orEmpty() },
+                    setter = { settings.executablePath = it.trimToNull() },
+                ).validationOnInput { field ->
+                    if (field.text.isBlank()) {
+                        val message = PylintBundle.message("pylint.settings.path_to_executable.empty_warning")
+                        return@validationOnInput warning(message)
+                    }
+                    null
+                }.validationOnApply {
+                    settings.validateExecutable(pathToExecutableComponent.text.trimToNull())?.also {
+                        return@validationOnApply error(it.message)
+                    }
+                    null
+                }.resizableColumn().enabledIf(executableOption.selected)
+            }.layout(RowLayout.PARENT_GRID)
+            row {
+                val sdkOption =
+                    radioButton(PylintBundle.message("pylint.settings.use_project_sdk"), USE_PROJECT_SDK).enabled(
+                        project.pythonSdk != null
+                    )
+                sdkOption.component
+                installButton(sdkOption.selected)
+            }.rowComment(
+                comment = if (!PylintPackageUtil.isLocalEnvironment(project)) {
+                    PylintBundle.message("pylint.intention.install_pylint.not_supported.system_wide")
+                } else {
+                    ""
+                }, maxLineLength = MAX_LINE_LENGTH_WORD_WRAP
+            ).layout(RowLayout.PARENT_GRID)
+        }.bind(
+            getter = { settings.useProjectSdk ?: (settings.executablePath == null && project.pythonSdk != null) },
+            setter = { settings.useProjectSdk = it })
 
     private fun Panel.configFilePicker() = row {
         label(PylintBundle.message("pylint.settings.config_file.label"))
@@ -133,6 +166,7 @@ class PylintConfigurable(private val project: Project) : BoundSearchableConfigur
 
     private fun Panel.projectDirectoryPicker() = row {
         label(PylintBundle.message("pylint.settings.project_directory.label"))
+        val directoryChooserDescriptor = FileChooserDescriptor(false, true, false, false, false, false)
         val projectDirectoryField = textFieldWithBrowseButton(
             project = project, fileChooserDescriptor = directoryChooserDescriptor
         )
@@ -159,32 +193,8 @@ class PylintConfigurable(private val project: Project) : BoundSearchableConfigur
             setter = { settings.isExcludeNonProjectFiles = it })
     }.layout(RowLayout.PARENT_GRID)
 
-    override fun createPanel(): DialogPanel {
-        return panel {
-            indent {
-                pathToExecutable()
-                configFilePicker()
-                argumentsField()
-                projectDirectoryPicker()
-                excludeNonProjectFilesCheckbox()
-            }
-        }
-    }
-
-    override fun apply() {
-        if ((createComponent() as DialogPanel).validateAll().isEmpty()) {
-            super.apply()
-        }
-    }
-
-    @ApiStatus.Internal
-    class FileFilter(private val fileNames: List<String>) : Condition<VirtualFile> {
-        override fun value(t: VirtualFile?): Boolean {
-            return fileNames.contains(t?.name ?: return false)
-        }
-    }
-
     companion object {
         const val ID = "Settings.Pylint"
+        const val USE_PROJECT_SDK = true
     }
 }
