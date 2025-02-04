@@ -53,12 +53,19 @@ class PylintService(private val project: Project, private val cs: CoroutineScope
         val command = buildCommand(runConfiguration, filePaths)
         val handler = CollectingOutputHandler()
         try {
-            runBlockingCancellable { execute(command, runConfiguration.projectDirectory, handler) }
+            runBlockingCancellable { execute(command = command, runConfiguration.projectDirectory, handler) }
             return handler.getResults()
         } catch (e: PylintParserException) {
             logger.warn(PylintBundle.message("pylint.executable.parsing-result-failed", e))
         } catch (e: CommandExecutionException) {
-            logger.warn(PylintBundle.message("pylint.executable.error", command, e.statusCode, e.stderr))
+            logger.warn(
+                PylintBundle.message(
+                    "pylint.executable.error",
+                    command.joinToString(" "),
+                    e.statusCode,
+                    e.stderr
+                )
+            )
         }
         return emptyList()
     }
@@ -68,17 +75,17 @@ class PylintService(private val project: Project, private val cs: CoroutineScope
         val handler = PublishingOutputHandler(project)
         manualScanJob = cs.launch {
             try {
-                execute(command, runConfiguration.projectDirectory, handler)
+                execute(command = command, runConfiguration.projectDirectory, handler)
             } catch (e: PylintParserException) {
                 showClickableBalloonError(PylintBundle.message("pylint.toolwindow.balloon.parse_error")) {
                     IDialogManager.showPylintParseErrorDialog(
-                        command, e.sourceJson, e.cause?.message ?: "N/A"
+                        command.joinToString(" "), e.sourceJson, e.cause?.message ?: "N/A"
                     )
                 }
             } catch (e: CommandExecutionException) {
                 showClickableBalloonError(PylintBundle.message("pylint.toolwindow.balloon.external_error")) {
                     IDialogManager.showPylintExecutionErrorDialog(
-                        command, e.stderr, e.statusCode
+                        command.joinToString(" "), e.stderr, e.statusCode
                     )
                 }
             }
@@ -102,16 +109,17 @@ class PylintService(private val project: Project, private val cs: CoroutineScope
     }
 
     private fun buildCommand(runConfiguration: RunConfiguration, targets: List<String>) = with(runConfiguration) {
-        val commandBuilder = StringBuilder(executablePath)
-        configFilePath.nullize(true)?.apply { commandBuilder.append(" --rcfile $this") }
-        arguments.nullize(true)?.apply { commandBuilder.append(" $this") }
+        val command = mutableListOf(executablePath)
+        configFilePath.nullize(true)?.apply { command.add("--rcfile"); command.add(this) }
+        arguments.nullize(true)?.apply { command.addAll(split(" ")) }
         if (excludeNonProjectFiles) {
             targets.flatMap { collectExclusionsFor(it) }.union(customExclusions).joinToString(",").nullize()
-                ?.apply { commandBuilder.append(" --ignore-paths $this") }
+                ?.apply { command.add("--ignore-paths"); command.add(this) }
         }
         // in case of duplicated arguments, latter one wins
-        commandBuilder.append(" ").append(PylintArgs.PYLINT_MANDATORY_COMMAND_ARGS)
-        commandBuilder.append(" ").append(targets.joinToString(" ")).toString()
+        command.addAll(PylintArgs.PYLINT_MANDATORY_COMMAND_ARGS.split(" "))
+        command.addAll(targets)
+        command.toTypedArray()
     }
 
     private fun collectExclusionsFor(target: String): List<String> {
@@ -128,8 +136,8 @@ class PylintService(private val project: Project, private val cs: CoroutineScope
     }
 
 
-    private suspend fun execute(command: String, workDir: String, stdoutHandler: IPylintOutputHandler) {
-        val cliResult = PythonEnvironmentAwareCli(project).execute(command, workDir)
+    private suspend fun execute(vararg command: String, workDir: String, stdoutHandler: IPylintOutputHandler) {
+        val cliResult = PythonEnvironmentAwareCli(project).execute(command = command, workDir)
         if (cliResult.resultCode != 0) {
             throw CommandExecutionException(cliResult.resultCode, cliResult.stderr)
         }
