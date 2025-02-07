@@ -86,6 +86,11 @@ class PylintManualScanTest : AbstractToolWindowTestCase() {
         with(PylintSettings.getInstance(myFixture.project)) {
             executablePath = Paths.get(myFixture.testDataPath).resolve(executable).absolutePathString()
             projectDirectory = Paths.get(myFixture.testDataPath).pathString
+            useProjectSdk = false
+            configFilePath = null
+            isScanBeforeCheckIn = false
+            arguments = null
+            isExcludeNonProjectFiles = true
         }
     }
 }

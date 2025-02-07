@@ -37,6 +37,7 @@ class AnnotatorTest : BasePlatformTestCase() {
             configFilePath = Paths.get(testDataPath).resolve("white space/configuration.toml").absolutePathString()
             projectDirectory = Paths.get(testDataPath).pathString
             arguments = null
+            useProjectSdk = false
         }
         myFixture.configureByText("a.py", "tutu = 8")
         assertNotEmpty(myFixture.doHighlighting())
