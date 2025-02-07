@@ -1,9 +1,9 @@
 package works.szabope.plugins.pylint
 
-import works.szabope.plugins.pylint.services.PylintService
+import works.szabope.plugins.pylint.run.ExecutorConfiguration
 import works.szabope.plugins.pylint.services.PylintSettings
 
-fun PylintSettings.toRunConfiguration() = PylintService.MyRunConfiguration(
+fun PylintSettings.toRunConfiguration() = ExecutorConfiguration(
     executablePath!!,
     useProjectSdk,
     configFilePath,

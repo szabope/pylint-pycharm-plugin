@@ -17,7 +17,7 @@ import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 import javax.swing.JComponent
 
-class PylintRunner : PythonRunner() {
+class PylintRunner private constructor(): PythonRunner() {
 
     override fun getRunnerId() = "works.szabope.plugins.pylint.run.PylintRunner"
     override fun canRun(executorId: String, profile: RunProfile): Boolean {
@@ -64,5 +64,13 @@ class PylintRunner : PythonRunner() {
         } else {
             ApplicationManager.getApplication().invokeAndWait(clientIdRunnable)
         }
+    }
+
+    companion object {
+        @JvmStatic
+        private val INSTANCE = PylintRunner()
+
+        @JvmStatic
+        fun getInstance() = INSTANCE
     }
 }

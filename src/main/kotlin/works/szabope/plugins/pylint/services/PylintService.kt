@@ -28,6 +28,7 @@ import kotlinx.coroutines.*
 import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.dialog.IDialogManager
+import works.szabope.plugins.pylint.run.ExecutorConfiguration
 import works.szabope.plugins.pylint.run.PylintConfigurationType
 import works.szabope.plugins.pylint.run.PylintRunner
 import works.szabope.plugins.pylint.services.cli.PythonEnvironmentAwareCli
@@ -42,26 +43,15 @@ import kotlin.io.path.Path
 class PylintService(private val project: Project, private val cs: CoroutineScope) {
 
     private val logger = logger<PylintService>()
-    private val pylintRunner = PylintRunner()
     private var manualScanJob: Job? = null
 
     val scanInProgress: Boolean
         get() = manualScanJob?.isActive == true
 
-    class MyRunConfiguration( //TODO: name it right
-        val executablePath: String,
-        val useProjectSdk: Boolean,
-        val configFilePath: String? = null,
-        val arguments: String? = null,
-        val excludeNonProjectFiles: Boolean = true,
-        val customExclusions: List<String> = listOf(),
-        val projectDirectory: String
-    )
-
     class CommandExecutionException(val statusCode: Int, val stderr: String) : RuntimeException(statusCode.toString())
 
     @Suppress("UnstableApiUsage")
-    fun scan(filePaths: List<String>, runConfiguration: MyRunConfiguration): List<PylintMessage> {
+    fun scan(filePaths: List<String>, runConfiguration: ExecutorConfiguration): List<PylintMessage> {
         val command = buildCommand(runConfiguration, filePaths)
         val handler = CollectingOutputHandler()
         try {
@@ -79,7 +69,7 @@ class PylintService(private val project: Project, private val cs: CoroutineScope
         return emptyList()
     }
 
-    fun scanAsync(scanPaths: List<String>, runConfiguration: MyRunConfiguration) {
+    fun scanAsync(scanPaths: List<String>, runConfiguration: ExecutorConfiguration) {
         val command = buildCommand(runConfiguration, scanPaths)
         val handler = PublishingOutputHandler(project)
 
@@ -96,10 +86,10 @@ class PylintService(private val project: Project, private val cs: CoroutineScope
             conf.isModuleMode = true
             conf.collectOutputFromProcessHandler()
             val settings = RunManager.getInstance(project).createConfiguration(conf, configurationFactory)
-            // as RunnerAndConfigurationSettingsImpl
             settings.isActivateToolWindowBeforeRun = false
             val executor = DefaultRunExecutor.getRunExecutorInstance()
-            val environment = ExecutionEnvironmentBuilder.create(executor, settings).runner(pylintRunner).build()
+            val environment =
+                ExecutionEnvironmentBuilder.create(executor, settings).runner(PylintRunner.getInstance()).build()
             ProgramRunnerUtil.executeConfigurationAsync(environment, false, false) {
                 if (it.processHandler != null) {
                     manualScanJob = cs.launch {
@@ -172,17 +162,22 @@ class PylintService(private val project: Project, private val cs: CoroutineScope
         }
     }
 
-    private fun buildCommand(runConfiguration: MyRunConfiguration, targets: List<String>) = with(runConfiguration) {
+    private fun buildCommand(runConfiguration: ExecutorConfiguration, targets: List<String>) = with(runConfiguration) {
         val command = mutableListOf(executablePath)
-        configFilePath.nullize(true)?.apply { command.add("--rcfile"); command.add("\"$this\"") }
+        fun maybeQuoted(original: String) = if (runConfiguration.useProjectSdk) {
+            "\"$original\""
+        } else {
+            original
+        }
+        configFilePath.nullize(true)?.apply { command.add("--rcfile"); command.add(maybeQuoted(this)) }
         arguments.nullize(true)?.apply { command.addAll(split(" ")) }
         if (excludeNonProjectFiles) {
             targets.flatMap { collectExclusionsFor(it) }.union(customExclusions).joinToString(",").nullize()
-                ?.apply { command.add("--ignore-paths"); command.add("\"$this\"") }
+                ?.apply { command.add("--ignore-paths"); command.add(maybeQuoted(this)) }
         }
         // in case of duplicated arguments, latter one wins
         command.addAll(PylintArgs.PYLINT_MANDATORY_COMMAND_ARGS.split(" "))
-        command.addAll(targets.map { "\"$it\"" })
+        command.addAll(targets.map { maybeQuoted(it) })
         command.toTypedArray()
     }
 
