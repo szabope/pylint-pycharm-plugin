@@ -134,7 +134,7 @@ class PylintConfigurable(private val project: Project) : BoundSearchableConfigur
                 }, maxLineLength = MAX_LINE_LENGTH_WORD_WRAP
             ).layout(RowLayout.PARENT_GRID)
         }.bind(
-            getter = { settings.useProjectSdk ?: (settings.executablePath == null && project.pythonSdk != null) },
+            getter = { settings.useProjectSdk },
             setter = { settings.useProjectSdk = it })
 
     private fun Panel.configFilePicker() = row {

@@ -4,5 +4,11 @@ import works.szabope.plugins.pylint.services.PylintService
 import works.szabope.plugins.pylint.services.PylintSettings
 
 fun PylintSettings.toRunConfiguration() = PylintService.MyRunConfiguration(
-    executablePath!!, configFilePath, arguments, isExcludeNonProjectFiles, customExclusions, projectDirectory!!
+    executablePath!!,
+    useProjectSdk,
+    configFilePath,
+    arguments,
+    isExcludeNonProjectFiles,
+    customExclusions,
+    projectDirectory!!
 )

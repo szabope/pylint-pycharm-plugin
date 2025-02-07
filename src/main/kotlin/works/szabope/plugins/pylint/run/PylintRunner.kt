@@ -35,7 +35,7 @@ class PylintRunner : PythonRunner() {
                     state.execute(environment.executor, this)
                 }
                 ApplicationManager.getApplication()
-                    .invokeLater({ promise.setResult(x(executionResult, environment)) }, ModalityState.any())
+                    .invokeLater({ promise.setResult(executionResult?.let(::createDescriptor)) }, ModalityState.any())
             } catch (e: ExecutionException) {
                 promise.setError(e)
             }
@@ -43,16 +43,7 @@ class PylintRunner : PythonRunner() {
         return promise
     }
 
-    private fun x(executionResult: ExecutionResult?, environment: ExecutionEnvironment): RunContentDescriptor? {
-        return executionResult?.let {
-            createDescriptor(it, environment)
-        }
-    }
-
-    private fun createDescriptor(
-        executionResult: ExecutionResult,
-        environment: ExecutionEnvironment
-    ): RunContentDescriptor {
+    private fun createDescriptor(executionResult: ExecutionResult): RunContentDescriptor {
         val fakeJComponent = object : JComponent() {}
         val console = executionResult.executionConsole
         if (ApplicationManager.getApplication().isUnitTestMode) {
@@ -60,6 +51,7 @@ class PylintRunner : PythonRunner() {
         }
         val contentDescriptor =
             object : RunContentDescriptor(console, executionResult.processHandler, fakeJComponent, "P-Y-L-I-N-T") {
+                @Suppress("UnstableApiUsage")
                 override fun isHiddenContent() = true
             }
         return contentDescriptor

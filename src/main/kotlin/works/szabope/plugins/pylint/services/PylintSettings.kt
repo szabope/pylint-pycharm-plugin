@@ -8,6 +8,7 @@ import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.util.text.SemVer
+import com.jetbrains.python.sdk.pythonSdk
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.annotations.ApiStatus
 import works.szabope.plugins.pylint.PylintArgs
@@ -27,7 +28,7 @@ class PylintSettings(internal val project: Project) :
     @ApiStatus.Internal
     class PylintState : BaseState() {
         var executablePath by string()
-        var useProjectSdk: Boolean? = null
+        var useProjectSdk by property(false)
         var configFilePath: String? by string()
         var arguments by string()
         var autoScrollToSource by property(false)
@@ -121,7 +122,7 @@ class PylintSettings(internal val project: Project) :
         override fun toString() = message
     }
 
-    fun isComplete(): Boolean = state.executablePath != null && projectDirectory != null
+    fun isComplete(): Boolean = (state.executablePath != null || useProjectSdk) && projectDirectory != null
 
     fun ensureValid(): SettingsValidationProblem? {
         validateExecutable(state.executablePath)?.also {
@@ -146,6 +147,7 @@ class PylintSettings(internal val project: Project) :
         if (executablePath == null) {
             executablePath = oldPylintSettings?.executablePath ?: autodetectExecutable()
         }
+        useProjectSdk = useProjectSdk || (executablePath == null && project.pythonSdk != null)
         if (configFilePath == null) {
             configFilePath = oldPylintSettings?.configFilePath
         }

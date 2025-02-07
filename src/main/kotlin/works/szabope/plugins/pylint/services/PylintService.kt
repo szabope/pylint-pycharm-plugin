@@ -1,11 +1,13 @@
 package works.szabope.plugins.pylint.services
 
 import com.intellij.execution.ProgramRunnerUtil
+import com.intellij.execution.RunManager
+import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.process.ProcessOutputType
-import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.runners.ExecutionEnvironmentBuilder
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
@@ -21,10 +23,13 @@ import com.intellij.platform.workspace.jps.entities.ContentRootEntity
 import com.intellij.util.text.nullize
 import com.jetbrains.python.PythonFileType
 import com.jetbrains.python.pyi.PyiFileType
+import com.jetbrains.python.sdk.pythonSdk
 import kotlinx.coroutines.*
 import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.dialog.IDialogManager
+import works.szabope.plugins.pylint.run.PylintConfigurationType
+import works.szabope.plugins.pylint.run.PylintRunner
 import works.szabope.plugins.pylint.services.cli.PythonEnvironmentAwareCli
 import works.szabope.plugins.pylint.services.parser.*
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
@@ -37,14 +42,15 @@ import kotlin.io.path.Path
 class PylintService(private val project: Project, private val cs: CoroutineScope) {
 
     private val logger = logger<PylintService>()
-
+    private val pylintRunner = PylintRunner()
     private var manualScanJob: Job? = null
 
     val scanInProgress: Boolean
         get() = manualScanJob?.isActive == true
 
-    data class MyRunConfiguration( //TODO: name it right
+    class MyRunConfiguration( //TODO: name it right
         val executablePath: String,
+        val useProjectSdk: Boolean,
         val configFilePath: String? = null,
         val arguments: String? = null,
         val excludeNonProjectFiles: Boolean = true,
@@ -66,10 +72,7 @@ class PylintService(private val project: Project, private val cs: CoroutineScope
         } catch (e: CommandExecutionException) {
             logger.warn(
                 PylintBundle.message(
-                    "pylint.executable.error",
-                    command.joinToString(" "),
-                    e.statusCode,
-                    e.stderr
+                    "pylint.executable.error", command.joinToString(" "), e.statusCode, e.stderr
                 )
             )
         }
@@ -79,33 +82,48 @@ class PylintService(private val project: Project, private val cs: CoroutineScope
     fun scanAsync(scanPaths: List<String>, runConfiguration: MyRunConfiguration) {
         val command = buildCommand(runConfiguration, scanPaths)
         val handler = PublishingOutputHandler(project)
-        manualScanJob = cs.launch {
-            try {
-                execute(command = command, runConfiguration.projectDirectory, handler)
-            } catch (e: PylintParserException) {
-                showClickableBalloonError(PylintBundle.message("pylint.toolwindow.balloon.parse_error")) {
-                    IDialogManager.showPylintParseErrorDialog(
-                        command.joinToString(" "), e.sourceJson, e.cause?.message ?: "N/A"
-                    )
-                }
-            } catch (e: CommandExecutionException) {
-                showClickableBalloonError(PylintBundle.message("pylint.toolwindow.balloon.external_error")) {
-                    IDialogManager.showPylintExecutionErrorDialog(
-                        command.joinToString(" "), e.stderr, e.statusCode
-                    )
+
+        if (runConfiguration.useProjectSdk) {
+            val configurationFactory = PylintConfigurationType.INSTANCE.getFactory()
+            val conf = configurationFactory.createConfiguration(project, "pylint")
+            val workDir = project.basePath!!
+            conf.sdk = project.pythonSdk
+            conf.workingDirectory = workDir
+            conf.setAddContentRoots(true)
+            conf.setAddSourceRoots(true)
+            conf.scriptName = "pylint"
+            conf.scriptParameters = command.sliceArray(1..<command.size).joinToString(" ")
+            conf.isModuleMode = true
+            conf.collectOutputFromProcessHandler()
+            val settings = RunManager.getInstance(project).createConfiguration(conf, configurationFactory)
+            // as RunnerAndConfigurationSettingsImpl
+            settings.isActivateToolWindowBeforeRun = false
+            val executor = DefaultRunExecutor.getRunExecutorInstance()
+            val environment = ExecutionEnvironmentBuilder.create(executor, settings).runner(pylintRunner).build()
+            ProgramRunnerUtil.executeConfigurationAsync(environment, false, false) {
+                if (it.processHandler != null) {
+                    manualScanJob = cs.launch {
+                        it.processHandler?.collectOutput { _, outputType -> outputType == ProcessOutputType.STDOUT }
+                            ?.let { stdout -> PylintJson2OutputParser.parse(stdout) }?.apply { handler.handle(this) }
+                    }
                 }
             }
-        }
-    }
-
-    fun scanWithSdkAsync(environment: ExecutionEnvironment) {
-        ProgramRunnerUtil.executeConfigurationAsync(environment, false, false) {
-            val handler = it.processHandler
-            if (handler != null) {
-                cs.launch {
-                    val stdout = handler.collectOutput { _, outputType -> outputType == ProcessOutputType.STDOUT }
-                    val pylintResult = PylintJson2OutputParser.parse(stdout)
-                    PublishingOutputHandler(project).handle(pylintResult)
+        } else {
+            manualScanJob = cs.launch {
+                try {
+                    execute(command = command, runConfiguration.projectDirectory, handler)
+                } catch (e: PylintParserException) {
+                    showClickableBalloonError(PylintBundle.message("pylint.toolwindow.balloon.parse_error")) {
+                        IDialogManager.showPylintParseErrorDialog(
+                            command.joinToString(" "), e.sourceJson, e.cause?.message ?: "N/A"
+                        )
+                    }
+                } catch (e: CommandExecutionException) {
+                    showClickableBalloonError(PylintBundle.message("pylint.toolwindow.balloon.external_error")) {
+                        IDialogManager.showPylintExecutionErrorDialog(
+                            command.joinToString(" "), e.stderr, e.statusCode
+                        )
+                    }
                 }
             }
         }
@@ -156,15 +174,15 @@ class PylintService(private val project: Project, private val cs: CoroutineScope
 
     private fun buildCommand(runConfiguration: MyRunConfiguration, targets: List<String>) = with(runConfiguration) {
         val command = mutableListOf(executablePath)
-        configFilePath.nullize(true)?.apply { command.add("--rcfile"); command.add(this) }
+        configFilePath.nullize(true)?.apply { command.add("--rcfile"); command.add("\"$this\"") }
         arguments.nullize(true)?.apply { command.addAll(split(" ")) }
         if (excludeNonProjectFiles) {
             targets.flatMap { collectExclusionsFor(it) }.union(customExclusions).joinToString(",").nullize()
-                ?.apply { command.add("--ignore-paths"); command.add(this) }
+                ?.apply { command.add("--ignore-paths"); command.add("\"$this\"") }
         }
         // in case of duplicated arguments, latter one wins
         command.addAll(PylintArgs.PYLINT_MANDATORY_COMMAND_ARGS.split(" "))
-        command.addAll(targets)
+        command.addAll(targets.map { "\"$it\"" })
         command.toTypedArray()
     }
 

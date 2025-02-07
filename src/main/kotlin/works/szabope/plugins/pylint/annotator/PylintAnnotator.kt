@@ -49,7 +49,7 @@ internal class PylintAnnotator : ExternalAnnotator<PylintAnnotator.AnnotatorInfo
             tempFile.toFile().deleteOnExit()
             tempFile.writeText(document.charsSequence)
             val service = PylintService.getInstance(info.project)
-            val runConfiguration = PylintSettings.getInstance(info.project).toRunConfiguration()
+            val runConfiguration = settings.toRunConfiguration()
             return service.scan(listOf(tempFile.pathString), runConfiguration)
         } finally {
             tempFile.delete()
