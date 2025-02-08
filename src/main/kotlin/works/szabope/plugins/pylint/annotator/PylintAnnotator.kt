@@ -15,7 +15,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.util.DocumentUtil
 import com.intellij.util.io.delete
 import works.szabope.plugins.pylint.PylintBundle
-import works.szabope.plugins.pylint.services.PylintService
+import works.szabope.plugins.pylint.services.ScanService
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.services.parser.PylintMessage
 import works.szabope.plugins.pylint.toRunConfiguration
@@ -48,7 +48,7 @@ internal class PylintAnnotator : ExternalAnnotator<PylintAnnotator.AnnotatorInfo
         try {
             tempFile.toFile().deleteOnExit()
             tempFile.writeText(document.charsSequence)
-            val service = PylintService.getInstance(info.project)
+            val service = ScanService.getInstance(info.project)
             val runConfiguration = settings.toRunConfiguration()
             return service.scan(listOf(tempFile.pathString), runConfiguration)
         } finally {

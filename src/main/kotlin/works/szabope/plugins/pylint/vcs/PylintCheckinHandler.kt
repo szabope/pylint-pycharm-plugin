@@ -11,7 +11,7 @@ import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.PairConsumer
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.dialog.IDialogManager
-import works.szabope.plugins.pylint.services.PylintService
+import works.szabope.plugins.pylint.services.ScanService
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.toRunConfiguration
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
@@ -22,7 +22,7 @@ import javax.swing.JComponent
 class PylintCheckinHandler(private val panel: CheckinProjectPanel) : CheckinHandler() {
 
     private val settings = PylintSettings.getInstance(panel.project)
-    private val service = PylintService.getInstance(panel.project)
+    private val service = ScanService.getInstance(panel.project)
 
     override fun getBeforeCheckinConfigurationPanel(): RefreshableOnComponent {
         return object : RefreshableOnComponent {

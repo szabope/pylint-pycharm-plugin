@@ -14,9 +14,9 @@ import works.szabope.plugins.pylint.services.parser.PylintMessage
 import works.szabope.plugins.pylint.services.parser.PylintParserException
 
 @Service(Service.Level.PROJECT)
-class PylintService(private val project: Project) {
+class ScanService(private val project: Project) {
 
-    private val logger = logger<PylintService>()
+    private val logger = logger<ScanService>()
 
     @Suppress("UnstableApiUsage")
     fun scan(targets: List<String>, configuration: ExecutorConfiguration): List<PylintMessage> {
@@ -43,6 +43,6 @@ class PylintService(private val project: Project) {
 
     companion object {
         @JvmStatic
-        fun getInstance(project: Project): PylintService = project.service()
+        fun getInstance(project: Project): ScanService = project.service()
     }
 }
