@@ -20,13 +20,20 @@ class AnnotatorTest : BasePlatformTestCase() {
         with(PylintSettings.getInstance(myFixture.project)) {
             executablePath = Paths.get(myFixture.testDataPath).resolve("pylint").absolutePathString()
             projectDirectory = Paths.get(myFixture.testDataPath).pathString
+            useProjectSdk = false
+            arguments = null
+            configFilePath = null
+            isScanBeforeCheckIn = false
         }
         myFixture.configureByText("a.py", "tutu = 8")
         assertNotEmpty(myFixture.doHighlighting())
     }
 
     fun `test PylintAnnotator does not fail with incomplete settings`() {
-        PylintSettings.getInstance(myFixture.project).executablePath = null
+        with(PylintSettings.getInstance(myFixture.project)) {
+            executablePath = null
+            useProjectSdk = false
+        }
         myFixture.configureByText("a.py", "tutu = 8")
         myFixture.doHighlighting()
     }

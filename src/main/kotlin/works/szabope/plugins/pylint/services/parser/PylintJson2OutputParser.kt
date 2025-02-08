@@ -1,6 +1,5 @@
 package works.szabope.plugins.pylint.services.parser
 
-import com.intellij.openapi.diagnostic.thisLogger
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
@@ -17,7 +16,6 @@ object PylintJson2OutputParser {
             adjustForPlatform(result)
             return result
         } catch (e: SerializationException) {
-            thisLogger().debug(e)
             throw PylintParserException(json, e)
         }
     }
