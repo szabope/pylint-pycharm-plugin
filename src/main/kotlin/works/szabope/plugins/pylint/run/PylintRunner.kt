@@ -57,10 +57,9 @@ class PylintRunner private constructor() : PythonRunner() {
     }
 
     private fun execute(profileState: RunProfileState, runnable: Runnable) {
-
         if (profileState is PythonCommandLineState) {
             AppExecutorUtil.getAppExecutorService().execute(runnable)
-        } else { //TODO: remote?
+        } else {
             ApplicationManager.getApplication().invokeAndWait(runnable)
         }
     }

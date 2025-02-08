@@ -25,7 +25,7 @@ class PylintConfigurationType : ConfigurationType {
 
     override fun getId() = "Pylint"
     override fun isManaged() = false
-    override fun getConfigurationFactories() = arrayOf<ConfigurationFactory>(myFactory);
+    override fun getConfigurationFactories() = arrayOf<ConfigurationFactory>(myFactory)
 
     fun getFactory() = myFactory
 

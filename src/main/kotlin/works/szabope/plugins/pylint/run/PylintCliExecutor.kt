@@ -34,7 +34,7 @@ class PylintCliExecutor(private val project: Project) : IPylintExecutor {
     }
 
     private fun buildCommand(configuration: ExecutorConfiguration, targets: List<String>) = with(configuration) {
-        val command = mutableListOf(executablePath)
+        val command = mutableListOf(executablePath!!)
         configFilePath.nullize(true)?.apply { command.add("--rcfile"); command.add(this) }
         arguments.nullize(true)?.apply { command.addAll(split(" ")) }
         if (excludeNonProjectFiles) {

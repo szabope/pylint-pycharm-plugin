@@ -4,7 +4,7 @@ import works.szabope.plugins.pylint.run.ExecutorConfiguration
 import works.szabope.plugins.pylint.services.PylintSettings
 
 fun PylintSettings.toRunConfiguration() = ExecutorConfiguration(
-    executablePath!!,
+    executablePath,
     useProjectSdk,
     configFilePath,
     arguments,
