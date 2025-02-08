@@ -58,7 +58,7 @@ class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
         val settings = RunManager.getInstance(project).createConfiguration(conf, configurationFactory)
         settings.isActivateToolWindowBeforeRun = false
         val executor = DefaultRunExecutor.getRunExecutorInstance()
-        return ExecutionEnvironmentBuilder.create(executor, settings).runner(PylintRunner.getInstance()).build()
+        return ExecutionEnvironmentBuilder.create(executor, settings).runner(PylintRunner.INSTANCE).build()
     }
 
     private fun buildScriptParameters(configuration: ExecutorConfiguration, targets: List<String>) =
