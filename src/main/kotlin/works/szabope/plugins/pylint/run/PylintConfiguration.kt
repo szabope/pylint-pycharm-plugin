@@ -5,17 +5,27 @@ import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.openapi.project.Project
 import com.jetbrains.python.run.PythonConfigurationFactoryBase
 import com.jetbrains.python.run.PythonRunConfiguration
-import javax.swing.ImageIcon
+import java.awt.Component
+import java.awt.Graphics
+import javax.swing.Icon
+
+class DummyIcon(private val size: Int) : Icon {
+    override fun paintIcon(p0: Component?, p1: Graphics?, p2: Int, p3: Int) = Unit
+    override fun getIconWidth() = size
+    override fun getIconHeight() = size
+}
 
 class PylintConfigurationType : ConfigurationType {
     private val myFactory = PylintConfigurationFactory(this)
 
+    // this thing should never appear on screen
     override fun getDisplayName() = "Pylint"
     override fun getConfigurationTypeDescription() = "Pylint run configuration"
-    override fun getIcon() = ImageIcon("icons/pylintScanAction.svg") //TODO: dummy
+    override fun getIcon() = DummyIcon(16)
+
     override fun getId() = "Pylint"
-    override fun getConfigurationFactories() = arrayOf<ConfigurationFactory>(myFactory);
     override fun isManaged() = false
+    override fun getConfigurationFactories() = arrayOf<ConfigurationFactory>(myFactory);
 
     fun getFactory() = myFactory
 
