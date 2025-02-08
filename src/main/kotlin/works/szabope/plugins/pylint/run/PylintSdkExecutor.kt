@@ -11,19 +11,19 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
-import com.intellij.platform.backend.workspace.WorkspaceModel
 import com.intellij.util.text.nullize
 import com.jetbrains.python.sdk.pythonSdk
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.suspendCancellableCoroutine
 import works.szabope.plugins.pylint.PylintArgs
+import works.szabope.plugins.pylint.services.Exclusions
 import works.szabope.plugins.pylint.services.parser.IPylintOutputHandler
 import works.szabope.plugins.pylint.services.parser.PylintJson2OutputParser
 import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-class PylintSdkExecutor(private val project: Project) : AbstractPylintExecutor() {
+class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
 
     private val configurationFactory = PylintConfigurationType.INSTANCE.getFactory()
 
@@ -67,9 +67,8 @@ class PylintSdkExecutor(private val project: Project) : AbstractPylintExecutor()
             configFilePath.nullize(true)?.apply { sb.append(" --rcfile").appendLine(" \"$this\"") }
             arguments.nullize(true)?.apply { sb.appendLine(" ").append(arguments) }
             if (excludeNonProjectFiles) {
-                val workspaceModel = WorkspaceModel.getInstance(project)
-                targets.flatMap { collectExclusionsFor(it, workspaceModel) }.union(customExclusions).joinToString(",")
-                    .nullize()?.apply { sb.append(" --ignore-paths").appendLine("\"$this\"") }
+                Exclusions(project).findAll(targets).union(customExclusions).joinToString(",").nullize()
+                    ?.apply { sb.append(" --ignore-paths").appendLine("\"$this\"") }
             }
             sb.append(" ").append(PylintArgs.PYLINT_MANDATORY_COMMAND_ARGS)
             targets.joinToString(" ") { "\"$it\"" }.apply { sb.append(this) }

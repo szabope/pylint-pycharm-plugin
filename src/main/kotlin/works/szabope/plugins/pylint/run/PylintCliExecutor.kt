@@ -1,15 +1,15 @@
 package works.szabope.plugins.pylint.run
 
 import com.intellij.openapi.project.Project
-import com.intellij.platform.backend.workspace.WorkspaceModel
 import com.intellij.util.text.nullize
 import works.szabope.plugins.pylint.PylintArgs
+import works.szabope.plugins.pylint.services.Exclusions
 import works.szabope.plugins.pylint.services.cli.PythonEnvironmentAwareCli
 import works.szabope.plugins.pylint.services.parser.IPylintOutputHandler
 import works.szabope.plugins.pylint.services.parser.PylintJson2OutputParser
 import works.szabope.plugins.pylint.services.parser.PylintParserException
 
-class PylintCliExecutor(private val project: Project) : AbstractPylintExecutor() {
+class PylintCliExecutor(private val project: Project) : IPylintExecutor {
 
     class CommandExecutionException(val command: String, val statusCode: Int, val stderr: String) :
         RuntimeException(statusCode.toString())
@@ -38,9 +38,8 @@ class PylintCliExecutor(private val project: Project) : AbstractPylintExecutor()
         configFilePath.nullize(true)?.apply { command.add("--rcfile"); command.add(this) }
         arguments.nullize(true)?.apply { command.addAll(split(" ")) }
         if (excludeNonProjectFiles) {
-            val workspaceModel = WorkspaceModel.getInstance(project)
-            targets.flatMap { collectExclusionsFor(it, workspaceModel) }.union(customExclusions).joinToString(",")
-                .nullize()?.apply { command.add("--ignore-paths"); command.add(this) }
+            Exclusions(project).findAll(targets).union(customExclusions).joinToString(",").nullize()
+                ?.apply { command.add("--ignore-paths"); command.add(this) }
         }
         // in case of duplicated arguments, latter one wins
         command.addAll(PylintArgs.PYLINT_MANDATORY_COMMAND_ARGS.split(" "))
