@@ -1,6 +1,5 @@
 package works.szabope.plugins.pylint.run
 
-import com.intellij.codeWithMe.ClientId
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionResult
 import com.intellij.execution.configurations.RunProfile
@@ -58,11 +57,11 @@ class PylintRunner private constructor() : PythonRunner() {
     }
 
     private fun execute(profileState: RunProfileState, runnable: Runnable) {
-        val clientIdRunnable: Runnable = ClientId.decorateRunnable(runnable)
+
         if (profileState is PythonCommandLineState) {
-            AppExecutorUtil.getAppExecutorService().execute(clientIdRunnable)
-        } else {
-            ApplicationManager.getApplication().invokeAndWait(clientIdRunnable)
+            AppExecutorUtil.getAppExecutorService().execute(runnable)
+        } else { //TODO: remote?
+            ApplicationManager.getApplication().invokeAndWait(runnable)
         }
     }
 

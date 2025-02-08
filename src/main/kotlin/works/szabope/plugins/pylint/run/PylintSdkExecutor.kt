@@ -68,9 +68,9 @@ class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
             arguments.nullize(true)?.apply { sb.appendLine(" ").append(arguments) }
             if (excludeNonProjectFiles) {
                 Exclusions(project).findAll(targets).union(customExclusions).joinToString(",").nullize()
-                    ?.apply { sb.append(" --ignore-paths").appendLine("\"$this\"") }
+                    ?.apply { sb.append(" --ignore-paths ").appendLine("\"$this\"") }
             }
-            sb.append(" ").append(PylintArgs.PYLINT_MANDATORY_COMMAND_ARGS)
+            sb.append(" ").append(PylintArgs.PYLINT_MANDATORY_COMMAND_ARGS).append(" ")
             targets.joinToString(" ") { "\"$it\"" }.apply { sb.append(this) }
             sb.toString()
         }

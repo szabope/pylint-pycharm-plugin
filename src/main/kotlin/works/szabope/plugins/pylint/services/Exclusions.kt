@@ -10,15 +10,11 @@ import kotlin.io.path.Path
 class Exclusions(private val project: Project) {
     fun findAll(targets: List<String>): List<String> {
         val workspaceModel = WorkspaceModel.getInstance(project)
-        val exclusions = mutableListOf<String>()
-        targets.flatMap { target ->
+        return targets.flatMap { target ->
             val targetUrl = workspaceModel.getVirtualFileUrlManager().fromPath(target)
             workspaceModel.currentSnapshot.getVirtualFileUrlIndex().findEntitiesByUrl(targetUrl)
-                .filter { it is ContentRootEntity }.map { entity ->
-                    (entity as ContentRootEntity).excludedUrls.mapNotNull { it.url.virtualFile?.path }
-                        .map { Path(it).toCanonicalPath() }
-                }
+                .filter { it is ContentRootEntity }.map { it as ContentRootEntity }.flatMap { it.excludedUrls }
+                .mapNotNull { it.url.virtualFile?.path }.map { Path(it).toCanonicalPath() }
         }
-        return exclusions
     }
 }
