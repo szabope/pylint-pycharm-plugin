@@ -5,8 +5,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindowManager
-import works.szabope.plugins.pylint.services.PylintService
-import works.szabope.plugins.pylint.services.PylintService.Companion.SUPPORTED_FILE_TYPES
+import com.jetbrains.python.PythonFileType
+import com.jetbrains.python.pyi.PyiFileType
+import works.szabope.plugins.pylint.services.AsyncScanService
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.toRunConfiguration
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
@@ -19,7 +20,7 @@ open class ScanAction : AbstractScanAction() {
         val project = event.project ?: return
         val runConfiguration = PylintSettings.getInstance(project).toRunConfiguration()
         getPylintPanel(project)?.initializeResultTree(targets)
-        PylintService.getInstance(project).scanAsync(targets, runConfiguration)
+        AsyncScanService.getInstance(project).scan(targets, runConfiguration)
         ToolWindowManager.getInstance(project).getToolWindow(PylintToolWindowPanel.ID)?.show()
     }
 
@@ -47,5 +48,8 @@ open class ScanAction : AbstractScanAction() {
 
     companion object {
         const val ID = "works.szabope.plugins.pylint.action.ScanAction"
+
+        @JvmStatic
+        val SUPPORTED_FILE_TYPES = arrayOf(PythonFileType.INSTANCE, PyiFileType.INSTANCE)
     }
 }
