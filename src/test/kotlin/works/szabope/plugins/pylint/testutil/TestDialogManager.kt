@@ -15,20 +15,19 @@ import works.szabope.plugins.pylint.dialog.*
 
 class TestDialogManager : IDialogManager {
     private val myHandlers = hashMapOf<Class<out DialogWrapper>, (TestDialogWrapper) -> Int>()
+    private var myAnyHandler: ((TestDialogWrapper) -> Int)? = null
 
     override fun showDialog(dialog: PylintDialog) {
         val testDialog = dialog.requireIs<TestDialogWrapper>()
         testDialog.show()
-        var exitCode = DialogWrapper.OK_EXIT_CODE
+        var exitCode: Int? = null
         try {
-            val handler = myHandlers[testDialog.getWrappedClass()]
-            if (handler != null) {
-                exitCode = handler(testDialog)
-            } else {
+            exitCode = myHandlers[testDialog.getWrappedClass()]?.invoke(testDialog) ?: myAnyHandler?.invoke(testDialog)
+            if (exitCode == null) {
                 throw IllegalStateException("The dialog is not expected here: " + dialog.javaClass)
             }
         } finally {
-            testDialog.close(exitCode)
+            testDialog.close(exitCode ?: DialogWrapper.OK_EXIT_CODE)
         }
     }
 
@@ -58,7 +57,12 @@ class TestDialogManager : IDialogManager {
         assertNull(myHandlers.put(dialogClass, handler))
     }
 
+    fun onAnyDialog(handler: (TestDialogWrapper) -> Int) {
+        myAnyHandler = handler
+    }
+
     fun cleanup() {
         myHandlers.clear()
+        myAnyHandler = null
     }
 }
