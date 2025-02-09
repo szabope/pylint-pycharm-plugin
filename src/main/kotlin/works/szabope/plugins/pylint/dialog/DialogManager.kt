@@ -12,7 +12,6 @@ import com.jetbrains.python.packaging.ui.PyPackageManagementService.PyPackageIns
 import org.jetbrains.annotations.Nls
 
 private fun DialogWrapper.toPylintDialog() = object : PylintDialog {
-    override fun getWrappedClass(): Class<out DialogWrapper> = this@toPylintDialog::class.java
     override fun show() = this@toPylintDialog.show()
 }
 

@@ -11,12 +11,12 @@ import io.mockk.mockkObject
 import io.mockk.unmockkObject
 import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.pylint.dialog.IDialogManager
-import works.szabope.plugins.pylint.dialog.PylintDialog
 import works.szabope.plugins.pylint.dialog.PylintExecutionErrorDialog
 import works.szabope.plugins.pylint.services.OldPylintSettings
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.services.cli.Cli
 import works.szabope.plugins.pylint.testutil.TestDialogManager
+import works.szabope.plugins.pylint.testutil.TestDialogWrapper
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 import java.io.File
 import java.net.URL
@@ -115,7 +115,7 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
                 )
             )
         }
-        val dialogShown = CompletableFuture<PylintDialog>()
+        val dialogShown = CompletableFuture<TestDialogWrapper>()
         dialogManager.onDialog(PylintExecutionErrorDialog::class.java) {
             dialogShown.complete(it)
             DialogWrapper.OK_EXIT_CODE
@@ -126,7 +126,7 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
             val result = PylintSettings.getInstance(project).autodetectExecutable()
             assertNull(result)
             waitUntil {
-                dialogShown.isDone && with(dialogShown.get()) { isShown() == true && getExitCode() == DialogWrapper.OK_EXIT_CODE }
+                dialogShown.isDone && with(dialogShown.get()) { isShown() && getExitCode() == DialogWrapper.OK_EXIT_CODE }
             }
         }
         unmockkObject(Cli)

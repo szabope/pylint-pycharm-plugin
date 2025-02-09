@@ -7,10 +7,10 @@ import com.intellij.testFramework.common.waitUntil
 import com.intellij.ui.tree.TreeTestUtil
 import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.pylint.dialog.IDialogManager
-import works.szabope.plugins.pylint.dialog.PylintDialog
 import works.szabope.plugins.pylint.dialog.PylintParseErrorDialog
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.testutil.TestDialogManager
+import works.szabope.plugins.pylint.testutil.TestDialogWrapper
 import works.szabope.plugins.pylint.testutil.scan
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 import java.net.URL
@@ -70,7 +70,7 @@ class PylintManualScanTest : AbstractToolWindowTestCase() {
                 )
             )
         }
-        val dialogShown = CompletableFuture<PylintDialog>()
+        val dialogShown = CompletableFuture<TestDialogWrapper>()
         dialogManager.onDialog(PylintParseErrorDialog::class.java) {
             dialogShown.complete(it)
             DialogWrapper.OK_EXIT_CODE
@@ -79,7 +79,7 @@ class PylintManualScanTest : AbstractToolWindowTestCase() {
         val file = myFixture.configureByFile("manualScan.py")
         scan(file)
         waitUntil {
-            dialogShown.isDone && with(dialogShown.get()) { isShown() == true && getExitCode() == DialogWrapper.OK_EXIT_CODE }
+            dialogShown.isDone && with(dialogShown.get()) { isShown() && getExitCode() == DialogWrapper.OK_EXIT_CODE }
         }
     }
 

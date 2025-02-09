@@ -7,20 +7,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.webcore.packaging.PackageManagementService
 import com.jetbrains.python.packaging.ui.PyPackageManagementService.PyPackageInstallationErrorDescription
 import org.jetbrains.annotations.Nls
-import org.jetbrains.annotations.TestOnly
 
 interface PylintDialog {
     fun show()
     fun getExitCode(): Int = 0
-
-    @TestOnly
-    fun getWrappedClass(): Class<out Any>
-
-    @TestOnly
-    fun close(exitCode: Int) = Unit
-
-    @TestOnly
-    fun isShown(): Boolean? = null
 }
 
 interface IDialogManager {

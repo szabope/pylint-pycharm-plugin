@@ -6,17 +6,17 @@ class TestDialogWrapper(private val lie: Class<out Any>) : PylintDialog {
     private var isShown = false
     private var exitCode: Int? = null
 
-    override fun getWrappedClass() = lie
+    fun getWrappedClass() = lie
 
     override fun show() {
         isShown = true
     }
 
-    override fun close(exitCode: Int) {
+    fun close(exitCode: Int) {
         this.exitCode = exitCode
     }
 
-    override fun isShown(): Boolean = isShown
+    fun isShown(): Boolean = isShown
 
     override fun getExitCode(): Int = requireNotNull(exitCode)
 }

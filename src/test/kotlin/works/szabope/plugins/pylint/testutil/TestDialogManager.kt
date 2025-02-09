@@ -5,6 +5,7 @@ package works.szabope.plugins.pylint.testutil
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.testFramework.requireIs
 import com.intellij.webcore.packaging.PackageManagementService
 import com.intellij.webcore.packaging.PackagingErrorDialog
 import com.jetbrains.python.packaging.PyPackageInstallationErrorDialog
@@ -13,20 +14,21 @@ import org.junit.Assert.assertNull
 import works.szabope.plugins.pylint.dialog.*
 
 class TestDialogManager : IDialogManager {
-    private val myHandlers = hashMapOf<Class<out DialogWrapper>, (PylintDialog) -> Int>()
+    private val myHandlers = hashMapOf<Class<out DialogWrapper>, (TestDialogWrapper) -> Int>()
 
     override fun showDialog(dialog: PylintDialog) {
-        dialog.show()
+        val testDialog = dialog.requireIs<TestDialogWrapper>()
+        testDialog.show()
         var exitCode = DialogWrapper.OK_EXIT_CODE
         try {
-            val handler = myHandlers[dialog.getWrappedClass()]
+            val handler = myHandlers[testDialog.getWrappedClass()]
             if (handler != null) {
-                exitCode = handler(dialog)
+                exitCode = handler(testDialog)
             } else {
                 throw IllegalStateException("The dialog is not expected here: " + dialog.javaClass)
             }
         } finally {
-            dialog.close(exitCode)
+            testDialog.close(exitCode)
         }
     }
 
@@ -52,7 +54,7 @@ class TestDialogManager : IDialogManager {
         commitButtonText: String
     ) = TestDialogWrapper(PreCheckinConfirmationDialog::class.java)
 
-    fun onDialog(dialogClass: Class<out DialogWrapper>, handler: (PylintDialog) -> Int) {
+    fun onDialog(dialogClass: Class<out DialogWrapper>, handler: (TestDialogWrapper) -> Int) {
         assertNull(myHandlers.put(dialogClass, handler))
     }
 
