@@ -10,6 +10,7 @@ import works.szabope.plugins.pylint.dialog.IDialogManager
 import works.szabope.plugins.pylint.dialog.PylintDialog
 import works.szabope.plugins.pylint.dialog.PylintParseErrorDialog
 import works.szabope.plugins.pylint.services.PylintSettings
+import works.szabope.plugins.pylint.testutil.TestDialogManager
 import works.szabope.plugins.pylint.testutil.scan
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 import java.net.URL
@@ -23,13 +24,13 @@ import kotlin.io.path.pathString
 class PylintManualScanTest : AbstractToolWindowTestCase() {
 
     private val treeUtil = TreeTestUtil(tree)
-    private lateinit var dialogManager: IDialogManager
+    private lateinit var dialogManager: TestDialogManager
 
     override fun getTestDataPath() = "src/test/testData/manualScan"
 
     override fun setUp() {
         super.setUp()
-        dialogManager = service<IDialogManager>()
+        dialogManager = service<IDialogManager>() as TestDialogManager
     }
 
     override fun tearDown() {

@@ -16,6 +16,7 @@ import works.szabope.plugins.pylint.dialog.PylintExecutionErrorDialog
 import works.szabope.plugins.pylint.services.OldPylintSettings
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.services.cli.Cli
+import works.szabope.plugins.pylint.testutil.TestDialogManager
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 import java.io.File
 import java.net.URL
@@ -27,11 +28,11 @@ import kotlin.io.path.absolutePathString
 @TestDataPath("\$CONTENT_ROOT/testData/configuration")
 class PylintConfigurationTest : AbstractToolWindowTestCase() {
 
-    private lateinit var dialogManager: IDialogManager
+    private lateinit var dialogManager: TestDialogManager
 
     override fun setUp() {
         super.setUp()
-        dialogManager = service<IDialogManager>()
+        dialogManager = service<IDialogManager>() as TestDialogManager
     }
 
     override fun tearDown() {

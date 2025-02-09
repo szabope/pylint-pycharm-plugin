@@ -52,11 +52,11 @@ class TestDialogManager : IDialogManager {
         commitButtonText: String
     ) = TestDialogWrapper(PreCheckinConfirmationDialog::class.java)
 
-    override fun onDialog(dialogClass: Class<out DialogWrapper>, handler: (PylintDialog) -> Int) {
+    fun onDialog(dialogClass: Class<out DialogWrapper>, handler: (PylintDialog) -> Int) {
         assertNull(myHandlers.put(dialogClass, handler))
     }
 
-    override fun cleanup() {
+    fun cleanup() {
         myHandlers.clear()
     }
 }
