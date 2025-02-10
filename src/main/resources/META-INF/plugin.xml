@@ -38,8 +38,8 @@
             <action id="works.szabope.plugins.pylint.action.RescanAction"
                     class="works.szabope.plugins.pylint.action.RescanAction"
                     icon="AllIcons.Actions.Refresh"/>
-            <action id="works.szabope.plugins.pylint.action.StopCheckAction"
-                    class="works.szabope.plugins.pylint.action.StopCheckAction"
+            <action id="works.szabope.plugins.pylint.action.StopScanAction"
+                    class="works.szabope.plugins.pylint.action.StopScanAction"
                     icon="AllIcons.Actions.Suspend"/>
             <action id="works.szabope.plugins.pylint.action.ScanCurrentlyFocusedOneInEditorAction"
                     class="works.szabope.plugins.pylint.action.ScanCurrentlyFocusedOneInEditorAction"

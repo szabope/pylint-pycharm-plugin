@@ -1,32 +1,40 @@
-package works.szabope.plugins.pylint
+package works.szabope.plugins.pylint.action
 
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.platform.backend.workspace.WorkspaceModel
+import com.intellij.platform.workspace.jps.entities.ContentRootEntity
+import com.intellij.platform.workspace.jps.entities.ExcludeUrlEntity
+import com.intellij.platform.workspace.storage.EntitySource
+import com.intellij.platform.workspace.storage.url.VirtualFileUrl
 import com.intellij.testFramework.TestDataPath
 import com.intellij.testFramework.common.waitUntil
+import com.intellij.testFramework.workspaceModel.updateProjectModel
 import com.intellij.ui.tree.TreeTestUtil
 import kotlinx.coroutines.runBlocking
+import works.szabope.plugins.pylint.AbstractToolWindowTestCase
 import works.szabope.plugins.pylint.dialog.IDialogManager
 import works.szabope.plugins.pylint.dialog.PylintParseErrorDialog
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.testutil.TestDialogManager
 import works.szabope.plugins.pylint.testutil.TestDialogWrapper
 import works.szabope.plugins.pylint.testutil.scan
-import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 import java.net.URL
 import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
 import javax.swing.event.HyperlinkEvent
+import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
-import kotlin.io.path.pathString
 
-@TestDataPath("\$CONTENT_ROOT/testData/manualScan")
-class PylintManualScanTest : AbstractToolWindowTestCase() {
+@TestDataPath("\$CONTENT_ROOT/testData/action/scan_cli")
+class ScanCliTest : AbstractToolWindowTestCase() {
 
     private val treeUtil = TreeTestUtil(tree)
     private lateinit var dialogManager: TestDialogManager
 
-    override fun getTestDataPath() = "src/test/testData/manualScan"
+    override fun getTestDataPath() = "src/test/testData/action/scan_cli"
 
     override fun setUp() {
         super.setUp()
@@ -40,9 +48,27 @@ class PylintManualScanTest : AbstractToolWindowTestCase() {
 
     fun testManualScan() = runBlocking {
         setUpSettings("pylint")
-        val testName = getTestName(true)
-        val file = myFixture.configureByFile("$testName.py")
-        scan(file)
+        myFixture.copyDirectoryToProject("/", "/")
+        val workspaceModel = WorkspaceModel.getInstance(project)
+        val excludedDir =
+            workspaceModel.currentSnapshot.entities(ContentRootEntity::class.java).first().url.append("/excluded_dir")
+        val excludedEntity = ExcludeUrlEntity(excludedDir, object : EntitySource {
+            override val virtualFileUrl: VirtualFileUrl?
+                get() = excludedDir
+        })
+        runWriteAction { workspaceModel.updateProjectModel { model -> model.addEntity(excludedEntity) } }
+
+        toolWindowManager.onBalloon {
+            it.listener?.hyperlinkUpdate(
+                HyperlinkEvent(
+                    "dumb", HyperlinkEvent.EventType.ACTIVATED, URL("http://localhost")
+                )
+            )
+        }
+        dialogManager.onAnyDialog {
+            fail(it.toString())
+        }
+        scan(VfsUtil.findFile(Path(testDataPath), true)!!, project)
         waitUntil {
             try {
                 treeUtil.assertStructure("+Found 2 issue(s) in 1 file(s)\n")
@@ -54,16 +80,17 @@ class PylintManualScanTest : AbstractToolWindowTestCase() {
             treeUtil.expandAll()
             treeUtil.assertStructure(
                 """|-Found 2 issue(s) in 1 file(s)
-                   | -/src/manualScan.py
+                   | -/src/action/scan_cli/manualScan.py
                    |  [disallowed-name] Disallowed name "tata"
                    |  [disallowed-name] Disallowed name "tutu"
                    |""".trimMargin()
             )
         }
+        dialogManager.cleanup()
     }
 
     fun testFailingScan() = runBlocking {
-        toolWindowManager.onBalloon(PylintToolWindowPanel.ID) {
+        toolWindowManager.onBalloon {
             it.listener?.hyperlinkUpdate(
                 HyperlinkEvent(
                     "dumb", HyperlinkEvent.EventType.ACTIVATED, URL("http://localhost")
@@ -76,17 +103,17 @@ class PylintManualScanTest : AbstractToolWindowTestCase() {
             DialogWrapper.OK_EXIT_CODE
         }
         setUpSettings("pylint_failing")
-        val file = myFixture.configureByFile("manualScan.py")
-        scan(file)
+        val file = myFixture.configureByFile("manualScan.py").virtualFile
+        scan(file, project)
         waitUntil {
             dialogShown.isDone && with(dialogShown.get()) { isShown() && getExitCode() == DialogWrapper.OK_EXIT_CODE }
         }
     }
 
     private fun setUpSettings(executable: String) {
-        with(PylintSettings.getInstance(myFixture.project)) {
-            executablePath = Paths.get(myFixture.testDataPath).resolve(executable).absolutePathString()
-            projectDirectory = Paths.get(myFixture.testDataPath).pathString
+        with(PylintSettings.getInstance(project)) {
+            executablePath = Paths.get(testDataPath).resolve(executable).absolutePathString()
+            projectDirectory = Paths.get(testDataPath).absolutePathString()
             useProjectSdk = false
             configFilePath = null
             isScanBeforeCheckIn = false

@@ -17,7 +17,6 @@ import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.services.cli.Cli
 import works.szabope.plugins.pylint.testutil.TestDialogManager
 import works.szabope.plugins.pylint.testutil.TestDialogWrapper
-import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 import java.io.File
 import java.net.URL
 import java.nio.file.Paths
@@ -108,7 +107,7 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
     }
 
     fun testAutodetectFailing() {
-        toolWindowManager.onBalloon(PylintToolWindowPanel.ID) {
+        toolWindowManager.onBalloon {
             it.listener?.hyperlinkUpdate(
                 HyperlinkEvent(
                     "dumb", HyperlinkEvent.EventType.ACTIVATED, URL("http://localhost")

@@ -137,6 +137,7 @@ class PylintIncompleteConfigurationNotificationTest : AbstractToolWindowTestCase
         }
     }
 
+    //TODO: ModuleRootModificationUtil.setModuleSdk()
     private fun withInterpreter(sdkType: PythonSdkType, additionalData: PythonSdkAdditionalData, f: () -> Unit) {
         SdkType.EP_NAME.point.unregisterExtension(PythonSdkType::class.java)
         SdkType.EP_NAME.point.registerExtension(sdkType, testRootDisposable)

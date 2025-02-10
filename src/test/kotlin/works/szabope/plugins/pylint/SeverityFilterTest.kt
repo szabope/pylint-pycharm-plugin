@@ -32,8 +32,8 @@ class SeverityFilterTest : AbstractToolWindowTestCase() {
             executablePath = Paths.get(myFixture.testDataPath).resolve("pylint").absolutePathString()
             projectDirectory = Paths.get(myFixture.testDataPath).pathString
         }
-        val file = myFixture.configureByText("a.py", "doesn't matter")
-        scan(file)
+        val file = myFixture.configureByText("a.py", "doesn't matter").virtualFile
+        scan(file, project)
     }
 
     fun `test all filters selected shows all items`() = runBlocking {

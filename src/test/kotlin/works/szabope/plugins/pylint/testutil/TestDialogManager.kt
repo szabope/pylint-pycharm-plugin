@@ -32,33 +32,36 @@ class TestDialogManager : IDialogManager {
     }
 
     override fun createPyPackageInstallationErrorDialog(
-        title: String,
-        errorDescription: PyPackageManagementService.PyPackageInstallationErrorDescription
-    ) = TestDialogWrapper(PyPackageInstallationErrorDialog::class.java)
+        title: String, errorDescription: PyPackageManagementService.PyPackageInstallationErrorDescription
+    ) = TestDialogWrapper(PyPackageInstallationErrorDialog::class.java, title, errorDescription)
 
     override fun createPackagingErrorDialog(
-        title: String,
-        errorDescription: PackageManagementService.ErrorDescription
-    ) = TestDialogWrapper(PackagingErrorDialog::class.java)
+        title: String, errorDescription: PackageManagementService.ErrorDescription
+    ) = TestDialogWrapper(PackagingErrorDialog::class.java, title, errorDescription)
 
     override fun createPylintExecutionErrorDialog(command: String, result: String, resultCode: Int) =
-        TestDialogWrapper(PylintExecutionErrorDialog::class.java)
+        TestDialogWrapper(PylintExecutionErrorDialog::class.java, command, result, resultCode)
 
     override fun createPylintParseErrorDialog(command: String, commandOutput: String, error: String) =
-        TestDialogWrapper(PylintParseErrorDialog::class.java)
+        TestDialogWrapper(PylintParseErrorDialog::class.java, command, commandOutput, error)
 
     override fun createPreCheckinConfirmationDialog(
-        project: Project,
-        errorCount: Int,
-        commitButtonText: String
-    ) = TestDialogWrapper(PreCheckinConfirmationDialog::class.java)
+        project: Project, errorCount: Int, commitButtonText: String
+    ) = TestDialogWrapper(PreCheckinConfirmationDialog::class.java, errorCount, commitButtonText)
 
     fun onDialog(dialogClass: Class<out DialogWrapper>, handler: (TestDialogWrapper) -> Int) {
         assertNull(myHandlers.put(dialogClass, handler))
     }
 
-    fun onAnyDialog(handler: (TestDialogWrapper) -> Int) {
-        myAnyHandler = handler
+    fun onAnyDialog(handler: (TestDialogWrapper) -> Any) {
+        myAnyHandler = fun(h: TestDialogWrapper): Int {
+            val res = handler.invoke(h)
+            return if (res is Int) {
+                res
+            } else {
+                DialogWrapper.OK_EXIT_CODE
+            }
+        }
     }
 
     fun cleanup() {

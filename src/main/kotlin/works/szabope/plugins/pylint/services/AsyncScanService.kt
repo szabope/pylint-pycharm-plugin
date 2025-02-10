@@ -37,7 +37,7 @@ class AsyncScanService(private val project: Project, private val cs: CoroutineSc
             manualScanJob = cs.launch {
                 try {
                     PylintCliExecutor(project).execute(configuration, targets, resultHandler)
-                } catch (e: ParseFailedException) {
+                } catch (e: ParseFailedException) { //TODO: can we move this to action and mark event as failed?
                     showClickableBalloonError(PylintBundle.message("pylint.toolwindow.balloon.parse_error")) {
                         IDialogManager.showPylintParseErrorDialog(
                             e.command, e.sourceJson, e.cause?.message ?: "N/A"

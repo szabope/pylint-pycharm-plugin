@@ -34,7 +34,7 @@ class PylintSettings(internal val project: Project) :
         var autoScrollToSource by property(false)
         var excludeNonProjectFiles by property(true)
         var projectDirectory by string()
-        val customExclusions by list<String>()
+        val customExclusions by list<String>() // use scopes instead?
         var scanBeforeCheckIn by property(false)
     }
 

@@ -5,7 +5,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import works.szabope.plugins.pylint.services.AsyncScanService
 
-class StopCheckAction : DumbAwareAction() {
+class StopScanAction : DumbAwareAction() {
 
     override fun actionPerformed(event: AnActionEvent) {
         AsyncScanService.getInstance(event.project ?: return).cancelScan()

@@ -3,7 +3,7 @@ package works.szabope.plugins.pylint
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import kotlinx.coroutines.runBlocking
 
-abstract class PylintTestCase : BasePlatformTestCase() {
+abstract class AbstractPylintTestCase : BasePlatformTestCase() {
 
     override fun setUp() {
         super.setUp()
