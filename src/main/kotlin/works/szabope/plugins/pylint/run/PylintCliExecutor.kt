@@ -1,6 +1,7 @@
 package works.szabope.plugins.pylint.run
 
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.text.nullize
 import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.services.Exclusions
@@ -17,7 +18,7 @@ class PylintCliExecutor(private val project: Project) : IPylintExecutor {
     class ParseFailedException(val command: String, val sourceJson: String, cause: Exception) : RuntimeException(cause)
 
     override suspend fun execute(
-        configuration: ExecutorConfiguration, targets: List<String>, resultHandler: IPylintOutputHandler
+        configuration: ExecutorConfiguration, targets: Collection<VirtualFile>, resultHandler: IPylintOutputHandler
     ) {
         require(!configuration.useProjectSdk) { "Configuration mismatch" }
         val command = buildCommand(configuration, targets)
@@ -33,17 +34,18 @@ class PylintCliExecutor(private val project: Project) : IPylintExecutor {
         }
     }
 
-    private fun buildCommand(configuration: ExecutorConfiguration, targets: List<String>) = with(configuration) {
-        val command = mutableListOf(executablePath!!)
-        configFilePath.nullize(true)?.apply { command.add("--rcfile"); command.add(this) }
-        arguments.nullize(true)?.apply { command.addAll(split(" ")) }
-        if (excludeNonProjectFiles) {
-            Exclusions(project).findAll(targets).union(customExclusions).joinToString(",").nullize()
-                ?.apply { command.add("--ignore-paths"); command.add(this) }
+    private fun buildCommand(configuration: ExecutorConfiguration, targets: Collection<VirtualFile>) =
+        with(configuration) {
+            val command = mutableListOf(executablePath!!)
+            configFilePath.nullize(true)?.apply { command.add("--rcfile"); command.add(this) }
+            arguments.nullize(true)?.apply { command.addAll(split(" ")) }
+            if (excludeNonProjectFiles) {
+                Exclusions(project).findAll(targets).union(customExclusions).joinToString(",").nullize()
+                    ?.apply { command.add("--ignore-paths"); command.add(this) }
+            }
+            // in case of duplicated arguments, latter one wins
+            command.addAll(PylintArgs.PYLINT_MANDATORY_COMMAND_ARGS.split(" "))
+            command.addAll(targets.map { requireNotNull(it.canonicalPath) })
+            command.toTypedArray()
         }
-        // in case of duplicated arguments, latter one wins
-        command.addAll(PylintArgs.PYLINT_MANDATORY_COMMAND_ARGS.split(" "))
-        command.addAll(targets)
-        command.toTypedArray()
-    }
 }

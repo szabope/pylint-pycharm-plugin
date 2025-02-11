@@ -51,7 +51,7 @@ class PylintCheckinHandler(private val panel: CheckinProjectPanel) : CheckinHand
         executor: CommitExecutor?, additionalDataConsumer: PairConsumer<Any, Any>?
     ): ReturnResult? {
         if (!settings.isScanBeforeCheckIn) return ReturnResult.COMMIT
-        val filePaths = panel.virtualFiles.map { it.path }
+        val filePaths = panel.virtualFiles
         val runConfiguration = PylintSettings.getInstance(panel.project).toRunConfiguration()
         val scanResults =
             runWithModalProgressBlocking(panel.project, PylintBundle.message("pylint.checkin-handler.in-progress")) {

@@ -11,6 +11,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.text.nullize
 import com.jetbrains.python.sdk.pythonSdk
 import kotlinx.coroutines.future.await
@@ -28,7 +29,7 @@ class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
     private val configurationFactory = PylintConfigurationType.INSTANCE.getFactory()
 
     override suspend fun execute(
-        configuration: ExecutorConfiguration, targets: List<String>, resultHandler: IPylintOutputHandler
+        configuration: ExecutorConfiguration, targets: Collection<VirtualFile>, resultHandler: IPylintOutputHandler
     ) {
         require(configuration.useProjectSdk) { "Configuration mismatch" }
         val environment = createEnvironment(configuration, targets)
@@ -44,7 +45,10 @@ class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
         }
     }
 
-    private fun createEnvironment(configuration: ExecutorConfiguration, targets: List<String>): ExecutionEnvironment {
+    private fun createEnvironment(
+        configuration: ExecutorConfiguration,
+        targets: Collection<VirtualFile>
+    ): ExecutionEnvironment {
         val conf = configurationFactory.createConfiguration(project, "pylint")
         val workDir = project.basePath!!
         conf.sdk = project.pythonSdk
@@ -61,7 +65,7 @@ class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
         return ExecutionEnvironmentBuilder.create(executor, settings).runner(PylintRunner.INSTANCE).build()
     }
 
-    private fun buildScriptParameters(configuration: ExecutorConfiguration, targets: List<String>) =
+    private fun buildScriptParameters(configuration: ExecutorConfiguration, targets: Collection<VirtualFile>) =
         with(configuration) {
             val sb = StringBuilder()
             configFilePath.nullize(true)?.apply { sb.append(" --rcfile").append(" \"$this\"") }
@@ -71,7 +75,7 @@ class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
                     ?.apply { sb.append(" --ignore-paths ").append("\"$this\"") }
             }
             sb.append(" ").append(PylintArgs.PYLINT_MANDATORY_COMMAND_ARGS).append(" ")
-            targets.joinToString(" ") { "\"$it\"" }.apply { sb.append(this) }
+            targets.joinToString(" ") { "\"${it.canonicalPath}\"" }.apply { sb.append(this) }
             sb.toString()
         }
 

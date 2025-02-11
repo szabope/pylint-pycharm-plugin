@@ -1,6 +1,7 @@
 package works.szabope.plugins.pylint.toolWindow
 
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.treeStructure.Tree
 import works.szabope.plugins.pylint.PylintBundle
 
@@ -22,12 +23,12 @@ class TreeModelManager(private val displayedSeverityLevels: MutableSet<String>) 
         issues.filter { isDisplayed(it) }.forEach { addToTree(it) }
     }
 
-    fun reinitialize(targets: List<String>) {
+    fun reinitialize(targets: Collection<VirtualFile>) {
         issues.clear()
         resetRoot(targets)
     }
 
-    fun getRootScanPaths(): List<String> {
+    fun getRootScanPaths(): Collection<VirtualFile> {
         return model.root.targets
     }
 
@@ -35,7 +36,7 @@ class TreeModelManager(private val displayedSeverityLevels: MutableSet<String>) 
         tree.model = model
     }
 
-    private fun resetRoot(targetsMaybe: List<String>? = null) {
+    private fun resetRoot(targetsMaybe: Collection<VirtualFile>? = null) {
         val targets = targetsMaybe ?: model.root.targets
         model.setRoot(RootNode(PylintBundle.message("pylint.toolwindow.root.message", 0, 0), targets))
     }

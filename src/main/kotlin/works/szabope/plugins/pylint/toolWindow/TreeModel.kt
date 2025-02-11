@@ -2,6 +2,7 @@ package works.szabope.plugins.pylint.toolWindow
 
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.navigation.NavigationItem
+import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.annotations.ApiStatus.Internal
 import org.jetbrains.annotations.Nls
 import java.util.concurrent.atomic.AtomicInteger
@@ -42,7 +43,7 @@ class TreeModel(defaultRootNodeText: String) : DefaultTreeModel(RootNode(default
 }
 
 @Internal
-class RootNode(text: String, val targets: List<String>) : DefaultMutableTreeNode(text, true) {
+class RootNode(text: String, val targets: Collection<VirtualFile>) : DefaultMutableTreeNode(text, true) {
 
     private val issueCountStat = AtomicInteger(0)
 

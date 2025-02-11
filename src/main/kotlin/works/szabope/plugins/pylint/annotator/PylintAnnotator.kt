@@ -9,14 +9,15 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.DocumentUtil
 import com.intellij.util.io.delete
 import works.szabope.plugins.pylint.PylintBundle
-import works.szabope.plugins.pylint.services.ScanService
 import works.szabope.plugins.pylint.services.PylintSettings
+import works.szabope.plugins.pylint.services.ScanService
 import works.szabope.plugins.pylint.services.parser.PylintMessage
 import works.szabope.plugins.pylint.toRunConfiguration
 import kotlin.io.path.pathString
@@ -50,7 +51,8 @@ internal class PylintAnnotator : ExternalAnnotator<PylintAnnotator.AnnotatorInfo
             tempFile.writeText(document.charsSequence)
             val service = ScanService.getInstance(info.project)
             val runConfiguration = settings.toRunConfiguration()
-            return service.scan(listOf(tempFile.pathString), runConfiguration)
+            val virtualTempFile = requireNotNull(VirtualFileManager.getInstance().findFileByNioPath(tempFile))
+            return service.scan(listOf(virtualTempFile), runConfiguration)
         } finally {
             tempFile.delete()
         }

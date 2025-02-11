@@ -16,7 +16,7 @@ import works.szabope.plugins.pylint.toolWindow.getPylintPanel
 open class ScanAction : AbstractScanAction() {
 
     override fun actionPerformed(event: AnActionEvent) {
-        val targets = listTargets(event)?.map { it.path } ?: return
+        val targets = listTargets(event) ?: return
         val project = event.project ?: return
         val runConfiguration = PylintSettings.getInstance(project).toRunConfiguration()
         getPylintPanel(project)?.initializeResultTree(targets)

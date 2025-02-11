@@ -4,6 +4,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindowManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -27,7 +28,7 @@ class AsyncScanService(private val project: Project, private val cs: CoroutineSc
     val scanInProgress: Boolean
         get() = manualScanJob?.isActive == true
 
-    fun scan(targets: List<String>, configuration: ExecutorConfiguration) {
+    fun scan(targets: Collection<VirtualFile>, configuration: ExecutorConfiguration) {
         val resultHandler = PublishingOutputHandler(project)
         if (configuration.useProjectSdk) {
             manualScanJob = cs.launch {

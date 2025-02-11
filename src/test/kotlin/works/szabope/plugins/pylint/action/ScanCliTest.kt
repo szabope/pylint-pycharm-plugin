@@ -3,8 +3,8 @@ package works.szabope.plugins.pylint.action
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.platform.backend.workspace.WorkspaceModel
+import com.intellij.platform.backend.workspace.virtualFile
 import com.intellij.platform.workspace.jps.entities.ContentRootEntity
 import com.intellij.platform.workspace.jps.entities.ExcludeUrlEntity
 import com.intellij.platform.workspace.storage.EntitySource
@@ -25,7 +25,6 @@ import java.net.URL
 import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
 import javax.swing.event.HyperlinkEvent
-import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 
 @TestDataPath("\$CONTENT_ROOT/testData/action/scan_cli")
@@ -47,8 +46,8 @@ class ScanCliTest : AbstractToolWindowTestCase() {
     }
 
     fun testManualScan() = runBlocking {
-        setUpSettings("pylint")
         myFixture.copyDirectoryToProject("/", "/")
+        setUpSettings("pylint")
         val workspaceModel = WorkspaceModel.getInstance(project)
         val excludedDir =
             workspaceModel.currentSnapshot.entities(ContentRootEntity::class.java).first().url.append("/excluded_dir")
@@ -68,7 +67,8 @@ class ScanCliTest : AbstractToolWindowTestCase() {
         dialogManager.onAnyDialog {
             fail(it.toString())
         }
-        scan(VfsUtil.findFile(Path(testDataPath), true)!!, project)
+        val target = workspaceModel.currentSnapshot.entities(ContentRootEntity::class.java).first().url.virtualFile!!
+        scan(target, project)
         waitUntil {
             try {
                 treeUtil.assertStructure("+Found 2 issue(s) in 1 file(s)\n")
