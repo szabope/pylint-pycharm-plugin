@@ -1,40 +1,46 @@
 package works.szabope.plugins.pylint.action
 
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.components.service
-import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.platform.backend.workspace.WorkspaceModel
 import com.intellij.platform.backend.workspace.virtualFile
 import com.intellij.platform.workspace.jps.entities.ContentRootEntity
 import com.intellij.platform.workspace.jps.entities.ExcludeUrlEntity
 import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.platform.workspace.storage.url.VirtualFileUrl
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.TestDataPath
-import com.intellij.testFramework.common.waitUntil
 import com.intellij.testFramework.common.waitUntilAssertSucceeds
 import com.intellij.testFramework.workspaceModel.updateProjectModel
 import com.intellij.ui.tree.TreeTestUtil
+import com.jetbrains.python.psi.LanguageLevel
+import com.jetbrains.python.sdk.PythonSdkType
+import com.jetbrains.python.sdk.PythonSdkUpdater
+import com.jetbrains.python.sdk.getOrCreateAdditionalData
+import com.jetbrains.python.sdk.pythonSdk
 import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.pylint.AbstractToolWindowTestCase
 import works.szabope.plugins.pylint.dialog.IDialogManager
-import works.szabope.plugins.pylint.dialog.PylintParseErrorDialog
 import works.szabope.plugins.pylint.services.PylintSettings
+import works.szabope.plugins.pylint.testutil.PythonMockSdk
 import works.szabope.plugins.pylint.testutil.TestDialogManager
-import works.szabope.plugins.pylint.testutil.TestDialogWrapper
 import works.szabope.plugins.pylint.testutil.scan
 import java.net.URL
 import java.nio.file.Paths
-import java.util.concurrent.CompletableFuture
 import javax.swing.event.HyperlinkEvent
 import kotlin.io.path.absolutePathString
 
-@TestDataPath("\$CONTENT_ROOT/testData/action/scan_cli")
-class ScanCliTest : AbstractToolWindowTestCase() {
+@TestDataPath("\$CONTENT_ROOT/testData/action/scan_sdk")
+class ScanSdkTest : AbstractToolWindowTestCase() {
 
     private val treeUtil = TreeTestUtil(tree)
     private lateinit var dialogManager: TestDialogManager
 
-    override fun getTestDataPath() = "src/test/testData/action/scan_cli"
+    override fun getTestDataPath() = "src/test/testData/action/scan_sdk"
 
     override fun setUp() {
         super.setUp()
@@ -47,8 +53,22 @@ class ScanCliTest : AbstractToolWindowTestCase() {
     }
 
     fun testManualScan() = runBlocking {
+        val pythonSdk = PythonMockSdk.create("${Paths.get(testDataPath).absolutePathString()}/MockSdk")
+        WriteAction.runAndWait<RuntimeException> {
+            ProjectJdkTable.getInstance().addJdk(pythonSdk, project)
+        }
+        val pythonVersion = LanguageLevel.getLatest().toPythonVersion()
+        pythonSdk.putUserData(PythonSdkType.MOCK_PY_VERSION_KEY, pythonVersion)
+        module.pythonSdk = pythonSdk
+        runWriteActionAndWait {
+            pythonSdk.getOrCreateAdditionalData()
+        }
+        PythonSdkUpdater.updateVersionAndPathsSynchronouslyAndScheduleRemaining(pythonSdk, project)
+        ApplicationManager.getApplication()
+            .invokeAndWait { PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() }
+
         myFixture.copyDirectoryToProject("/", "/")
-        setUpSettings("pylint")
+        setUpSettings()
         val workspaceModel = WorkspaceModel.getInstance(project)
         val excludedDir =
             workspaceModel.currentSnapshot.entities(ContentRootEntity::class.java).first().url.append("/excluded_dir")
@@ -83,34 +103,16 @@ class ScanCliTest : AbstractToolWindowTestCase() {
             )
         }
         dialogManager.cleanup()
-    }
-
-    fun testFailingScan() = runBlocking {
-        toolWindowManager.onBalloon {
-            it.listener?.hyperlinkUpdate(
-                HyperlinkEvent(
-                    "dumb", HyperlinkEvent.EventType.ACTIVATED, URL("http://localhost")
-                )
-            )
-        }
-        val dialogShown = CompletableFuture<TestDialogWrapper>()
-        dialogManager.onDialog(PylintParseErrorDialog::class.java) {
-            dialogShown.complete(it)
-            DialogWrapper.OK_EXIT_CODE
-        }
-        setUpSettings("pylint_failing")
-        val file = myFixture.configureByFile("manualScan.py").virtualFile
-        scan(file, project)
-        waitUntil {
-            dialogShown.isDone && with(dialogShown.get()) { isShown() && getExitCode() == DialogWrapper.OK_EXIT_CODE }
+        WriteAction.runAndWait<RuntimeException> {
+            ProjectJdkTable.getInstance().removeJdk(pythonSdk)
         }
     }
 
-    private fun setUpSettings(executable: String) {
+    private fun setUpSettings() {
         with(PylintSettings.getInstance(project)) {
-            executablePath = Paths.get(testDataPath).resolve(executable).absolutePathString()
+            executablePath = null
             projectDirectory = Paths.get(testDataPath).absolutePathString()
-            useProjectSdk = false
+            useProjectSdk = true
             configFilePath = null
             isScanBeforeCheckIn = false
             arguments = null

@@ -1,0 +1,46 @@
+{
+  "messages": [
+    {
+      "type": "convention",
+      "symbol": "disallowed-name",
+      "message": "Disallowed name \"tata\"",
+      "messageId": "C0104",
+      "confidence": "HIGH",
+      "module": "src.action.scan_cli.manualScan",
+      "obj": "",
+      "line": 1,
+      "column": 0,
+      "endLine": 1,
+      "endColumn": 4,
+      "path": "src/action/scan_cli/manualScan.py",
+      "absolutePath": "/src/action/scan_cli/manualScan.py"
+    },
+    {
+      "type": "convention",
+      "symbol": "disallowed-name",
+      "message": "Disallowed name \"tutu\"",
+      "messageId": "C0104",
+      "confidence": "HIGH",
+      "module": "src.action.scan_cli.manualScan",
+      "obj": "",
+      "line": 2,
+      "column": 0,
+      "endLine": 2,
+      "endColumn": 4,
+      "path": "src/action/scan_cli/manualScan.py",
+      "absolutePath": "/src/action/scan_cli/manualScan.py"
+    }
+  ],
+  "statistics": {
+    "messageTypeCount": {
+      "fatal": 0,
+      "error": 0,
+      "warning": 0,
+      "refactor": 0,
+      "convention": 2,
+      "info": 0
+    },
+    "modulesLinted": 1,
+    "score": 0
+  }
+}

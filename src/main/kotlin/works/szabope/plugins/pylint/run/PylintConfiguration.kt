@@ -48,4 +48,6 @@ class PylintRunConfiguration(project: Project, factory: ConfigurationFactory, co
         setUnbufferedEnv()
         name = configurationName
     }
+
+    override fun checkConfiguration() = Unit
 }
