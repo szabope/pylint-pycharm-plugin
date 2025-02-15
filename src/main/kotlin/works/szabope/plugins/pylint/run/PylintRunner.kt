@@ -8,7 +8,6 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
-import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.jetbrains.python.run.PythonCommandLineState
 import com.jetbrains.python.run.PythonRunner
@@ -24,7 +23,6 @@ class PylintRunner private constructor() : PythonRunner() {
     }
 
     override fun execute(environment: ExecutionEnvironment, state: RunProfileState): Promise<RunContentDescriptor?> {
-        FileDocumentManager.getInstance().saveAllDocuments()
         val promise: AsyncPromise<RunContentDescriptor?> = AsyncPromise()
         execute(state, (Runnable {
             try {

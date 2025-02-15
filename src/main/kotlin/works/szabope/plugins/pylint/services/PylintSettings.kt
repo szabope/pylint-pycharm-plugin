@@ -11,6 +11,7 @@ import com.intellij.util.text.SemVer
 import com.jetbrains.python.sdk.pythonSdk
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.annotations.ApiStatus
+import org.jetbrains.annotations.TestOnly
 import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.dialog.IDialogManager
@@ -258,6 +259,11 @@ class PylintSettings(internal val project: Project) :
                 null
             }
         }
+    }
+
+    @TestOnly
+    fun reset() {
+        loadState(PylintState())
     }
 
     companion object {

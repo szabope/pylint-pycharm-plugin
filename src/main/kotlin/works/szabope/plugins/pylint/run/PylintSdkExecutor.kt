@@ -50,9 +50,8 @@ class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
         targets: Collection<VirtualFile>
     ): ExecutionEnvironment {
         val conf = configurationFactory.createConfiguration(project, "pylint")
-        val workDir = project.basePath!!
         conf.sdk = project.pythonSdk
-        conf.workingDirectory = workDir
+        conf.workingDirectory = configuration.projectDirectory
         conf.setAddContentRoots(true)
         conf.setAddSourceRoots(true)
         conf.scriptName = "pylint"

@@ -28,7 +28,8 @@ internal class SettingsInitializationActivity : ProjectActivity {
         }
     }
 
-    private suspend fun configurePlugin(project: Project) {
+    @TestOnly
+    suspend fun configurePlugin(project: Project) {
         val settings = PylintSettings.getInstance(project)
         if (!settings.isComplete()) {
             settings.initSettings(OldPylintSettings.getInstance(project))

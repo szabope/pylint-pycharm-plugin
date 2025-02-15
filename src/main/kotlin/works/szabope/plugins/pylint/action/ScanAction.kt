@@ -3,6 +3,7 @@ package works.szabope.plugins.pylint.action
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindowManager
 import com.jetbrains.python.PythonFileType
@@ -20,6 +21,7 @@ open class ScanAction : AbstractScanAction() {
         val project = event.project ?: return
         val runConfiguration = PylintSettings.getInstance(project).toRunConfiguration()
         getPylintPanel(project)?.initializeResultTree(targets)
+        FileDocumentManager.getInstance().saveAllDocuments()
         AsyncScanService.getInstance(project).scan(targets, runConfiguration)
         ToolWindowManager.getInstance(project).getToolWindow(PylintToolWindowPanel.ID)?.show()
     }

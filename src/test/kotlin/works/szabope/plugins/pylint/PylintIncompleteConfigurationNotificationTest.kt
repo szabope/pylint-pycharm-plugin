@@ -4,17 +4,24 @@ import com.intellij.notification.ActionCenter
 import com.intellij.notification.Notification
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.testFramework.TestDataPath
-import com.intellij.webcore.packaging.PackageManagementService
+import com.jetbrains.python.packaging.management.PythonPackageManager
+import com.jetbrains.python.sdk.pythonSdk
 import io.mockk.*
+import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.pylint.action.OpenSettingsAction
-import works.szabope.plugins.pylint.services.PylintPackageUtil
-import works.szabope.plugins.pylint.testutil.PackageManagementTestService
+import works.szabope.plugins.pylint.testutil.PythonMockSdk
+import works.szabope.plugins.pylint.testutil.TestPythonPackageManager
+import java.nio.file.Paths
+import kotlin.io.path.absolutePathString
 
-@TestDataPath("\$CONTENT_ROOT/testData/incompleteConfigurationNotification")
+@Suppress("OverrideOnly", "UnstableApiUsage")
+@TestDataPath("\$CONTENT_ROOT/testData/notification")
 class PylintIncompleteConfigurationNotificationTest : AbstractToolWindowTestCase() {
 
-    override fun getTestDataPath() = "src/test/testData/incompleteConfigurationNotification"
+    override fun getTestDataPath() = "src/test/testData/notification"
 
     override fun tearDown() {
         clearAllMocks()
@@ -38,21 +45,40 @@ class PylintIncompleteConfigurationNotificationTest : AbstractToolWindowTestCase
     }
 
     fun testLocalSdkNotification() {
-        val packageManager = mockPackageManager(true)
-        PylintSettingsInitializationTestService.getInstance(project).executeInitialization()
-        val notification = getSettingsNotification()
-        val actions = notification.actions
-        assertEquals(2, actions.size)
-        val action = AnActionWrapper(actions.last()) // Install pylint action
-        val event = getAnActionEvent(notification)
-        action.update(event)
-        assertTrue(event.presentation.isEnabled)
-        action.actionPerformed(event)
-        assertNotEmpty(packageManager.installedPackagesList.filter { it.name == "pylint" })
+        val mockSdk = PythonMockSdk.create(
+            "${Paths.get(testDataPath).absolutePathString()}/MockSdk"
+        )
+        val packageManager = TestPythonPackageManager(project, mockSdk)
+        mockkObject(PythonPackageManager)
+        every { PythonPackageManager.forSdk(any(), any()) } returns packageManager
+        runWriteActionAndWait {
+            ProjectJdkTable.getInstance().addJdk(mockSdk)
+        }
+        project.pythonSdk = mockSdk
+        module.pythonSdk = mockSdk
+        runBlocking {
+            triggerReconfiguration()
+        }
+        try {
+            val notification = getSettingsNotification()
+            val actions = notification.actions
+            assertEquals(2, actions.size)
+            val action = AnActionWrapper(actions.last()) // Install pylint action
+            val event = getAnActionEvent(notification)
+            action.update(event)
+            assertTrue(event.presentation.isEnabled)
+            action.actionPerformed(event)
+            assertNotEmpty(packageManager.installedPackages.filter { it.name == "pylint" })
+        } finally {
+            project.pythonSdk = null
+            module.pythonSdk = null
+            runWriteActionAndWait {
+                ProjectJdkTable.getInstance().removeJdk(mockSdk)
+            }
+        }
     }
 
-    fun testRemoteSdkNotification() {
-        mockPackageManager(false)
+    fun testRemoteSdkNotification() { //TODO: actually test with something that appears to be a remote sdk
         val openSettingsAction = mockOpenSettingsAction()
         val notification = getSettingsNotification()
         val actions = notification.actions
@@ -65,14 +91,6 @@ class PylintIncompleteConfigurationNotificationTest : AbstractToolWindowTestCase
         verify {
             openSettingsAction.actionPerformed(any(AnActionEvent::class))
         }
-    }
-
-    private fun mockPackageManager(canInstall: Boolean): PackageManagementService {
-        val packageManager = PackageManagementTestService()
-        mockkObject(PylintPackageUtil)
-        every { PylintPackageUtil.getPackageManager(project) } returns packageManager
-        every { PylintPackageUtil.canInstall(project) } returns canInstall
-        return packageManager
     }
 
     private fun mockOpenSettingsAction(): AnAction {

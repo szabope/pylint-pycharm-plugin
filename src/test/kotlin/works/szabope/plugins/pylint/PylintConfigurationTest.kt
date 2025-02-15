@@ -50,17 +50,12 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
                    <option name="pylintrcPath" value="${testDataPath}/configuration.toml" />
                </component>""".trimIndent()
         )
-        val settings = PylintSettings.getInstance(myFixture.project)
-        with(settings) {
-            executablePath = null
-            configFilePath = null
-            arguments = null
-            projectDirectory = null
-        }
         val oldState = deserializeState(oldStateXml, OldPylintSettings.OldPylintSettingsState::class.java)
         val oldSettings = OldPylintSettings.getInstance(project)
+        val settings = PylintSettings.getInstance(myFixture.project)
+        settings.reset()
         oldSettings.loadState(oldState!!)
-        PylintSettingsInitializationTestService.getInstance(project).executeInitialization()
+        runBlocking { triggerReconfiguration() }
         with(settings) {
             assertNull(executablePath)
             assertEquals(oldSettings.configFilePath, configFilePath)

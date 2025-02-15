@@ -1,7 +1,9 @@
 package works.szabope.plugins.pylint.action
 
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.components.service
+import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.platform.backend.workspace.WorkspaceModel
 import com.intellij.platform.backend.workspace.virtualFile
 import com.intellij.platform.workspace.jps.entities.ContentRootEntity
@@ -12,11 +14,12 @@ import com.intellij.testFramework.TestDataPath
 import com.intellij.testFramework.common.waitUntilAssertSucceeds
 import com.intellij.testFramework.workspaceModel.updateProjectModel
 import com.intellij.ui.tree.TreeTestUtil
+import com.jetbrains.python.sdk.pythonSdk
 import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.pylint.AbstractToolWindowTestCase
 import works.szabope.plugins.pylint.dialog.IDialogManager
 import works.szabope.plugins.pylint.services.PylintSettings
-import works.szabope.plugins.pylint.testutil.MockSdkFactory
+import works.szabope.plugins.pylint.testutil.PythonMockSdk
 import works.szabope.plugins.pylint.testutil.TestDialogManager
 import works.szabope.plugins.pylint.testutil.scan
 import java.net.URL
@@ -29,13 +32,11 @@ class ScanSdkTest : AbstractToolWindowTestCase() {
 
     private val treeUtil = TreeTestUtil(tree)
     private lateinit var dialogManager: TestDialogManager
-    private lateinit var mockSdkFactory: MockSdkFactory
 
     override fun getTestDataPath() = "src/test/testData/action/scan_sdk"
 
     override fun setUp() {
         super.setUp()
-        mockSdkFactory = MockSdkFactory(project, module)
         dialogManager = service<IDialogManager>() as TestDialogManager
     }
 
@@ -46,13 +47,18 @@ class ScanSdkTest : AbstractToolWindowTestCase() {
 
     fun testManualScan() = runBlocking {
         myFixture.copyDirectoryToProject("/", "/")
-        val pythonSdk = mockSdkFactory.setupWithPath("${Paths.get(testDataPath).absolutePathString()}/MockSdk")
+        val mockSdk = PythonMockSdk.create("${Paths.get(testDataPath).absolutePathString()}/MockSdk")
+        runWriteActionAndWait {
+            ProjectJdkTable.getInstance().addJdk(mockSdk)
+        }
+        project.pythonSdk = mockSdk
+        module.pythonSdk = mockSdk
         try {
             setUpSettings()
             val workspaceModel = WorkspaceModel.getInstance(project)
-            val excludedDir =
-                workspaceModel.currentSnapshot.entities(ContentRootEntity::class.java)
-                    .first().url.append("/excluded_dir")
+            val excludedDir = workspaceModel.currentSnapshot.entities(ContentRootEntity::class.java).first().url.append(
+                "/excluded_dir"
+            )
             val excludedEntity = ExcludeUrlEntity(excludedDir, object : EntitySource {
                 override val virtualFileUrl: VirtualFileUrl?
                     get() = excludedDir
@@ -86,7 +92,11 @@ class ScanSdkTest : AbstractToolWindowTestCase() {
             }
             dialogManager.cleanup()
         } finally {
-            mockSdkFactory.cleanup(pythonSdk)
+            project.pythonSdk = null
+            module.pythonSdk = null
+            runWriteActionAndWait {
+                ProjectJdkTable.getInstance().removeJdk(mockSdk)
+            }
         }
     }
 

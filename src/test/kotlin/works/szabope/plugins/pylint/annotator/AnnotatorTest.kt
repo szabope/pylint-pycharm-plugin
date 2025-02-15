@@ -5,7 +5,6 @@ import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import works.szabope.plugins.pylint.services.PylintSettings
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
-import kotlin.io.path.pathString
 
 @TestDataPath("\$CONTENT_ROOT/testData/annotation")
 class AnnotatorTest : BasePlatformTestCase() {
@@ -18,8 +17,8 @@ class AnnotatorTest : BasePlatformTestCase() {
 
     fun `test file annotated`() {
         with(PylintSettings.getInstance(myFixture.project)) {
-            executablePath = Paths.get(myFixture.testDataPath).resolve("pylint").absolutePathString()
-            projectDirectory = Paths.get(myFixture.testDataPath).pathString
+            executablePath = Paths.get(testDataPath).resolve("pylint").absolutePathString()
+            projectDirectory = Paths.get(testDataPath).absolutePathString()
             useProjectSdk = false
             arguments = null
             configFilePath = null
@@ -42,7 +41,7 @@ class AnnotatorTest : BasePlatformTestCase() {
         with(PylintSettings.getInstance(project)) {
             executablePath = Paths.get(testDataPath).resolve("white space/pylint").absolutePathString()
             configFilePath = Paths.get(testDataPath).resolve("white space/configuration.toml").absolutePathString()
-            projectDirectory = Paths.get(testDataPath).pathString
+            projectDirectory = Paths.get(testDataPath).absolutePathString()
             arguments = null
             useProjectSdk = false
         }

@@ -1,53 +1,51 @@
+@file:Suppress("removal", "UnstableApiUsage")
+
 package works.szabope.plugins.pylint.services
 
-import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.webcore.packaging.PackageManagementService
-import com.intellij.webcore.packaging.RepoPackage
-import com.jetbrains.python.packaging.common.PackageManagerHolder
+import com.jetbrains.python.packaging.PyExecutionException
+import com.jetbrains.python.packaging.common.PythonSimplePackageSpecification
+import com.jetbrains.python.packaging.management.PythonPackageManager
+import com.jetbrains.python.packaging.ui.PyPackageManagementService
 import com.jetbrains.python.sdk.PythonSdkUtil
 import com.jetbrains.python.sdk.pythonSdk
-import kotlinx.coroutines.future.await
-import java.util.concurrent.CompletableFuture
 
 object PylintPackageUtil {
 
-    private val PACKAGE = RepoPackage("pylint", null)
+    //TODO: add supported version spec
+    private val PACKAGE = PythonSimplePackageSpecification("pylint", null, null)
 
     fun canInstall(project: Project): Boolean {
-        val sdk = project.pythonSdk ?: return false
+        val sdk = getSdk(project) ?: return false
         return !PythonSdkUtil.isRemote(sdk) && !isInstalled(project)
     }
 
     fun isLocalEnvironment(project: Project): Boolean {
-        val sdk = project.pythonSdk ?: return false
+        val sdk = getSdk(project) ?: return false
         return PythonSdkUtil.isVirtualEnv(sdk) || PythonSdkUtil.isCondaVirtualEnv(sdk)
     }
 
-    @Suppress("IncorrectServiceRetrieving")
-    fun getPackageManager(project: Project): PackageManagementService? {
-        return project.pythonSdk?.let { sdk -> project.service<PackageManagerHolder>().bridgeForSdk(project, sdk) }
+    private fun getPackageManager(project: Project): PythonPackageManager? {
+        return getSdk(project)?.let { PythonPackageManager.forSdk(project, it) }
+    }
+
+    private fun getSdk(project: Project): Sdk? {
+        return project.pythonSdk
     }
 
     private fun isInstalled(project: Project): Boolean {
-        return getPackageManager(project)?.installedPackagesList?.any { it.name == PACKAGE.name } ?: false
+        return getPackageManager(project)?.installedPackages?.any { it.name == PACKAGE.name } ?: false
     }
 
     suspend fun install(project: Project): PackageManagementService.ErrorDescription? {
         val packageManager = getPackageManager(project)!!
-        val result = CompletableFuture<PackageManagementService.ErrorDescription>()
-        val listener = object : PackageManagementService.Listener {
-            override fun operationStarted(packageName: String?) = Unit
-            override fun operationFinished(ignored: String?, error: PackageManagementService.ErrorDescription?) {
-                if (error == null) {
-                    result.complete(null)
-                } else {
-                    result.complete(error)
-                }
-            }
+        try {
+            packageManager.installPackage(PACKAGE, emptyList())
+        } catch (ex: PyExecutionException) {
+            return PyPackageManagementService.toErrorDescription(listOf(ex), getSdk(project), PACKAGE.name)
         }
-        packageManager.installPackage(PACKAGE, null, false, null, listener, false)
-        return result.await()
+        return null
     }
-
 }

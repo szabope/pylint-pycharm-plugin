@@ -3,32 +3,20 @@ package works.szabope.plugins.pylint
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import com.intellij.openapi.startup.StartupActivity
 import works.szabope.plugins.pylint.activity.SettingsInitializationActivity
 
 @Service
-class PylintSettingsInitializationTestService(private val project: Project, private val cs: CoroutineScope) {
+class PylintSettingsInitializationTestService(private val project: Project) {
 
-    private var job: Job? = null
-    private val initializationActivity = SettingsInitializationActivity()
+    private var initializationActivity =
+        (StartupActivity.POST_STARTUP_ACTIVITY.point as Sequence<*>).filter { it is SettingsInitializationActivity }
+            .single() as SettingsInitializationActivity
 
-    suspend fun awaitProcessed(cb: () -> Unit) {
+    suspend fun triggerReconfiguration() {
         initializationActivity.configurationCalled.tryReceive() // clear existing
-        cb.invoke()
-        awaitActivity()
-    }
-
-    private suspend fun awaitActivity() {
+        initializationActivity.configurePlugin(project)
         initializationActivity.configurationCalled.receive()
-    }
-
-    fun executeInitialization() {
-        job?.cancel()
-        job = cs.launch { initializationActivity.execute(project) }
-        runBlocking { awaitActivity() }
     }
 
     companion object {

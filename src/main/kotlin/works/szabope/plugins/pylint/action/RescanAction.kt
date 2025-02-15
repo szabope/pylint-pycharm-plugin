@@ -2,6 +2,7 @@ package works.szabope.plugins.pylint.action
 
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import works.szabope.plugins.pylint.services.AsyncScanService
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.toRunConfiguration
@@ -14,6 +15,7 @@ class RescanAction : AbstractScanAction() {
         val latestScanTargets = panel.getScanTargets()
         val runConfiguration = project.let { PylintSettings.getInstance(it).toRunConfiguration() }
         panel.initializeResultTree(latestScanTargets)
+        FileDocumentManager.getInstance().saveAllDocuments()
         AsyncScanService.getInstance(project).scan(latestScanTargets, runConfiguration)
     }
 
