@@ -8,14 +8,17 @@ import com.intellij.webcore.packaging.PackageManagementService
 import com.jetbrains.python.packaging.PyExecutionException
 import com.jetbrains.python.packaging.common.PythonSimplePackageSpecification
 import com.jetbrains.python.packaging.management.PythonPackageManager
+import com.jetbrains.python.packaging.requirement.PyRequirementRelation
 import com.jetbrains.python.packaging.ui.PyPackageManagementService
 import com.jetbrains.python.sdk.PythonSdkUtil
 import com.jetbrains.python.sdk.pythonSdk
+import works.szabope.plugins.pylint.PylintBundle
 
 object PylintPackageUtil {
 
-    //TODO: add supported version spec
-    private val PACKAGE = PythonSimplePackageSpecification("pylint", null, null)
+    private val PACKAGE = PythonSimplePackageSpecification(
+        "pylint", PylintBundle.message("pylint.compatibleVersion"), null, PyRequirementRelation.COMPATIBLE
+    )
 
     fun canInstall(project: Project): Boolean {
         val sdk = getSdk(project) ?: return false
@@ -35,7 +38,7 @@ object PylintPackageUtil {
         return project.pythonSdk
     }
 
-    private fun isInstalled(project: Project): Boolean {
+    private fun isInstalled(project: Project): Boolean { //TODO: version check + inform user about version compatibility issue
         return getPackageManager(project)?.installedPackages?.any { it.name == PACKAGE.name } ?: false
     }
 
