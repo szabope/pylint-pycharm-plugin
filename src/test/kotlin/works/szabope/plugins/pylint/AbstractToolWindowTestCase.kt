@@ -13,6 +13,7 @@ abstract class AbstractToolWindowTestCase : AbstractPylintTestCase() {
 
     protected val tree: Tree = Tree()
     protected lateinit var toolWindowManager: TestToolWindowHeadlessManagerImpl
+    protected lateinit var panel: PylintToolWindowPanel
 
     override fun setUp() {
         super.setUp()
@@ -31,7 +32,8 @@ abstract class AbstractToolWindowTestCase : AbstractPylintTestCase() {
         val toolWindow = toolWindowManager.doRegisterToolWindow(PylintToolWindowPanel.ID)
         val factory = object : PylintToolWindowFactory() {
             override fun createPanel(project: Project): PylintToolWindowPanel {
-                return PylintToolWindowPanel(project, tree)
+                panel = PylintToolWindowPanel(project, tree)
+                return panel
             }
         }
         factory.createToolWindowContent(myFixture.project, toolWindow)
