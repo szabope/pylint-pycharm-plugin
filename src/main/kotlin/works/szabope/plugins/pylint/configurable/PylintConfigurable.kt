@@ -30,6 +30,7 @@ import works.szabope.plugins.pylint.services.PylintPackageUtil
 import works.szabope.plugins.pylint.services.PylintSettings
 import javax.swing.JButton
 
+//TODO: handle externally removed pylint through validation
 class PylintConfigurable(private val project: Project) : BoundSearchableConfigurable(
     PylintBundle.message("pylint.configurable.name"), PylintBundle.message("pylint.configurable.name"), _id = ID
 ), Configurable.NoScroll {
@@ -123,7 +124,22 @@ class PylintConfigurable(private val project: Project) : BoundSearchableConfigur
                 val sdkOption =
                     radioButton(PylintBundle.message("pylint.settings.use_project_sdk"), USE_PROJECT_SDK).enabled(
                         project.pythonSdk != null
-                    )
+                    ).validationOnInput {
+                        val installedVersion = PylintPackageUtil.getInstalledVersion(project)
+                            ?: return@validationOnInput error(
+                                PylintBundle.message("pylint.settings.pylint_not_installed")
+                            )
+                        if (!PylintPackageUtil.isVersionSupported(installedVersion)) {
+                            return@validationOnInput error(
+                                PylintBundle.message(
+                                    "pylint.settings.pylint_invalid_version",
+                                    installedVersion,
+                                    PylintPackageUtil.minimumVersion
+                                )
+                            )
+                        }
+                        null
+                    }
                 sdkOption.component
                 installButton(sdkOption.selected)
             }.rowComment(
@@ -133,9 +149,7 @@ class PylintConfigurable(private val project: Project) : BoundSearchableConfigur
                     ""
                 }, maxLineLength = MAX_LINE_LENGTH_WORD_WRAP
             ).layout(RowLayout.PARENT_GRID)
-        }.bind(
-            getter = { settings.useProjectSdk },
-            setter = { settings.useProjectSdk = it })
+        }.bind(getter = { settings.useProjectSdk }, setter = { settings.useProjectSdk = it })
 
     private fun Panel.configFilePicker() = row {
         label(PylintBundle.message("pylint.settings.config_file.label"))

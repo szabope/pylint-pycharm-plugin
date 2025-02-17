@@ -46,7 +46,7 @@ class ScanCliTest : AbstractToolWindowTestCase() {
         super.tearDown()
     }
 
-    fun testManualScan() = runBlocking {
+    fun testManualScan() {
         myFixture.copyDirectoryToProject("/", "/")
         setUpSettings("pylint")
         val workspaceModel = WorkspaceModel.getInstance(project)
@@ -70,22 +70,24 @@ class ScanCliTest : AbstractToolWindowTestCase() {
         }
         val target = workspaceModel.currentSnapshot.entities(ContentRootEntity::class.java).first().url.virtualFile!!
         scan(target, project)
-        waitUntilAssertSucceeds {
-            treeUtil.assertStructure("+Found 2 issue(s) in 1 file(s)\n")
-        }.also {
-            treeUtil.expandAll()
-            treeUtil.assertStructure(
-                """|-Found 2 issue(s) in 1 file(s)
+        runBlocking {
+            waitUntilAssertSucceeds {
+                treeUtil.assertStructure("+Found 2 issue(s) in 1 file(s)\n")
+            }.also {
+                treeUtil.expandAll()
+                treeUtil.assertStructure(
+                    """|-Found 2 issue(s) in 1 file(s)
                    | -/src/action/scan_cli/manualScan.py
                    |  [disallowed-name] Disallowed name "tata"
                    |  [disallowed-name] Disallowed name "tutu"
                    |""".trimMargin()
-            )
+                )
+            }
         }
         dialogManager.cleanup()
     }
 
-    fun testFailingScan() = runBlocking {
+    fun testFailingScan() {
         toolWindowManager.onBalloon {
             it.listener?.hyperlinkUpdate(
                 HyperlinkEvent(
@@ -101,8 +103,10 @@ class ScanCliTest : AbstractToolWindowTestCase() {
         setUpSettings("pylint_failing")
         val file = myFixture.configureByFile("manualScan.py").virtualFile
         scan(file, project)
-        waitUntil {
-            dialogShown.isDone && with(dialogShown.get()) { isShown() && getExitCode() == DialogWrapper.OK_EXIT_CODE }
+        runBlocking {
+            waitUntil {
+                dialogShown.isDone && with(dialogShown.get()) { isShown() && getExitCode() == DialogWrapper.OK_EXIT_CODE }
+            }
         }
     }
 

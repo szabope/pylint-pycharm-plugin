@@ -9,7 +9,9 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.testFramework.TestDataPath
 import com.jetbrains.python.packaging.management.PythonPackageManager
 import com.jetbrains.python.sdk.pythonSdk
-import io.mockk.*
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.pylint.action.OpenSettingsAction
 import works.szabope.plugins.pylint.testutil.PythonMockSdk
@@ -22,12 +24,6 @@ import kotlin.io.path.absolutePathString
 class PylintIncompleteConfigurationNotificationTest : AbstractToolWindowTestCase() {
 
     override fun getTestDataPath() = "src/test/testData/notification"
-
-    override fun tearDown() {
-        clearAllMocks()
-        unmockkAll()
-        super.tearDown()
-    }
 
     fun testNoSdkNotification() {
         val openSettingsAction = mockOpenSettingsAction()

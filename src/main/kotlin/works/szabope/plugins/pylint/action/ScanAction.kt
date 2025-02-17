@@ -27,9 +27,8 @@ open class ScanAction : AbstractScanAction() {
     }
 
     override fun update(event: AnActionEvent) {
-        event.presentation.isEnabled = isEligibleForScanning(listTargets(event)) && isReadyToScan(
-            event.project ?: return
-        )
+        event.presentation.isEnabled =
+            isEligibleForScanning(listTargets(event)) && event.project?.let { isReadyToScan(it) } == true
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {

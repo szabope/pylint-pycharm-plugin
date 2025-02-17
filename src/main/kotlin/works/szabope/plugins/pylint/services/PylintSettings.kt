@@ -7,7 +7,6 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.util.text.SemVer
 import com.jetbrains.python.sdk.pythonSdk
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.annotations.ApiStatus
@@ -101,14 +100,14 @@ class PylintSettings(internal val project: Project) :
 
     fun addExclusion(exclusion: String) {
         require(exclusion.isNotBlank())
-        if (!state.customExclusions.contains(exclusion)) {
-            state.customExclusions.add(exclusion)
+        if (!customExclusions.contains(exclusion)) {
+            customExclusions.add(exclusion)
         }
     }
 
     fun removeExclusion(exclusion: String) {
-        if (state.customExclusions.contains(exclusion)) {
-            state.customExclusions.remove(exclusion)
+        if (customExclusions.contains(exclusion)) {
+            customExclusions.remove(exclusion)
         }
     }
 
@@ -123,20 +122,31 @@ class PylintSettings(internal val project: Project) :
         override fun toString() = message
     }
 
-    fun isComplete(): Boolean = (state.executablePath != null || useProjectSdk) && projectDirectory != null
+    // TODO: projectDirectory != null is failing for tests: cannot set /src because it does not exist
+    fun isComplete(): Boolean {
+        return canExecute() && validateConfigFile(executablePath) == null && validateProjectDirectory(projectDirectory) == null
+    }
+
+    private fun canExecute(): Boolean {
+        return if (useProjectSdk) {
+            PylintPackageUtil.isSupportedVersionInstalled(project)
+        } else {
+            executablePath != null && validateExecutable(executablePath) == null
+        }
+    }
 
     fun ensureValid(): SettingsValidationProblem? {
-        validateExecutable(state.executablePath)?.also {
+        validateExecutable(executablePath)?.also {
             logger.warn("clearing invalid executablePath $executablePath")
             executablePath = null
             return@ensureValid it
         }
-        validateConfigFile(state.configFilePath)?.also {
+        validateConfigFile(configFilePath)?.also {
             logger.warn("clearing invalid configFilePath $configFilePath")
             configFilePath = null
             return@ensureValid it
         }
-        validateProjectDirectory(state.projectDirectory)?.also {
+        validateProjectDirectory(projectDirectory)?.also {
             logger.warn("clearing invalid projectDirectory $projectDirectory")
             projectDirectory = null
             return@ensureValid it
@@ -191,17 +201,14 @@ class PylintSettings(internal val project: Project) :
                 )
             }
 
-            val minimumPylintVersionText = PylintBundle.message("pylint.minimumVersion")
-            val minimumPylintVersion = SemVer.parseFromText(minimumPylintVersionText)!!
-            val pylintVersion =
-                "(\\d+.\\d+.\\d+)".toRegex().find(processResult.stdout)?.let { SemVer.parseFromText(it.value) }
+            val pylintVersion = "pylint (\\d+.\\d+.\\d+)".toRegex().find(processResult.stdout)?.groups?.last()?.value
             if (pylintVersion == null) {
                 return SettingsValidationProblem(PylintBundle.message("pylint.settings.path_to_executable.unknown_version"))
             }
-            if (!pylintVersion.isGreaterOrEqualThan(minimumPylintVersion)) {
+            if (!PylintPackageUtil.isVersionSupported(pylintVersion)) {
                 return SettingsValidationProblem(
                     PylintBundle.message(
-                        "pylint.settings.pylint_invalid_version", processResult.stdout, minimumPylintVersionText
+                        "pylint.settings.pylint_invalid_version", processResult.stdout, PylintPackageUtil.minimumVersion
                     )
                 )
             }

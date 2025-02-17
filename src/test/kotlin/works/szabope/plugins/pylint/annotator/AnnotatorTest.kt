@@ -1,13 +1,13 @@
 package works.szabope.plugins.pylint.annotator
 
 import com.intellij.testFramework.TestDataPath
-import com.intellij.testFramework.fixtures.BasePlatformTestCase
+import works.szabope.plugins.pylint.AbstractPylintTestCase
 import works.szabope.plugins.pylint.services.PylintSettings
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
 
 @TestDataPath("\$CONTENT_ROOT/testData/annotation")
-class AnnotatorTest : BasePlatformTestCase() {
+class AnnotatorTest : AbstractPylintTestCase() {
     override fun getTestDataPath() = "src/test/testData/annotation"
 
     override fun setUp() {

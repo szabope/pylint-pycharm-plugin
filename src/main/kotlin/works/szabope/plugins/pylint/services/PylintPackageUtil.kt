@@ -10,14 +10,16 @@ import com.jetbrains.python.packaging.common.PythonSimplePackageSpecification
 import com.jetbrains.python.packaging.management.PythonPackageManager
 import com.jetbrains.python.packaging.requirement.PyRequirementRelation
 import com.jetbrains.python.packaging.ui.PyPackageManagementService
+import com.jetbrains.python.psi.LanguageLevel
 import com.jetbrains.python.sdk.PythonSdkUtil
 import com.jetbrains.python.sdk.pythonSdk
-import works.szabope.plugins.pylint.PylintBundle
 
 object PylintPackageUtil {
 
+    val minimumVersion = LanguageLevel.PYTHON30
+
     private val PACKAGE = PythonSimplePackageSpecification(
-        "pylint", PylintBundle.message("pylint.compatibleVersion"), null, PyRequirementRelation.COMPATIBLE
+        "pylint", minimumVersion.toPythonVersion(), null, PyRequirementRelation.COMPATIBLE
     )
 
     fun canInstall(project: Project): Boolean {
@@ -30,6 +32,21 @@ object PylintPackageUtil {
         return PythonSdkUtil.isVirtualEnv(sdk) || PythonSdkUtil.isCondaVirtualEnv(sdk)
     }
 
+    fun isSupportedVersionInstalled(project: Project): Boolean {
+        val version = getInstalledVersion(project) ?: return false
+        return isVersionSupported(version)
+    }
+
+    suspend fun reloadPackages(project: Project) = getPackageManager(project)?.reloadPackages()
+
+    fun getInstalledVersion(project: Project): String? {
+        return getPackageManager(project)?.installedPackages?.firstOrNull { it.name == PACKAGE.name }?.version
+    }
+
+    fun isVersionSupported(version: String): Boolean {
+        return LanguageLevel.fromPythonVersion(version)?.isAtLeast(minimumVersion) ?: false
+    }
+
     private fun getPackageManager(project: Project): PythonPackageManager? {
         return getSdk(project)?.let { PythonPackageManager.forSdk(project, it) }
     }
@@ -38,11 +55,12 @@ object PylintPackageUtil {
         return project.pythonSdk
     }
 
-    private fun isInstalled(project: Project): Boolean { //TODO: version check + inform user about version compatibility issue
-        return getPackageManager(project)?.installedPackages?.any { it.name == PACKAGE.name } ?: false
+    private fun isInstalled(project: Project): Boolean {
+        return getInstalledVersion(project) != null
     }
 
     suspend fun install(project: Project): PackageManagementService.ErrorDescription? {
+        if (isInstalled(project)) return null
         val packageManager = getPackageManager(project)!!
         try {
             packageManager.installPackage(PACKAGE, emptyList())

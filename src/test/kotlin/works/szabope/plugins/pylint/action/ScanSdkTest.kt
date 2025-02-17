@@ -14,19 +14,25 @@ import com.intellij.testFramework.TestDataPath
 import com.intellij.testFramework.common.waitUntilAssertSucceeds
 import com.intellij.testFramework.workspaceModel.updateProjectModel
 import com.intellij.ui.tree.TreeTestUtil
+import com.jetbrains.python.packaging.management.PythonPackageManager
 import com.jetbrains.python.sdk.pythonSdk
+import io.mockk.every
+import io.mockk.mockkObject
 import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.pylint.AbstractToolWindowTestCase
 import works.szabope.plugins.pylint.dialog.IDialogManager
+import works.szabope.plugins.pylint.services.PylintPackageUtil
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.testutil.PythonMockSdk
 import works.szabope.plugins.pylint.testutil.TestDialogManager
+import works.szabope.plugins.pylint.testutil.TestPythonPackageManager
 import works.szabope.plugins.pylint.testutil.scan
 import java.net.URL
 import java.nio.file.Paths
 import javax.swing.event.HyperlinkEvent
 import kotlin.io.path.absolutePathString
 
+@Suppress("UnstableApiUsage")
 @TestDataPath("\$CONTENT_ROOT/testData/action/scan_sdk")
 class ScanSdkTest : AbstractToolWindowTestCase() {
 
@@ -45,7 +51,7 @@ class ScanSdkTest : AbstractToolWindowTestCase() {
         super.tearDown()
     }
 
-    fun testManualScan() = runBlocking {
+    fun testManualScan() {
         myFixture.copyDirectoryToProject("/", "/")
         val mockSdk = PythonMockSdk.create("${Paths.get(testDataPath).absolutePathString()}/MockSdk")
         runWriteActionAndWait {
@@ -53,6 +59,12 @@ class ScanSdkTest : AbstractToolWindowTestCase() {
         }
         project.pythonSdk = mockSdk
         module.pythonSdk = mockSdk
+        val packageManager = TestPythonPackageManager(project, mockSdk)
+        mockkObject(PythonPackageManager)
+        every { PythonPackageManager.forSdk(any(), any()) } returns packageManager
+        runBlocking {
+            PylintPackageUtil.install(project)
+        }
         try {
             setUpSettings()
             val workspaceModel = WorkspaceModel.getInstance(project)
@@ -78,20 +90,22 @@ class ScanSdkTest : AbstractToolWindowTestCase() {
             val target =
                 workspaceModel.currentSnapshot.entities(ContentRootEntity::class.java).first().url.virtualFile!!
             scan(target, project)
-            waitUntilAssertSucceeds {
-                treeUtil.assertStructure("+Found 2 issue(s) in 1 file(s)\n")
-            }.also {
-                treeUtil.expandAll()
-                treeUtil.assertStructure(
-                    """|-Found 2 issue(s) in 1 file(s)
+            runBlocking {
+                waitUntilAssertSucceeds {
+                    treeUtil.assertStructure("+Found 2 issue(s) in 1 file(s)\n")
+                }.also {
+                    treeUtil.expandAll()
+                    treeUtil.assertStructure(
+                        """|-Found 2 issue(s) in 1 file(s)
                    | -/src/action/scan_cli/manualScan.py
                    |  [disallowed-name] Disallowed name "tata"
                    |  [disallowed-name] Disallowed name "tutu"
                    |""".trimMargin()
-                )
+                    )
+                }
             }
-            dialogManager.cleanup()
         } finally {
+            dialogManager.cleanup()
             project.pythonSdk = null
             module.pythonSdk = null
             runWriteActionAndWait {
