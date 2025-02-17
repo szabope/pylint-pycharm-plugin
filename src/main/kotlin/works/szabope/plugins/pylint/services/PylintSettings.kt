@@ -129,7 +129,7 @@ class PylintSettings(internal val project: Project) :
 
     private fun canExecute(): Boolean {
         return if (useProjectSdk) {
-            PylintPackageUtil.isSupportedVersionInstalled(project)
+            validateSdk() == null
         } else {
             executablePath != null && validateExecutable(executablePath) == null
         }
@@ -174,44 +174,54 @@ class PylintSettings(internal val project: Project) :
     }
 
     fun validateExecutable(path: String?): SettingsValidationProblem? {
-        if (path != null) {
-            require(path.isNotBlank())
-            val file = File(path)
-            if (!file.exists()) {
-                return SettingsValidationProblem(PylintBundle.message("pylint.settings.path_to_executable.not_exists"))
-            }
-            if (file.isDirectory) {
-                return SettingsValidationProblem(PylintBundle.message("pylint.settings.path_to_executable.is_directory"))
-            }
-            if (!file.canExecute()) {
-                return SettingsValidationProblem(PylintBundle.message("pylint.settings.path_to_executable.not_executable"))
-            }
+        if (path == null) return null
+        require(path.isNotBlank())
+        val file = File(path)
+        if (!file.exists()) {
+            return SettingsValidationProblem(PylintBundle.message("pylint.settings.path_to_executable.not_exists"))
+        }
+        if (file.isDirectory) {
+            return SettingsValidationProblem(PylintBundle.message("pylint.settings.path_to_executable.is_directory"))
+        }
+        if (!file.canExecute()) {
+            return SettingsValidationProblem(PylintBundle.message("pylint.settings.path_to_executable.not_executable"))
+        }
 
-            val processResult = runBlocking {
-                Cli.execute(path, "--version")
-            }
-            if (processResult.resultCode != 0) {
-                return SettingsValidationProblem(
-                    PylintBundle.message(
-                        "pylint.settings.path_to_executable.exited_with_error",
-                        path,
-                        processResult.resultCode,
-                        processResult.stderr
-                    )
+        val processResult = runBlocking {
+            Cli.execute(path, "--version")
+        }
+        if (processResult.resultCode != 0) {
+            return SettingsValidationProblem(
+                PylintBundle.message(
+                    "pylint.settings.path_to_executable.exited_with_error",
+                    path,
+                    processResult.resultCode,
+                    processResult.stderr
                 )
-            }
+            )
+        }
 
-            val pylintVersion = "pylint (\\d+.\\d+.\\d+)".toRegex().find(processResult.stdout)?.groups?.last()?.value
-            if (pylintVersion == null) {
-                return SettingsValidationProblem(PylintBundle.message("pylint.settings.path_to_executable.unknown_version"))
-            }
-            if (!PylintPackageUtil.isVersionSupported(pylintVersion)) {
-                return SettingsValidationProblem(
-                    PylintBundle.message(
-                        "pylint.settings.pylint_invalid_version", processResult.stdout, PylintPackageUtil.minimumVersion
-                    )
+        val pylintVersion = "pylint (\\d+.\\d+.\\d+)".toRegex().find(processResult.stdout)?.groups?.last()?.value
+        if (pylintVersion == null) {
+            return SettingsValidationProblem(PylintBundle.message("pylint.settings.path_to_executable.unknown_version"))
+        }
+        return validateVersion(pylintVersion)
+    }
+
+    fun validateSdk(): SettingsValidationProblem? {
+        val installedVersion = PylintPackageUtil.getInstalledVersion(project) ?: return SettingsValidationProblem(
+            PylintBundle.message("pylint.settings.pylint_not_installed")
+        )
+        return validateVersion(installedVersion)
+    }
+
+    private fun validateVersion(pylintVersion: String): SettingsValidationProblem? {
+        if (!PylintPackageUtil.isVersionSupported(pylintVersion)) {
+            return SettingsValidationProblem(
+                PylintBundle.message(
+                    "pylint.settings.pylint_invalid_version", pylintVersion, PylintPackageUtil.minimumVersion
                 )
-            }
+            )
         }
         return null
     }

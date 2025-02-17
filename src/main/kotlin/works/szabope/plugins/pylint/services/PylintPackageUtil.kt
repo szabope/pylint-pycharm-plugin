@@ -32,11 +32,6 @@ object PylintPackageUtil {
         return PythonSdkUtil.isVirtualEnv(sdk) || PythonSdkUtil.isCondaVirtualEnv(sdk)
     }
 
-    fun isSupportedVersionInstalled(project: Project): Boolean {
-        val version = getInstalledVersion(project) ?: return false
-        return isVersionSupported(version)
-    }
-
     suspend fun reloadPackages(project: Project) = getPackageManager(project)?.reloadPackages()
 
     fun getInstalledVersion(project: Project): String? {

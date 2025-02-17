@@ -30,7 +30,6 @@ import works.szabope.plugins.pylint.services.PylintPackageUtil
 import works.szabope.plugins.pylint.services.PylintSettings
 import javax.swing.JButton
 
-//TODO: handle externally removed pylint through validation
 class PylintConfigurable(private val project: Project) : BoundSearchableConfigurable(
     PylintBundle.message("pylint.configurable.name"), PylintBundle.message("pylint.configurable.name"), _id = ID
 ), Configurable.NoScroll {
@@ -38,15 +37,21 @@ class PylintConfigurable(private val project: Project) : BoundSearchableConfigur
     private val settings
         get() = PylintSettings.getInstance(project)
 
-    override fun createPanel() = panel {
-        indent {
-            pylintPicker()
-            configFilePicker()
-            argumentsField()
-            projectDirectoryPicker()
-            excludeNonProjectFilesCheckbox()
+    override fun createPanel(): DialogPanel {
+        val pnl = panel {
+            indent {
+                pylintPicker()
+                configFilePicker()
+                argumentsField()
+                projectDirectoryPicker()
+                excludeNonProjectFilesCheckbox()
+            }
         }
+        pnl.registerValidators(disposable!!)
+        pnl.validateAll()
+        return pnl
     }
+
 
     override fun apply() {
         if ((createComponent() as DialogPanel).validateAll().isEmpty()) {
@@ -125,18 +130,8 @@ class PylintConfigurable(private val project: Project) : BoundSearchableConfigur
                     radioButton(PylintBundle.message("pylint.settings.use_project_sdk"), USE_PROJECT_SDK).enabled(
                         project.pythonSdk != null
                     ).validationOnInput {
-                        val installedVersion = PylintPackageUtil.getInstalledVersion(project)
-                            ?: return@validationOnInput error(
-                                PylintBundle.message("pylint.settings.pylint_not_installed")
-                            )
-                        if (!PylintPackageUtil.isVersionSupported(installedVersion)) {
-                            return@validationOnInput error(
-                                PylintBundle.message(
-                                    "pylint.settings.pylint_invalid_version",
-                                    installedVersion,
-                                    PylintPackageUtil.minimumVersion
-                                )
-                            )
+                        settings.validateSdk()?.also {
+                            return@validationOnInput error(it.message)
                         }
                         null
                     }
