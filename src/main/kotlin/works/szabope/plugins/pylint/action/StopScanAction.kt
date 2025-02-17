@@ -18,4 +18,8 @@ class StopScanAction : DumbAwareAction() {
     override fun getActionUpdateThread(): ActionUpdateThread {
         return ActionUpdateThread.BGT
     }
+
+    companion object {
+        const val ID = "works.szabope.plugins.pylint.action.StopScanAction"
+    }
 }
