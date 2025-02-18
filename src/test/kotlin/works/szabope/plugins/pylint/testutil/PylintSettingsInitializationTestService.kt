@@ -1,4 +1,4 @@
-package works.szabope.plugins.pylint
+package works.szabope.plugins.pylint.testutil
 
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service

@@ -9,6 +9,7 @@ import com.intellij.testFramework.common.waitUntil
 import io.mockk.coEvery
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
+import junit.framework.TestCase
 import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.pylint.dialog.IDialogManager
 import works.szabope.plugins.pylint.dialog.PylintExecutionErrorDialog
@@ -24,6 +25,7 @@ import java.util.concurrent.CompletableFuture
 import javax.swing.event.HyperlinkEvent
 import kotlin.io.path.absolutePathString
 
+@Suppress("UnstableApiUsage")
 @TestDataPath("\$CONTENT_ROOT/testData/configuration")
 class PylintConfigurationTest : AbstractToolWindowTestCase() {
 
@@ -43,29 +45,60 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
 
     @Suppress("UnstableApiUsage")
     fun testInitializeFromOldSettings() {
-        myFixture.copyFileToProject("configuration.toml")
         val oldStateXml = JDOMUtil.load(
             """<component name="PylintConfigService">
+                   <option name="customPylintPath" value="${testDataPath}/MockSdk/bin/pylint" />
                    <option name="pylintArguments" value="--some-arg 8" />
                    <option name="pylintrcPath" value="${testDataPath}/configuration.toml" />
+                   <option name="scanBeforeCheckin" value="true" />
                </component>""".trimIndent()
         )
         val oldState = deserializeState(oldStateXml, OldPylintSettings.OldPylintSettingsState::class.java)
         val oldSettings = OldPylintSettings.getInstance(project)
-        val settings = PylintSettings.getInstance(myFixture.project)
+        val settings = PylintSettings.getInstance(project)
         settings.reset()
         oldSettings.loadState(oldState!!)
-        runBlocking { triggerReconfiguration() }
-        with(settings) {
-            assertNull(executablePath)
-            assertEquals(oldSettings.configFilePath, configFilePath)
-            assertEquals(oldSettings.arguments, arguments)
+        try {
+            runBlocking { triggerReconfiguration() }
+            with(settings) {
+                TestCase.assertFalse(useProjectSdk)
+                assertEquals(oldSettings.executablePath, executablePath)
+                assertEquals(oldSettings.configFilePath, configFilePath)
+                assertEquals(oldSettings.arguments, arguments)
+                assertEquals(oldSettings.isScanBeforeCheckIn, isScanBeforeCheckIn)
+            }
+        } finally {
+            oldSettings.reset()
         }
     }
 
+    fun testProjectSdkSelectedWhenSet() = withMockSdk("${Paths.get(testDataPath).absolutePathString()}/MockSdk") {
+        val settings = PylintSettings.getInstance(project)
+        settings.reset()
+        runBlocking { triggerReconfiguration() }
+        with(settings) {
+            assertTrue(useProjectSdk)
+            assertNull(executablePath)
+        }
+    }
+
+    fun ignoredTestProjectSdkNotSelectedWhenWsl() {
+        TODO()
+    }
+
+    fun testExistingCliPathTakesPrecedenceOverProjectSdk() =
+        withMockSdk("${Paths.get(testDataPath).absolutePathString()}/MockSdk") {
+            val settings = PylintSettings.getInstance(project)
+            settings.reset()
+            settings.executablePath = "${testDataPath}/MockSdk/bin/pylint"
+            runBlocking { triggerReconfiguration() }
+            assertFalse(settings.useProjectSdk)
+            assertEquals("${testDataPath}/MockSdk/bin/pylint", settings.executablePath)
+        }
+
     fun testObsoleteVersionIsNotSet() {
         PylintSettings.getInstance(project).executablePath = null
-        val pathToObsoletePylint = Paths.get(myFixture.testDataPath).resolve("pylint_obsolete").absolutePathString()
+        val pathToObsoletePylint = Paths.get(testDataPath).resolve("pylint_obsolete").absolutePathString()
         PylintSettings.getInstance(project).executablePath = pathToObsoletePylint
         assertNull(PylintSettings.getInstance(project).executablePath)
     }

@@ -3,6 +3,7 @@ package works.szabope.plugins.pylint.services
 import com.intellij.openapi.components.*
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.ApiStatus
+import org.jetbrains.annotations.TestOnly
 
 @Service(Service.Level.PROJECT)
 @State(
@@ -31,6 +32,11 @@ class OldPylintSettings : SimplePersistentStateComponent<OldPylintSettings.OldPy
         get() = state.pylintArguments
     val isScanBeforeCheckIn
         get() = state.scanBeforeCheckin
+
+    @TestOnly
+    fun reset() {
+        loadState(OldPylintSettingsState())
+    }
 
     companion object {
         @JvmStatic

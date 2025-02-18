@@ -158,7 +158,7 @@ class PylintSettings(internal val project: Project) :
         if (executablePath == null) {
             executablePath = oldPylintSettings?.executablePath ?: autodetectExecutable()
         }
-        useProjectSdk = useProjectSdk || (executablePath == null && project.pythonSdk != null)
+        useProjectSdk = useProjectSdk || (executablePath == null && project.pythonSdk != null) // only if pythonSdk is eligible, e.g. wsl is not (log shows it was considered a system sdk)
         if (configFilePath == null) {
             configFilePath = oldPylintSettings?.configFilePath
         }
