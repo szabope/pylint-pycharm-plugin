@@ -14,6 +14,7 @@ import io.mockk.mockkObject
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.pylint.action.OpenSettingsAction
+import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.testutil.PythonMockSdk
 import works.szabope.plugins.pylint.testutil.TestPythonPackageManager
 import java.nio.file.Paths
@@ -24,6 +25,11 @@ import kotlin.io.path.absolutePathString
 class PylintIncompleteConfigurationNotificationTest : AbstractToolWindowTestCase() {
 
     override fun getTestDataPath() = "src/test/testData/notification"
+
+    override fun setUp() {
+        super.setUp()
+        PylintSettings.getInstance(project).reset()
+    }
 
     fun testNoSdkNotification() {
         val openSettingsAction = mockOpenSettingsAction()
@@ -52,9 +58,6 @@ class PylintIncompleteConfigurationNotificationTest : AbstractToolWindowTestCase
         }
         project.pythonSdk = mockSdk
         module.pythonSdk = mockSdk
-        runBlocking {
-            triggerReconfiguration()
-        }
         try {
             val notification = getSettingsNotification()
             val actions = notification.actions
@@ -103,6 +106,9 @@ class PylintIncompleteConfigurationNotificationTest : AbstractToolWindowTestCase
     }
 
     private fun getSettingsNotification(): Notification {
+        runBlocking {
+            triggerReconfiguration()
+        }
         val notifications = ActionCenter.getNotifications(project).filter {
             "Pylint Group" == it.groupId && PylintBundle.message("pylint.settings.incomplete") == it.content && !it.isExpired
         }
