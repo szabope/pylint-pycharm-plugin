@@ -8,6 +8,7 @@ import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.testFramework.TestDataPath
 import com.jetbrains.python.packaging.management.PythonPackageManager
+import com.jetbrains.python.remote.PyRemoteSdkAdditionalData
 import com.jetbrains.python.sdk.pythonSdk
 import io.mockk.every
 import io.mockk.mockkObject
@@ -77,18 +78,38 @@ class PylintIncompleteConfigurationNotificationTest : AbstractToolWindowTestCase
         }
     }
 
-    fun testRemoteSdkNotification() { //TODO: actually test with something that appears to be a remote sdk
+    fun testRemoteSdkNotification() {
+        val mockSdk = PythonMockSdk.create("${Paths.get(testDataPath).absolutePathString()}/MockSdk")
+        val packageManager = TestPythonPackageManager(project, mockSdk)
+        mockkObject(PythonPackageManager)
+        every { PythonPackageManager.forSdk(any(), any()) } returns packageManager
+        runWriteActionAndWait {
+            ProjectJdkTable.getInstance().addJdk(mockSdk)
+        }
+        project.pythonSdk = mockSdk
+        module.pythonSdk = mockSdk
+        // let's lie about locality, see com.jetbrains.python.sdk.PythonSdkUtil#isRemote(Sdk)
+        mockkObject(mockSdk)
+        every { mockSdk.sdkAdditionalData } returns PyRemoteSdkAdditionalData(null)
         val openSettingsAction = mockOpenSettingsAction()
-        val notification = getSettingsNotification()
-        val actions = notification.actions
-        assertEquals(1, actions.size)
-        val action = AnActionWrapper(actions.first()) // Complete configuration action
-        val event = getAnActionEvent(notification)
-        action.update(event)
-        assertTrue(event.presentation.isEnabled)
-        action.actionPerformed(event)
-        verify {
-            openSettingsAction.actionPerformed(any(AnActionEvent::class))
+        try {
+            val notification = getSettingsNotification()
+            val actions = notification.actions
+            assertEquals(1, actions.size)
+            val action = AnActionWrapper(actions.first()) // Complete configuration action
+            val event = getAnActionEvent(notification)
+            action.update(event)
+            assertTrue(event.presentation.isEnabled)
+            action.actionPerformed(event)
+            verify {
+                openSettingsAction.actionPerformed(any(AnActionEvent::class))
+            }
+        } finally {
+            project.pythonSdk = null
+            module.pythonSdk = null
+            runWriteActionAndWait {
+                ProjectJdkTable.getInstance().removeJdk(mockSdk)
+            }
         }
     }
 
