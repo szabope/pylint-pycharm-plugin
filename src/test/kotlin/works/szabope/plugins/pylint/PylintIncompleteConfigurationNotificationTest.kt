@@ -7,6 +7,7 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.TestDataPath
 import com.jetbrains.python.remote.PyRemoteSdkAdditionalData
 import io.mockk.every
+import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
@@ -52,8 +53,10 @@ class PylintIncompleteConfigurationNotificationTest : AbstractToolWindowTestCase
         withMockSdk("${Paths.get(testDataPath).absolutePathString()}/MockSdk") { packageManager ->
             val mockSdk = packageManager.sdk
             // let's lie about locality, see com.jetbrains.python.sdk.PythonSdkUtil#isRemote(Sdk)
+            val mockAdditionalData = mockk<PyRemoteSdkAdditionalData>()
+            every { mockAdditionalData.sdkId } returns "Python something"
             mockkObject(mockSdk)
-            every { mockSdk.sdkAdditionalData } returns PyRemoteSdkAdditionalData(null)
+            every { mockSdk.sdkAdditionalData } returns mockAdditionalData
             val openSettingsAction = mockOpenSettingsAction()
             val notification = getSettingsNotification()
             val actions = notification.actions
