@@ -214,7 +214,7 @@ class PylintSettings(internal val project: Project) :
 
     fun validateSdk(): SettingsValidationProblem? {
         if ((project.pythonSdk?.sdkAdditionalData as? RemoteSdkProperties)?.sdkId?.startsWith("WSL") == true) {
-            return SettingsValidationProblem("WSL is not supported, yet")
+            return SettingsValidationProblem(PylintBundle.message("pylint.settings.wsl_not_supported"))
         }
 
         val installedVersion = PylintPackageUtil.getInstalledVersion(project) ?: return SettingsValidationProblem(
