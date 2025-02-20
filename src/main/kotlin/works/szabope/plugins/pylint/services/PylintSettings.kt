@@ -7,6 +7,7 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.remote.RemoteSdkProperties
 import com.jetbrains.python.sdk.pythonSdk
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.annotations.ApiStatus
@@ -160,7 +161,6 @@ class PylintSettings(internal val project: Project) :
         if (executablePath == null) {
             executablePath = oldPylintSettings?.executablePath ?: autodetectExecutable()
         }
-//        (project.pythonSdk?.sdkAdditionalData as RemoteSdkProperties).sdkId.startsWith("WSL")
         useProjectSdk =
             useProjectSdk || (executablePath == null && project.pythonSdk != null) // only if pythonSdk is eligible, e.g. wsl is not (log shows it was considered a system sdk)
         if (configFilePath == null) {
@@ -213,6 +213,10 @@ class PylintSettings(internal val project: Project) :
     }
 
     fun validateSdk(): SettingsValidationProblem? {
+        if ((project.pythonSdk?.sdkAdditionalData as? RemoteSdkProperties)?.sdkId?.startsWith("WSL") == true) {
+            return SettingsValidationProblem("WSL is not supported, yet")
+        }
+
         val installedVersion = PylintPackageUtil.getInstalledVersion(project) ?: return SettingsValidationProblem(
             PylintBundle.message("pylint.settings.pylint_not_installed")
         )

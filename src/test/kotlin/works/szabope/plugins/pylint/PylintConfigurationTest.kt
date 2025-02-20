@@ -6,9 +6,8 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.JDOMUtil
 import com.intellij.testFramework.TestDataPath
 import com.intellij.testFramework.common.waitUntil
-import io.mockk.coEvery
-import io.mockk.mockkObject
-import io.mockk.unmockkObject
+import com.jetbrains.python.target.PyTargetAwareAdditionalData
+import io.mockk.*
 import junit.framework.TestCase
 import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.pylint.dialog.IDialogManager
@@ -84,9 +83,23 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
         }
     }
 
-    fun ignoredTestProjectSdkNotSelectedWhenWsl() {
-        TODO()
-    }
+    fun testProjectSdkNotSelectedWhenWsl() =
+        withMockSdk("${Paths.get(testDataPath).absolutePathString()}/MockSdk") { packageManager ->
+            runBlocking { PylintPackageUtil.install(project) }
+            // let's lie that it's WSL
+            val mockSdk = packageManager.sdk
+            val mockAdditionalData = mockk<PyTargetAwareAdditionalData>()
+            every { mockAdditionalData.sdkId } returns "WSL ya know what I'm sayin"
+            mockkObject(mockSdk)
+            every { mockSdk.sdkAdditionalData } returns mockAdditionalData
+            val settings = PylintSettings.getInstance(project)
+            settings.reset()
+            runBlocking { triggerReconfiguration() }
+            with(settings) {
+                assertFalse(useProjectSdk)
+                assertNull(executablePath)
+            }
+        }
 
     fun testSdkNotSetIfPylintNotInstalled() = withMockSdk("${Paths.get(testDataPath).absolutePathString()}/MockSdk") {
         val settings = PylintSettings.getInstance(project)
