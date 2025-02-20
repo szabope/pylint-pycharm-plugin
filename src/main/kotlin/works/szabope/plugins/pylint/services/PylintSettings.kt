@@ -41,7 +41,9 @@ class PylintSettings(internal val project: Project) :
     var useProjectSdk
         get() = state.useProjectSdk
         set(value) {
-            state.useProjectSdk = value
+            if (!value || validateSdk() == null) {
+                state.useProjectSdk = value
+            }
         }
 
     var executablePath
@@ -158,7 +160,9 @@ class PylintSettings(internal val project: Project) :
         if (executablePath == null) {
             executablePath = oldPylintSettings?.executablePath ?: autodetectExecutable()
         }
-        useProjectSdk = useProjectSdk || (executablePath == null && project.pythonSdk != null) // only if pythonSdk is eligible, e.g. wsl is not (log shows it was considered a system sdk)
+//        (project.pythonSdk?.sdkAdditionalData as RemoteSdkProperties).sdkId.startsWith("WSL")
+        useProjectSdk =
+            useProjectSdk || (executablePath == null && project.pythonSdk != null) // only if pythonSdk is eligible, e.g. wsl is not (log shows it was considered a system sdk)
         if (configFilePath == null) {
             configFilePath = oldPylintSettings?.configFilePath
         }

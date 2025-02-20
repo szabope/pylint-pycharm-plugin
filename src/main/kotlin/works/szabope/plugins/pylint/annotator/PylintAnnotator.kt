@@ -8,6 +8,7 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.toCanonicalPath
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager
@@ -51,7 +52,9 @@ internal class PylintAnnotator : ExternalAnnotator<PylintAnnotator.AnnotatorInfo
             tempFile.writeText(document.charsSequence)
             val service = ScanService.getInstance(info.project)
             val runConfiguration = settings.toRunConfiguration()
-            val virtualTempFile = requireNotNull(VirtualFileManager.getInstance().findFileByNioPath(tempFile))
+            val virtualTempFile = requireNotNull(VirtualFileManager.getInstance().findFileByNioPath(tempFile)) {
+                "Could not find virtual file at ${tempFile.toCanonicalPath()}"
+            }
             return service.scan(listOf(virtualTempFile), runConfiguration)
         } finally {
             tempFile.delete()

@@ -14,6 +14,7 @@ import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.pylint.dialog.IDialogManager
 import works.szabope.plugins.pylint.dialog.PylintExecutionErrorDialog
 import works.szabope.plugins.pylint.services.OldPylintSettings
+import works.szabope.plugins.pylint.services.PylintPackageUtil
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.services.cli.Cli
 import works.szabope.plugins.pylint.testutil.TestDialogManager
@@ -73,6 +74,7 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
     }
 
     fun testProjectSdkSelectedWhenSet() = withMockSdk("${Paths.get(testDataPath).absolutePathString()}/MockSdk") {
+        runBlocking { PylintPackageUtil.install(project) }
         val settings = PylintSettings.getInstance(project)
         settings.reset()
         runBlocking { triggerReconfiguration() }
@@ -85,6 +87,28 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
     fun ignoredTestProjectSdkNotSelectedWhenWsl() {
         TODO()
     }
+
+    fun testSdkNotSetIfPylintNotInstalled() = withMockSdk("${Paths.get(testDataPath).absolutePathString()}/MockSdk") {
+        val settings = PylintSettings.getInstance(project)
+        settings.reset()
+        runBlocking { triggerReconfiguration() }
+        with(settings) {
+            assertFalse(useProjectSdk)
+            assertNull(executablePath)
+        }
+    }
+
+    fun testStartedWithIncorrectConfigResultsInConfigCleanup() =
+        withMockSdk("${Paths.get(testDataPath).absolutePathString()}/MockSdk") {
+            val settings = PylintSettings.getInstance(project)
+            settings.reset()
+            settings.useProjectSdk = true
+            runBlocking { triggerReconfiguration() }
+            with(settings) {
+                assertFalse(useProjectSdk)
+                assertNull(executablePath)
+            }
+        }
 
     fun testExistingCliPathTakesPrecedenceOverProjectSdk() =
         withMockSdk("${Paths.get(testDataPath).absolutePathString()}/MockSdk") {
