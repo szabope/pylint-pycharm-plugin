@@ -30,6 +30,7 @@ import kotlin.io.path.absolutePathString
 class PylintConfigurationTest : AbstractToolWindowTestCase() {
 
     private lateinit var dialogManager: TestDialogManager
+    private val mockSdkPath = "${Paths.get(testDataPath).absolutePathString()}/MockSdk"
 
     override fun setUp() {
         super.setUp()
@@ -47,7 +48,7 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
     fun testInitializeFromOldSettings() {
         val oldStateXml = JDOMUtil.load(
             """<component name="PylintConfigService">
-                   <option name="customPylintPath" value="${testDataPath}/MockSdk/bin/pylint" />
+                   <option name="customPylintPath" value="$mockSdkPath/bin/pylint" />
                    <option name="pylintArguments" value="--some-arg 8" />
                    <option name="pylintrcPath" value="${testDataPath}/configuration.toml" />
                    <option name="scanBeforeCheckin" value="true" />
@@ -72,7 +73,7 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
         }
     }
 
-    fun testProjectSdkSelectedWhenSet() = withMockSdk("${Paths.get(testDataPath).absolutePathString()}/MockSdk") {
+    fun testProjectSdkSelectedWhenSet() = withMockSdk(mockSdkPath) {
         runBlocking { PylintPackageUtil.install(project) }
         val settings = PylintSettings.getInstance(project)
         settings.reset()
@@ -83,25 +84,14 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
         }
     }
 
-    fun testProjectSdkNotSelectedWhenWsl() =
-        withMockSdk("${Paths.get(testDataPath).absolutePathString()}/MockSdk") { packageManager ->
-            runBlocking { PylintPackageUtil.install(project) }
-            // let's lie that it's WSL
-            val mockSdk = packageManager.sdk
-            val mockAdditionalData = mockk<PyTargetAwareAdditionalData>()
-            every { mockAdditionalData.sdkId } returns "WSL ya know what I'm sayin"
-            mockkObject(mockSdk)
-            every { mockSdk.sdkAdditionalData } returns mockAdditionalData
-            val settings = PylintSettings.getInstance(project)
-            settings.reset()
-            runBlocking { triggerReconfiguration() }
-            with(settings) {
-                assertFalse(useProjectSdk)
-                assertNull(executablePath)
-            }
-        }
-
-    fun testSdkNotSetIfPylintNotInstalled() = withMockSdk("${Paths.get(testDataPath).absolutePathString()}/MockSdk") {
+    fun testProjectSdkNotSelectedWhenWsl() = withMockSdk(mockSdkPath) { packageManager ->
+        runBlocking { PylintPackageUtil.install(project) }
+        // let's lie that it's WSL
+        val mockSdk = packageManager.sdk
+        val mockAdditionalData = mockk<PyTargetAwareAdditionalData>()
+        every { mockAdditionalData.sdkId } returns "WSL ya know what I'm sayin"
+        mockkObject(mockSdk)
+        every { mockSdk.sdkAdditionalData } returns mockAdditionalData
         val settings = PylintSettings.getInstance(project)
         settings.reset()
         runBlocking { triggerReconfiguration() }
@@ -111,27 +101,35 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
         }
     }
 
-    fun testStartedWithIncorrectConfigResultsInConfigCleanup() =
-        withMockSdk("${Paths.get(testDataPath).absolutePathString()}/MockSdk") {
-            val settings = PylintSettings.getInstance(project)
-            settings.reset()
-            settings.useProjectSdk = true
-            runBlocking { triggerReconfiguration() }
-            with(settings) {
-                assertFalse(useProjectSdk)
-                assertNull(executablePath)
-            }
+    fun testSdkNotSetIfPylintNotInstalled() = withMockSdk(mockSdkPath) {
+        val settings = PylintSettings.getInstance(project)
+        settings.reset()
+        runBlocking { triggerReconfiguration() }
+        with(settings) {
+            assertFalse(useProjectSdk)
+            assertNull(executablePath)
         }
+    }
 
-    fun testExistingCliPathTakesPrecedenceOverProjectSdk() =
-        withMockSdk("${Paths.get(testDataPath).absolutePathString()}/MockSdk") {
-            val settings = PylintSettings.getInstance(project)
-            settings.reset()
-            settings.executablePath = "${testDataPath}/MockSdk/bin/pylint"
-            runBlocking { triggerReconfiguration() }
-            assertFalse(settings.useProjectSdk)
-            assertEquals("${testDataPath}/MockSdk/bin/pylint", settings.executablePath)
+    fun testStartedWithIncorrectConfigResultsInConfigCleanup() = withMockSdk(mockSdkPath) {
+        val settings = PylintSettings.getInstance(project)
+        settings.reset()
+        settings.useProjectSdk = true
+        runBlocking { triggerReconfiguration() }
+        with(settings) {
+            assertFalse(useProjectSdk)
+            assertNull(executablePath)
         }
+    }
+
+    fun testExistingCliPathTakesPrecedenceOverProjectSdk() = withMockSdk(mockSdkPath) {
+        val settings = PylintSettings.getInstance(project)
+        settings.reset()
+        settings.executablePath = "$mockSdkPath/bin/pylint"
+        runBlocking { triggerReconfiguration() }
+        assertFalse(settings.useProjectSdk)
+        assertEquals("$mockSdkPath/bin/pylint", settings.executablePath)
+    }
 
     fun testObsoleteVersionIsNotSet() {
         PylintSettings.getInstance(project).executablePath = null

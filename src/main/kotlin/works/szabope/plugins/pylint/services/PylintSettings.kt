@@ -158,11 +158,13 @@ class PylintSettings(internal val project: Project) :
     }
 
     suspend fun initSettings(oldPylintSettings: OldPylintSettings?) {
-        if (executablePath == null) {
-            executablePath = oldPylintSettings?.executablePath ?: autodetectExecutable()
+        if (executablePath == null && oldPylintSettings?.executablePath != null) {
+            executablePath = oldPylintSettings.executablePath
         }
-        useProjectSdk =
-            useProjectSdk || (executablePath == null && project.pythonSdk != null) // only if pythonSdk is eligible, e.g. wsl is not (log shows it was considered a system sdk)
+        useProjectSdk = useProjectSdk || (executablePath == null && project.pythonSdk != null)
+        if (!useProjectSdk && executablePath == null) {
+            executablePath = autodetectExecutable()
+        }
         if (configFilePath == null) {
             configFilePath = oldPylintSettings?.configFilePath
         }

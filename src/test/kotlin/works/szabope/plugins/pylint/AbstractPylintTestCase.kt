@@ -39,7 +39,7 @@ abstract class AbstractPylintTestCase : BasePlatformTestCase() {
         }
         project.pythonSdk = mockSdk
         module.pythonSdk = mockSdk
-        val packageManager = TestPythonPackageManager(project, mockSdk)
+        val packageManager = TestPythonPackageManager(project, mockSdk, "$testDataPath/bin/pylint")
         mockkObject(PythonPackageManager)
         every { PythonPackageManager.forSdk(any(), any()) } returns packageManager
         try {

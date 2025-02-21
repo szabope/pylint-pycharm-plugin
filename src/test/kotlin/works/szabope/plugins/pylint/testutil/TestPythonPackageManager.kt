@@ -7,9 +7,13 @@ import com.jetbrains.python.packaging.common.PythonPackage
 import com.jetbrains.python.packaging.common.PythonPackageSpecification
 import com.jetbrains.python.packaging.management.PythonPackageManager
 import com.jetbrains.python.packaging.management.PythonRepositoryManager
+import io.mockk.coEvery
+import io.mockk.mockkObject
+import works.szabope.plugins.pylint.services.cli.Cli
 
 @Suppress("UnstableApiUsage")
-class TestPythonPackageManager(project: Project, sdk: Sdk) : PythonPackageManager(project, sdk) {
+class TestPythonPackageManager(project: Project, sdk: Sdk, private val pathToPylint: String) :
+    PythonPackageManager(project, sdk) {
 
     private val testInstalledPackages = mutableListOf<InstalledPackage>()
     override val installedPackages: List<PythonPackage>
@@ -22,6 +26,11 @@ class TestPythonPackageManager(project: Project, sdk: Sdk) : PythonPackageManage
         specification: PythonPackageSpecification, options: List<String>
     ): Result<List<PythonPackage>> {
         testInstalledPackages.add(InstalledPackage(specification.name, specification.versionSpecs))
+        // if it's installed it should also be found by `which`
+        mockkObject(Cli)
+        coEvery { Cli.execute("which", "pylint", workDir = any(), env = any()) } returns Cli.Status(
+            0, emptyList(), pathToPylint
+        )
         return reloadPackages()
     }
 
