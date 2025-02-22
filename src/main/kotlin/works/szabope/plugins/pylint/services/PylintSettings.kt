@@ -229,7 +229,7 @@ class PylintSettings(internal val project: Project) :
         if (!PylintPackageUtil.isVersionSupported(pylintVersion)) {
             return SettingsValidationProblem(
                 PylintBundle.message(
-                    "pylint.settings.pylint_invalid_version", pylintVersion, PylintPackageUtil.minimumVersion
+                    "pylint.settings.pylint_invalid_version", pylintVersion, PylintPackageUtil.MINIMUM_VERSION
                 )
             )
         }
