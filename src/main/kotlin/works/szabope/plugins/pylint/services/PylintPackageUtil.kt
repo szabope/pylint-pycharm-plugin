@@ -32,7 +32,12 @@ object PylintPackageUtil {
         return PythonSdkUtil.isVirtualEnv(sdk) || PythonSdkUtil.isCondaVirtualEnv(sdk)
     }
 
-    suspend fun reloadPackages(project: Project) = getPackageManager(project)?.reloadPackages()
+    suspend fun reloadPackages(project: Project) = try {
+        getPackageManager(project)?.reloadPackages()
+    } catch (e: Exception) {
+        // e.g. org.apache.hc.client5.http.HttpHostConnectException thrown when docker (in given SDK) is unavailable
+        Result.failure(e)
+    }
 
     fun getInstalledVersion(project: Project): String? {
         return getPackageManager(project)?.installedPackages?.firstOrNull { it.name == PACKAGE.name }?.version
