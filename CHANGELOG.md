@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.1.0] - 2025-02-22
+
+- Enable whitespace in executable and config file paths by @szabope in https://github.com/szabope/pylint-pycharm-plugin/pull/12
+- Option to execute pylint as module of selected SDK  by @szabope in https://github.com/szabope/pylint-pycharm-plugin/pull/15
+
 ## [0.0.4] - 2025-01-23
 
 - Changelog update - `v0.0.3` by @github-actions in https://github.com/szabope/pylint-pycharm-plugin/pull/7
@@ -19,7 +24,8 @@
 - bump version to test release workflow by @szabope in https://github.com/szabope/pylint-pycharm-plugin/pull/2
 - @szabope made their first contribution in https://github.com/szabope/pylint-pycharm-plugin/pull/1
 
-[Unreleased]: https://github.com/szabope/pylint-pycharm-plugin/compare/v0.0.4...HEAD
+[Unreleased]: https://github.com/szabope/pylint-pycharm-plugin/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/szabope/pylint-pycharm-plugin/compare/v0.0.4...v0.1.0
 [0.0.4]: https://github.com/szabope/pylint-pycharm-plugin/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/szabope/pylint-pycharm-plugin/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/szabope/pylint-pycharm-plugin/commits/v0.0.2
