@@ -17,7 +17,6 @@ import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 import works.szabope.plugins.pylint.toolWindow.SeverityConfig
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
-import kotlin.io.path.pathString
 
 @TestDataPath("\$CONTENT_ROOT/testData/severity")
 class SeverityFilterTest : AbstractToolWindowTestCase() {
@@ -28,20 +27,22 @@ class SeverityFilterTest : AbstractToolWindowTestCase() {
 
     override fun setUp() {
         super.setUp()
-        with(PylintSettings.getInstance(myFixture.project)) {
-            executablePath = Paths.get(myFixture.testDataPath).resolve("pylint").absolutePathString()
-            projectDirectory = Paths.get(myFixture.testDataPath).pathString
+        with(PylintSettings.getInstance(project)) {
+            reset()
+            executablePath = Paths.get(testDataPath).resolve("pylint").absolutePathString()
+            projectDirectory = Paths.get(testDataPath).absolutePathString()
         }
-        val file = myFixture.configureByText("a.py", "doesn't matter")
-        scan(file)
+        val file = myFixture.configureByText("a.py", "doesn't matter").virtualFile
+        scan(file, project)
     }
 
-    fun `test all filters selected shows all items`() = runBlocking {
+    fun `test all filters selected shows all items`() {
         setSelectedFilters(*SeverityConfig.ALL.map { it.level }.toTypedArray())
-        waitUntilAssertSucceeds { treeUtil.assertStructure("+Found 6 issue(s) in 1 file(s)\n") }.also {
-            treeUtil.expandAll()
-            treeUtil.assertStructure(
-                """|-Found 6 issue(s) in 1 file(s)
+        runBlocking {
+            waitUntilAssertSucceeds { treeUtil.assertStructure("+Found 6 issue(s) in 1 file(s)\n") }.also {
+                treeUtil.expandAll()
+                treeUtil.assertStructure(
+                    """|-Found 6 issue(s) in 1 file(s)
                    | -/src/a.py
                    |  [fake-fatal-symbol] Fatal issue
                    |  [fake-error-symbol] Error issue
@@ -50,28 +51,33 @@ class SeverityFilterTest : AbstractToolWindowTestCase() {
                    |  [fake-convention-symbol] Convention issue
                    |  [fake-info-symbol] Info issue
                    |""".trimMargin()
-            )
+                )
+            }
         }
     }
 
-    fun `test no filters selected shows no items`() = runBlocking {
+    fun `test no filters selected shows no items`() {
         setSelectedFilters()
-        waitUntilAssertSucceeds { treeUtil.assertStructure("Found 0 issue(s) in 0 file(s)\n") }.also {
-            treeUtil.expandAll()
-            treeUtil.assertStructure("Found 0 issue(s) in 0 file(s)\n")
+        runBlocking {
+            waitUntilAssertSucceeds { treeUtil.assertStructure("Found 0 issue(s) in 0 file(s)\n") }.also {
+                treeUtil.expandAll()
+                treeUtil.assertStructure("Found 0 issue(s) in 0 file(s)\n")
+            }
         }
     }
 
-    fun `test 'convention' selected shows convention-related items only`() = runBlocking {
+    fun `test 'convention' selected shows convention-related items only`() {
         setSelectedFilters("convention")
-        waitUntilAssertSucceeds { treeUtil.assertStructure("+Found 1 issue(s) in 1 file(s)\n") }.also {
-            treeUtil.expandAll()
-            treeUtil.assertStructure(
-                """|-Found 1 issue(s) in 1 file(s)
+        runBlocking {
+            waitUntilAssertSucceeds { treeUtil.assertStructure("+Found 1 issue(s) in 1 file(s)\n") }.also {
+                treeUtil.expandAll()
+                treeUtil.assertStructure(
+                    """|-Found 1 issue(s) in 1 file(s)
                    | -/src/a.py
                    |  [fake-convention-symbol] Convention issue
                    |""".trimMargin()
-            )
+                )
+            }
         }
     }
 

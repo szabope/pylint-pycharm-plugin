@@ -4,24 +4,13 @@ package works.szabope.plugins.pylint.dialog
 
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.webcore.packaging.PackageManagementService
 import com.jetbrains.python.packaging.ui.PyPackageManagementService.PyPackageInstallationErrorDescription
 import org.jetbrains.annotations.Nls
-import org.jetbrains.annotations.TestOnly
 
 interface PylintDialog {
     fun show()
     fun getExitCode(): Int = 0
-
-    @TestOnly
-    fun getWrappedClass(): Class<out Any>
-
-    @TestOnly
-    fun close(exitCode: Int) = Unit
-
-    @TestOnly
-    fun isShown(): Boolean? = null
 }
 
 interface IDialogManager {
@@ -40,12 +29,6 @@ interface IDialogManager {
     fun createPylintParseErrorDialog(command: String, commandOutput: String, error: String): PylintDialog
 
     fun createPreCheckinConfirmationDialog(project: Project, errorCount: Int, commitButtonText: String): PylintDialog
-
-    @TestOnly
-    fun onDialog(dialogClass: Class<out DialogWrapper>, handler: (PylintDialog) -> Int) = Unit
-
-    @TestOnly
-    fun cleanup() = Unit
 
     companion object {
         fun showPyPackageInstallationErrorDialog(

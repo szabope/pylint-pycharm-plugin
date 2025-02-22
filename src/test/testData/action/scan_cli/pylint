@@ -1,0 +1,16 @@
+#!/bin/bash
+if [ "$1" = "--version" ]; then
+  echo "pylint 3.3.3"
+  echo "astroid 3.3.8"
+  echo "Python 3.11.2 (main, Sep 14 2024, 03:00:30) [GCC 12.2.0]"
+else
+  my_dir=$(dirname "$(realpath -s "$0")")
+  for last; do :; done
+  expected_args="--ignore-paths /src/excluded_dir --exit-zero --output-format json2 $last"
+  if [ "$*" != "$expected_args" ]; then
+    >&2 echo "expected: $expected_args"
+    >&2 echo "received: $*"
+    exit 1
+  fi
+  cat "$my_dir/manualScan.json"
+fi

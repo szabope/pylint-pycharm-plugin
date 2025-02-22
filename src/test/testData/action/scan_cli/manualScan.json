@@ -6,14 +6,14 @@
       "message": "Disallowed name \"tata\"",
       "messageId": "C0104",
       "confidence": "HIGH",
-      "module": "src.manualScan",
+      "module": "src.action.scan_cli.manualScan",
       "obj": "",
       "line": 1,
       "column": 0,
       "endLine": 1,
       "endColumn": 4,
-      "path": "src/manualScan.py",
-      "absolutePath": "/src/manualScan.py"
+      "path": "src/action/scan_cli/manualScan.py",
+      "absolutePath": "/src/action/scan_cli/manualScan.py"
     },
     {
       "type": "convention",
@@ -21,14 +21,14 @@
       "message": "Disallowed name \"tutu\"",
       "messageId": "C0104",
       "confidence": "HIGH",
-      "module": "src.manualScan",
+      "module": "src.action.scan_cli.manualScan",
       "obj": "",
       "line": 2,
       "column": 0,
       "endLine": 2,
       "endColumn": 4,
-      "path": "src/manualScan.py",
-      "absolutePath": "/src/manualScan.py"
+      "path": "src/action/scan_cli/manualScan.py",
+      "absolutePath": "/src/action/scan_cli/manualScan.py"
     }
   ],
   "statistics": {

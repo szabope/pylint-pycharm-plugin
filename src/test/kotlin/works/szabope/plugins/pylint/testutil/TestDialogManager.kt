@@ -5,6 +5,7 @@ package works.szabope.plugins.pylint.testutil
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.testFramework.requireIs
 import com.intellij.webcore.packaging.PackageManagementService
 import com.intellij.webcore.packaging.PackagingErrorDialog
 import com.jetbrains.python.packaging.PyPackageInstallationErrorDialog
@@ -13,50 +14,58 @@ import org.junit.Assert.assertNull
 import works.szabope.plugins.pylint.dialog.*
 
 class TestDialogManager : IDialogManager {
-    private val myHandlers = hashMapOf<Class<out DialogWrapper>, (PylintDialog) -> Int>()
+    private val myHandlers = hashMapOf<Class<out DialogWrapper>, (TestDialogWrapper) -> Int>()
+    private var myAnyHandler: ((TestDialogWrapper) -> Int)? = null
 
     override fun showDialog(dialog: PylintDialog) {
-        dialog.show()
-        var exitCode = DialogWrapper.OK_EXIT_CODE
+        val testDialog = dialog.requireIs<TestDialogWrapper>()
+        testDialog.show()
+        var exitCode: Int? = null
         try {
-            val handler = myHandlers[dialog.getWrappedClass()]
-            if (handler != null) {
-                exitCode = handler(dialog)
-            } else {
+            exitCode = myHandlers[testDialog.getWrappedClass()]?.invoke(testDialog) ?: myAnyHandler?.invoke(testDialog)
+            if (exitCode == null) {
                 throw IllegalStateException("The dialog is not expected here: " + dialog.javaClass)
             }
         } finally {
-            dialog.close(exitCode)
+            testDialog.close(exitCode ?: DialogWrapper.OK_EXIT_CODE)
         }
     }
 
     override fun createPyPackageInstallationErrorDialog(
-        title: String,
-        errorDescription: PyPackageManagementService.PyPackageInstallationErrorDescription
-    ) = TestDialogWrapper(PyPackageInstallationErrorDialog::class.java)
+        title: String, errorDescription: PyPackageManagementService.PyPackageInstallationErrorDescription
+    ) = TestDialogWrapper(PyPackageInstallationErrorDialog::class.java, title, errorDescription)
 
     override fun createPackagingErrorDialog(
-        title: String,
-        errorDescription: PackageManagementService.ErrorDescription
-    ) = TestDialogWrapper(PackagingErrorDialog::class.java)
+        title: String, errorDescription: PackageManagementService.ErrorDescription
+    ) = TestDialogWrapper(PackagingErrorDialog::class.java, title, errorDescription)
 
     override fun createPylintExecutionErrorDialog(command: String, result: String, resultCode: Int) =
-        TestDialogWrapper(PylintExecutionErrorDialog::class.java)
+        TestDialogWrapper(PylintExecutionErrorDialog::class.java, command, result, resultCode)
 
     override fun createPylintParseErrorDialog(command: String, commandOutput: String, error: String) =
-        TestDialogWrapper(PylintParseErrorDialog::class.java)
+        TestDialogWrapper(PylintParseErrorDialog::class.java, command, commandOutput, error)
 
     override fun createPreCheckinConfirmationDialog(
-        project: Project,
-        errorCount: Int,
-        commitButtonText: String
-    ) = TestDialogWrapper(PreCheckinConfirmationDialog::class.java)
+        project: Project, errorCount: Int, commitButtonText: String
+    ) = TestDialogWrapper(PreCheckinConfirmationDialog::class.java, errorCount, commitButtonText)
 
-    override fun onDialog(dialogClass: Class<out DialogWrapper>, handler: (PylintDialog) -> Int) {
+    fun onDialog(dialogClass: Class<out DialogWrapper>, handler: (TestDialogWrapper) -> Int) {
         assertNull(myHandlers.put(dialogClass, handler))
     }
 
-    override fun cleanup() {
+    fun onAnyDialog(handler: (TestDialogWrapper) -> Any) {
+        myAnyHandler = fun(h: TestDialogWrapper): Int {
+            val res = handler.invoke(h)
+            return if (res is Int) {
+                res
+            } else {
+                DialogWrapper.OK_EXIT_CODE
+            }
+        }
+    }
+
+    fun cleanup() {
         myHandlers.clear()
+        myAnyHandler = null
     }
 }

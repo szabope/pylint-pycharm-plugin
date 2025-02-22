@@ -18,21 +18,26 @@ It is the rework of [Roberto Leinardi](https://github.com/szabope/pylint-pycharm
 https://www.jetbrains.com/help/pycharm/managing-plugins.html#Managing_Plugins.topic
 
 ## Configuration
-Configuration is done on a project basis. Regardless of whether it is set up via the automated way or manually, pylint executable and configuration setting validation **executes the candidate**.
+Configuration is done on a project basis. Regardless of whether it is set up via the automated way or manually, 
+pylint executable and configuration setting validation **executes the candidate**.
 
 ### Automated configuration
 Upon project load, the plugin looks for existing settings for Leinardi's pylint plugin and makes a copy of them. Executable only set if the version of pylint is supported.\
-If such configuration was not found, the plugin tries to detect the executable by running `where pylint.exe` on Windows, `which pylint` otherwise.\
+If such configuration was not found, project SDK is checked for pylint installation and configured if pylint was found. WSL is not supported, yet.\
+If there is no project SDK with pylint installed, the plugin tries to detect the executable by running `where pylint.exe` on Windows, `which pylint` otherwise.\
 Incomplete configuration triggers a notification (`Install pylint` only shown if applicable):\
 ![pylint plugin incomplete configuration screenshot](https://raw.githubusercontent.com/szabope/pylint-pycharm-plugin/331ec0ca418012a6e222445cf541e037da664f81/art/pylint_not_set.png)
 
 ### Manual configuration
 You can modify settings at [Tools](https://www.jetbrains.com/help/pycharm/settings-tools.html#Settings_Tools.topic) / **Pylint**.
+#### Native vs. IntelliJ execution
+- `Pylint executable` - It's like you run it from CLI, no IntelliJ configuration is considered.
+- `Use project SDK` - It's like you created an IntelliJ Run Configuration for it. Your SDK settings are considered: e.g. extra interpreter paths
 
-![pylint plugin settings screenshot](https://raw.githubusercontent.com/szabope/pylint-pycharm-plugin/331ec0ca418012a6e222445cf541e037da664f81/art/settings.png)
+![pylint plugin settings screenshot](https://raw.githubusercontent.com/szabope/pylint-pycharm-plugin/32000f4ef907f2f3d25eba4b00e09fefcf94a005/art/settings.png)
 
 ### Pre-Checkin hook
-![pre-checkin hook](https://raw.githubusercontent.com/szabope/pylint-pycharm-plugin/4cd6e5a01222d5ccbb8da041260162af2db0d34d/art/pre-checkin.png)
+![pre-checkin hook](https://raw.githubusercontent.com/szabope/pylint-pycharm-plugin/340efa332a61ec522d253d297ccfb476056ab3e4/art/pre-checkin.png)
 
 ### Inspection severity
 Pylint real-time scan severity level is set to `Warning` by default. You can change this in [inspection settings](https://www.jetbrains.com/help/pycharm/inspections-settings.html#Inspections_Settings.topic).

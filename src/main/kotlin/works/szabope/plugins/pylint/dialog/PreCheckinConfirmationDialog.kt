@@ -2,10 +2,8 @@ package works.szabope.plugins.pylint.dialog
 
 import com.intellij.CommonBundle
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.MessageConstants.*
 import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.ui.messages.MessageDialog
 import com.intellij.util.ui.UIUtil
 import works.szabope.plugins.pylint.PylintBundle
 
@@ -14,10 +12,6 @@ class PreCheckinConfirmationDialog(
 ) {
     fun toPylintDialog() = object : PylintDialog {
         private var exitCode: Int? = null
-
-        override fun getWrappedClass(): Class<out DialogWrapper> {
-            return MessageDialog::class.java
-        }
 
         override fun show() {
             val buttons = arrayOf(

@@ -7,6 +7,7 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.AutoScrollToSourceHandler
 import com.intellij.ui.TreeUIHelper
@@ -59,7 +60,7 @@ class PylintToolWindowPanel(private val project: Project, private val tree: Tree
     fun expandAll() = treeExpander.expandAll()
     fun collapseAll() = treeExpander.collapseAll()
 
-    fun initializeResultTree(targets: List<String>) {
+    fun initializeResultTree(targets: Collection<VirtualFile>) {
         treeManager.reinitialize(targets)
     }
 
@@ -90,7 +91,7 @@ class PylintToolWindowPanel(private val project: Project, private val tree: Tree
         }
     }
 
-    fun getScanTargets(): List<String> {
+    fun getScanTargets(): Collection<VirtualFile> {
         return treeManager.getRootScanPaths()
     }
 

@@ -1,5 +1,6 @@
 package works.szabope.plugins.pylint.activity
 
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.platform.backend.workspace.workspaceModel
@@ -21,14 +22,18 @@ internal class SettingsInitializationActivity : ProjectActivity {
 
     override suspend fun execute(project: Project) {
         configurePlugin(project)
-        project.workspaceModel.eventLog.filter {
-            it.getChanges(ModuleEntity::class.java).isNotEmpty()
-        }.collectLatest {
-            configurePlugin(project)
+        if (!ApplicationManager.getApplication().isUnitTestMode) {
+            project.workspaceModel.eventLog.filter {
+                it.getChanges(ModuleEntity::class.java).isNotEmpty()
+            }.collectLatest {
+                configurePlugin(project)
+            }
         }
     }
 
-    private suspend fun configurePlugin(project: Project) {
+    @TestOnly
+    suspend fun configurePlugin(project: Project) {
+        PylintPackageUtil.reloadPackages(project)
         val settings = PylintSettings.getInstance(project)
         if (!settings.isComplete()) {
             settings.initSettings(OldPylintSettings.getInstance(project))

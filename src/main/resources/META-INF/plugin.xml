@@ -25,13 +25,12 @@
                          implementationClass="works.szabope.plugins.pylint.annotator.PylintInspection"
                          groupBundle="messages.PylintBundle" groupKey="pylint.inspection.group_name"
                          bundle="messages.PylintBundle" key="pylint.inspection.name" enabledByDefault="true"/>
-        <backgroundPostStartupActivity
-                implementation="works.szabope.plugins.pylint.activity.SettingsInitializationActivity"/>
+        <postStartupActivity implementation="works.szabope.plugins.pylint.activity.SettingsInitializationActivity"/>
         <notificationGroup displayType="STICKY_BALLOON" id="Pylint Group" toolWindowId="PyLint"/>
         <applicationService serviceInterface="works.szabope.plugins.pylint.dialog.IDialogManager"
                             serviceImplementation="works.szabope.plugins.pylint.dialog.DialogManager"
                             testServiceImplementation="works.szabope.plugins.pylint.testutil.TestDialogManager"/>
-        <checkinHandlerFactory implementation="works.szabope.plugins.pylint.vcs.PylintCheckinHandlerFactory" />
+        <checkinHandlerFactory implementation="works.szabope.plugins.pylint.vcs.PylintCheckinHandlerFactory"/>
     </extensions>
 
     <actions>
@@ -39,8 +38,8 @@
             <action id="works.szabope.plugins.pylint.action.RescanAction"
                     class="works.szabope.plugins.pylint.action.RescanAction"
                     icon="AllIcons.Actions.Refresh"/>
-            <action id="works.szabope.plugins.pylint.action.StopCheckAction"
-                    class="works.szabope.plugins.pylint.action.StopCheckAction"
+            <action id="works.szabope.plugins.pylint.action.StopScanAction"
+                    class="works.szabope.plugins.pylint.action.StopScanAction"
                     icon="AllIcons.Actions.Suspend"/>
             <action id="works.szabope.plugins.pylint.action.ScanCurrentlyFocusedOneInEditorAction"
                     class="works.szabope.plugins.pylint.action.ScanCurrentlyFocusedOneInEditorAction"
