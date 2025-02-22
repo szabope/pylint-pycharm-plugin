@@ -58,7 +58,7 @@ object PylintPackageUtil {
         if (isInstalled(project)) return null
         val packageManager = getPackageManager(project)!!
         try {
-            packageManager.installPackage(PACKAGE, emptyList())
+            packageManager.installPackage(PACKAGE, emptyList()).getOrThrow()
         } catch (ex: PyExecutionException) {
             return PyPackageManagementService.toErrorDescription(listOf(ex), getSdk(project), PACKAGE.name)
         }
