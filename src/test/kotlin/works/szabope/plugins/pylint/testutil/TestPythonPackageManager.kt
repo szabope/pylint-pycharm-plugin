@@ -25,7 +25,7 @@ class TestPythonPackageManager(project: Project, sdk: Sdk, private val pathToPyl
     override suspend fun installPackage(
         specification: PythonPackageSpecification, options: List<String>
     ): Result<List<PythonPackage>> {
-        testInstalledPackages.add(InstalledPackage(specification.name, specification.versionSpecs))
+        testInstalledPackages.add(InstalledPackage(specification.name, "3.3.4"))
         // if it's installed it should also be found by `which`
         mockkObject(Cli)
         coEvery { Cli.execute("which", "pylint", workDir = any(), env = any()) } returns Cli.Status(

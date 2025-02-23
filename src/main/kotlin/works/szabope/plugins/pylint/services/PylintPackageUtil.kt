@@ -6,20 +6,20 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.webcore.packaging.PackageManagementService
 import com.jetbrains.python.packaging.PyExecutionException
+import com.jetbrains.python.packaging.PyPackageVersionComparator
 import com.jetbrains.python.packaging.common.PythonSimplePackageSpecification
 import com.jetbrains.python.packaging.management.PythonPackageManager
 import com.jetbrains.python.packaging.requirement.PyRequirementRelation
 import com.jetbrains.python.packaging.ui.PyPackageManagementService
-import com.jetbrains.python.psi.LanguageLevel
 import com.jetbrains.python.sdk.PythonSdkUtil
 import com.jetbrains.python.sdk.pythonSdk
 
 object PylintPackageUtil {
 
-    val minimumVersion = LanguageLevel.PYTHON30
+    const val MINIMUM_VERSION = "3.0"
 
     private val PACKAGE = PythonSimplePackageSpecification(
-        "pylint", minimumVersion.toPythonVersion(), null, PyRequirementRelation.COMPATIBLE
+        "pylint", MINIMUM_VERSION, null, PyRequirementRelation.COMPATIBLE
     )
 
     fun canInstall(project: Project): Boolean {
@@ -44,7 +44,7 @@ object PylintPackageUtil {
     }
 
     fun isVersionSupported(version: String): Boolean {
-        return LanguageLevel.fromPythonVersion(version)?.isAtLeast(minimumVersion) ?: false
+        return PyPackageVersionComparator.STR_COMPARATOR.compare(version, MINIMUM_VERSION) >= 0
     }
 
     private fun getPackageManager(project: Project): PythonPackageManager? {
