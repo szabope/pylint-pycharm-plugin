@@ -49,12 +49,8 @@
                     class="works.szabope.plugins.pylint.action.ScrollToSourceDummyAction"
                     icon="AllIcons.General.AutoscrollToSource"/>
             <separator/>
-            <action id="works.szabope.plugins.pylint.action.ExpandAllAction"
-                    class="works.szabope.plugins.pylint.action.ExpandAllAction"
-                    icon="AllIcons.Actions.Expandall"/>
-            <action id="works.szabope.plugins.pylint.action.CollapseAllAction"
-                    class="works.szabope.plugins.pylint.action.CollapseAllAction"
-                    icon="AllIcons.Actions.Collapseall"/>
+            <reference ref="ExpandAll"/>
+            <reference ref="CollapseAll"/>
             <separator/>
             <group id="works.szabope.plugins.pylint.ErrorLevelDisplayOptions"
                    icon="AllIcons.Actions.GroupBy"

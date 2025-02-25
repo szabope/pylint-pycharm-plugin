@@ -49,6 +49,7 @@ class PylintToolWindowPanel(private val project: Project, private val tree: Tree
 
     override fun uiDataSnapshot(sink: DataSink) {
         sink[PYLINT_PANEL_DATA_KEY] = this
+        sink[PlatformDataKeys.TREE_EXPANDER] = treeExpander
         sink.lazy(CommonDataKeys.NAVIGATABLE) {
             val userObject = TreeUtil.getLastUserObject(tree.selectionPath) as? IssueNodeUserObject? ?: return@lazy null
             val file = VfsUtil.findFile(Path(userObject.file), true) ?: return@lazy null
@@ -56,9 +57,6 @@ class PylintToolWindowPanel(private val project: Project, private val tree: Tree
         }
         super.uiDataSnapshot(sink)
     }
-
-    fun expandAll() = treeExpander.expandAll()
-    fun collapseAll() = treeExpander.collapseAll()
 
     fun initializeResultTree(targets: Collection<VirtualFile>) {
         treeManager.reinitialize(targets)
