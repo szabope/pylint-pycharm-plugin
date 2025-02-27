@@ -1,5 +1,6 @@
 package works.szabope.plugins.pylint.action
 
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.testFramework.TestDataPath
 import com.intellij.testFramework.common.waitUntil
 import com.intellij.testFramework.common.waitUntilAssertSucceeds
@@ -28,7 +29,7 @@ class RescanTest : AbstractToolWindowTestCase() {
             projectDirectory = Paths.get(testDataPath).absolutePathString()
         }
         val file = myFixture.configureByText("a.py", "doesn't matter").virtualFile
-        scan(file, project)
+        scan(getContext { it.add(CommonDataKeys.VIRTUAL_FILE_ARRAY, arrayOf(file)) })
         runBlocking { waitUntil { !AsyncScanService.getInstance(project).scanInProgress } }
     }
 
@@ -39,7 +40,7 @@ class RescanTest : AbstractToolWindowTestCase() {
     fun `test rescan running for the same file scan did`() {
         PylintSettings.getInstance(project).executablePath =
             Paths.get(testDataPath).resolve("pylint2").absolutePathString()
-        rescan(project, panel)
+        rescan(getContext())
         runBlocking {
             waitUntilAssertSucceeds { treeUtil.assertStructure("+Found 1 issue(s) in 1 file(s)\n") }.also {
                 treeUtil.expandAll()

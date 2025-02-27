@@ -1,11 +1,7 @@
 package works.szabope.plugins.pylint
 
-import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.ActionUiKind
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.AnActionWrapper
+import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.actionSystem.ex.ActionUtil
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.TestDataPath
 import com.intellij.testFramework.common.waitUntilAssertSucceeds
 import com.intellij.ui.tree.TreeTestUtil
@@ -13,7 +9,6 @@ import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.pylint.action.SeverityFiltersActionGroup
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.testutil.scan
-import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 import works.szabope.plugins.pylint.toolWindow.SeverityConfig
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
@@ -33,7 +28,7 @@ class SeverityFilterTest : AbstractToolWindowTestCase() {
             projectDirectory = Paths.get(testDataPath).absolutePathString()
         }
         val file = myFixture.configureByText("a.py", "doesn't matter").virtualFile
-        scan(file, project)
+        scan(getContext { it.add(CommonDataKeys.VIRTUAL_FILE_ARRAY, arrayOf(file)) })
     }
 
     fun `test all filters selected shows all items`() {
@@ -66,7 +61,7 @@ class SeverityFilterTest : AbstractToolWindowTestCase() {
         }
     }
 
-    fun `test 'convention' selected shows convention-related items only`() {
+    fun `test convention selected shows convention-related items only`() {
         setSelectedFilters("convention")
         runBlocking {
             waitUntilAssertSucceeds { treeUtil.assertStructure("+Found 1 issue(s) in 1 file(s)\n") }.also {
@@ -83,11 +78,8 @@ class SeverityFilterTest : AbstractToolWindowTestCase() {
 
     @Suppress("UnstableApiUsage")
     private fun setSelectedFilters(vararg activeSeverities: String) {
-        val panel =
-            toolWindowManager.getToolWindow(PylintToolWindowPanel.ID)?.contentManager?.getContent(0)?.component as PylintToolWindowPanel
-        val dataContext = SimpleDataContext.builder().add(PylintToolWindowPanel.PYLINT_PANEL_DATA_KEY, panel).build()
         val event =
-            AnActionEvent.createEvent(dataContext, null, ActionPlaces.TOOLWINDOW_TOOLBAR_BAR, ActionUiKind.NONE, null)
+            AnActionEvent.createEvent(getContext(), null, ActionPlaces.TOOLWINDOW_TOOLBAR_BAR, ActionUiKind.NONE, null)
         val actionGroup = ActionUtil.getActionGroup(SeverityFiltersActionGroup.ID) as SeverityFiltersActionGroup
         actionGroup.getChildren(event).filter { it.isSelected(event) != it.getSeverity() in activeSeverities }.forEach {
             with(AnActionWrapper(it)) {

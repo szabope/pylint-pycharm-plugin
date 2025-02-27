@@ -3,7 +3,6 @@ package works.szabope.plugins.pylint
 import com.intellij.notification.ActionCenter
 import com.intellij.notification.Notification
 import com.intellij.openapi.actionSystem.*
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.TestDataPath
 import com.jetbrains.python.remote.PyRemoteSdkAdditionalData
 import io.mockk.every
@@ -79,8 +78,10 @@ class PylintIncompleteConfigurationNotificationTest : AbstractToolWindowTestCase
     }
 
     private fun getAnActionEvent(notification: Notification): AnActionEvent {
-        val context =
-            SimpleDataContext.builder().add(CommonDataKeys.PROJECT, project).add(Notification.KEY, notification).build()
+        val context = getContext {
+            it.add(CommonDataKeys.PROJECT, project)
+            it.add(Notification.KEY, notification)
+        }
         return AnActionEvent.createEvent(context, null, ActionPlaces.NOTIFICATION, ActionUiKind.NONE, null)
     }
 

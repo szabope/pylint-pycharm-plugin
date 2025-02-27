@@ -1,25 +1,26 @@
 package works.szabope.plugins.pylint.vcs
 
-import com.intellij.openapi.ui.Messages
+import com.intellij.ide.ActivityTracker
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.CheckinProjectPanel
-import com.intellij.openapi.vcs.changes.CommitExecutor
-import com.intellij.openapi.vcs.checkin.CheckinHandler
+import com.intellij.openapi.vcs.checkin.*
 import com.intellij.openapi.vcs.ui.RefreshableOnComponent
-import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.platform.ide.progress.runWithModalProgressBlocking
+import com.intellij.platform.util.progress.withProgressText
 import com.intellij.ui.dsl.builder.panel
-import com.intellij.util.PairConsumer
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import works.szabope.plugins.pylint.PylintBundle
-import works.szabope.plugins.pylint.dialog.IDialogManager
-import works.szabope.plugins.pylint.services.ScanService
+import works.szabope.plugins.pylint.messages.IScanResultListener
+import works.szabope.plugins.pylint.messages.PylintMessageConverter
 import works.szabope.plugins.pylint.services.PylintSettings
+import works.szabope.plugins.pylint.services.ScanService
 import works.szabope.plugins.pylint.toRunConfiguration
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
-import works.szabope.plugins.pylint.toolWindow.getPylintPanel
 import javax.swing.JCheckBox
 import javax.swing.JComponent
 
-class PylintCheckinHandler(private val panel: CheckinProjectPanel) : CheckinHandler() {
+@Suppress("UnstableApiUsage")
+class PylintCheckinHandler(private val panel: CheckinProjectPanel) : CheckinHandler(), CommitCheck {
 
     private val settings = PylintSettings.getInstance(panel.project)
     private val service = ScanService.getInstance(panel.project)
@@ -47,36 +48,36 @@ class PylintCheckinHandler(private val panel: CheckinProjectPanel) : CheckinHand
         }
     }
 
-    override fun beforeCheckin(
-        executor: CommitExecutor?, additionalDataConsumer: PairConsumer<Any, Any>?
-    ): ReturnResult? {
-        if (!settings.isScanBeforeCheckIn) return ReturnResult.COMMIT
-        val filePaths = panel.virtualFiles
-        val runConfiguration = PylintSettings.getInstance(panel.project).toRunConfiguration()
-        val scanResults =
-            runWithModalProgressBlocking(panel.project, PylintBundle.message("pylint.checkin-handler.in-progress")) {
-                service.scan(filePaths, runConfiguration)
-            }
-        if (scanResults.isNotEmpty()) {
-            val commitButtonText = (executor?.actionText ?: panel.commitActionName).trimEnd('.')
-            val dialog = IDialogManager.showPreCheckinConfirmationDialog(
-                panel.project, scanResults.size, commitButtonText
-            )
-            when (dialog.getExitCode()) {
-                Messages.OK -> {
-                    getPylintPanel(panel.project)?.apply {
-                        initializeResultTree(filePaths)
-                        scanResults.forEach { addScanResult(it) }
-                        ToolWindowManager.getInstance(panel.project).getToolWindow(PylintToolWindowPanel.ID)?.show()
-                    }
-                    return ReturnResult.CLOSE_WINDOW
-                }
+    override fun getExecutionOrder() = CommitCheck.ExecutionOrder.EARLY
 
-                Messages.CANCEL -> {
-                    return ReturnResult.CANCEL
-                }
+    override fun isEnabled() = PylintSettings.getInstance(panel.project).isScanBeforeCheckIn
+
+    override suspend fun runCheck(commitInfo: CommitInfo): CommitProblem? {
+        val changes = commitInfo.committedChanges
+        if (changes.isEmpty()) return null
+        val files = changes.mapNotNull { it.afterRevision?.file?.virtualFile }
+        val runConfiguration = PylintSettings.getInstance(panel.project).toRunConfiguration()
+        val scanResults = withProgressText("Running pylint\u2026") {
+            withContext(Dispatchers.Default) {
+                service.scan(files, runConfiguration)
             }
         }
-        return super.beforeCheckin(executor, additionalDataConsumer)
+        if (scanResults.isEmpty()) return null
+        return object : CommitProblemWithDetails {
+            override val text: String
+                get() = "Hey, this is a TODO" //TODO
+            override val showDetailsAction: String
+                get() = "Review" //TODO
+
+            override fun showDetails(project: Project) {
+                val converter = PylintMessageConverter()
+                project.messageBus.syncPublisher(IScanResultListener.TOPIC).reinitialize(files)
+                scanResults.map { converter.convert(it) }.forEach {
+                    project.messageBus.syncPublisher(IScanResultListener.TOPIC).add(it)
+                }
+                ActivityTracker.getInstance().inc()
+                PylintToolWindowPanel.getInstance(project).isVisible = true
+            }
+        }
     }
 }

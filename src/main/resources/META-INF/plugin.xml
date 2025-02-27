@@ -32,6 +32,10 @@
                             testServiceImplementation="works.szabope.plugins.pylint.testutil.TestDialogManager"/>
         <checkinHandlerFactory implementation="works.szabope.plugins.pylint.vcs.PylintCheckinHandlerFactory"/>
     </extensions>
+    <projectListeners>
+        <listener class="works.szabope.plugins.pylint.messages.PylintResultListener"
+                  topic="works.szabope.plugins.pylint.messages.IScanResultListener"/>
+    </projectListeners>
 
     <actions>
         <group id="works.szabope.plugins.pylint.PylintPluginActions" text="Pylint" popup="true">

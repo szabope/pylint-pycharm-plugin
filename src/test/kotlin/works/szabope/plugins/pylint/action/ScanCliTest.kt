@@ -1,5 +1,6 @@
 package works.szabope.plugins.pylint.action
 
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.ui.DialogWrapper
@@ -69,7 +70,7 @@ class ScanCliTest : AbstractToolWindowTestCase() {
             fail(it.toString())
         }
         val target = workspaceModel.currentSnapshot.entities(ContentRootEntity::class.java).first().url.virtualFile!!
-        scan(target, project)
+        scan(getContext { it.add(CommonDataKeys.VIRTUAL_FILE_ARRAY, arrayOf(target)) })
         runBlocking {
             waitUntilAssertSucceeds {
                 treeUtil.assertStructure("+Found 2 issue(s) in 1 file(s)\n")
@@ -102,7 +103,7 @@ class ScanCliTest : AbstractToolWindowTestCase() {
         }
         setUpSettings("pylint_failing")
         val file = myFixture.configureByFile("manualScan.py").virtualFile
-        scan(file, project)
+        scan(getContext { it.add(CommonDataKeys.VIRTUAL_FILE_ARRAY, arrayOf(file)) })
         runBlocking {
             waitUntil {
                 dialogShown.isDone && with(dialogShown.get()) { isShown() && getExitCode() == DialogWrapper.OK_EXIT_CODE }

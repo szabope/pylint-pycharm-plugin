@@ -6,23 +6,22 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import works.szabope.plugins.pylint.services.AsyncScanService
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.toRunConfiguration
-import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 
 class RescanAction : AbstractScanAction() {
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project ?: return
-        val panel = event.getData(PylintToolWindowPanel.PYLINT_PANEL_DATA_KEY) ?: return
-        val latestScanTargets = panel.getScanTargets()
+        val treeManager = getTreeModelManager(event) ?: return
+        val latestScanTargets = treeManager.getRootScanPaths()
+        treeManager.reinitialize(latestScanTargets)
         val runConfiguration = project.let { PylintSettings.getInstance(it).toRunConfiguration() }
-        panel.initializeResultTree(latestScanTargets)
         FileDocumentManager.getInstance().saveAllDocuments()
         AsyncScanService.getInstance(project).scan(latestScanTargets, runConfiguration)
     }
 
     override fun update(event: AnActionEvent) {
         val project = event.project ?: return
-        val panel = event.getData(PylintToolWindowPanel.PYLINT_PANEL_DATA_KEY) ?: return
-        event.presentation.isEnabled = panel.getScanTargets().isNotEmpty() && isReadyToScan(project)
+        val treeManager = getTreeModelManager(event) ?: return
+        event.presentation.isEnabled = treeManager.getRootScanPaths().isNotEmpty() && isReadyToScan(project)
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {

@@ -1,5 +1,6 @@
 package works.szabope.plugins.pylint.action
 
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.service
 import com.intellij.platform.backend.workspace.WorkspaceModel
@@ -70,7 +71,7 @@ class ScanSdkTest : AbstractToolWindowTestCase() {
         }
         val target =
             workspaceModel.currentSnapshot.entities(ContentRootEntity::class.java).first().url.virtualFile!!
-        scan(target, project)
+        scan(getContext { it.add(CommonDataKeys.VIRTUAL_FILE_ARRAY, arrayOf(target)) })
         runBlocking {
             waitUntilAssertSucceeds {
                 treeUtil.assertStructure("+Found 2 issue(s) in 1 file(s)\n")

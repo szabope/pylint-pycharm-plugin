@@ -1,5 +1,9 @@
 package works.szabope.plugins.pylint
 
+import com.intellij.ide.ui.IdeUiService
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.replaceService
@@ -13,7 +17,7 @@ abstract class AbstractToolWindowTestCase : AbstractPylintTestCase() {
 
     protected val tree: Tree = Tree()
     protected lateinit var toolWindowManager: TestToolWindowHeadlessManagerImpl
-    protected lateinit var panel: PylintToolWindowPanel
+    private lateinit var testContext: DataContext
 
     override fun setUp() {
         super.setUp()
@@ -30,12 +34,22 @@ abstract class AbstractToolWindowTestCase : AbstractPylintTestCase() {
     private fun setUpToolWindow() {
         val toolWindowManager = ToolWindowManager.getInstance(project) as ToolWindowHeadlessManagerImpl
         val toolWindow = toolWindowManager.doRegisterToolWindow(PylintToolWindowPanel.ID)
-        val factory = object : PylintToolWindowFactory() {
+        val factory = object : PylintToolWindowFactory() { //TODO: remove?
             override fun createPanel(project: Project): PylintToolWindowPanel {
-                panel = PylintToolWindowPanel(project, tree)
+                val panel = PylintToolWindowPanel(project, tree)
+                val panelContext = IdeUiService.getInstance().createUiDataContext(panel)
+                testContext =
+                    SimpleDataContext.builder().setParent(panelContext).add(CommonDataKeys.PROJECT, project).build()
                 return panel
             }
         }
         factory.createToolWindowContent(myFixture.project, toolWindow)
+    }
+
+    protected fun getContext(customizer: ((SimpleDataContext.Builder) -> SimpleDataContext.Builder)? = null): DataContext {
+        if (!::testContext.isInitialized) error("Testing context is not initialized")
+        val builder = SimpleDataContext.builder().setParent(testContext)
+        customizer?.invoke(builder)
+        return builder.build()
     }
 }

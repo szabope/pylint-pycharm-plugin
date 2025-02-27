@@ -7,7 +7,6 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.AutoScrollToSourceHandler
 import com.intellij.ui.TreeUIHelper
@@ -19,25 +18,29 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeUtil
 import works.szabope.plugins.pylint.action.ScrollToSourceDummyAction
 import works.szabope.plugins.pylint.services.PylintSettings
-import works.szabope.plugins.pylint.services.parser.PylintMessage
 import java.awt.BorderLayout
 import javax.swing.Box
 import kotlin.io.path.Path
 
-fun getPylintPanel(project: Project): PylintToolWindowPanel? {
-    return ToolWindowManager.getInstance(project)
-        .getToolWindow(PylintToolWindowPanel.ID)?.contentManager?.getContent(0)?.component as PylintToolWindowPanel?
-}
-
 class PylintToolWindowPanel(private val project: Project, private val tree: Tree = Tree()) :
     SimpleToolWindowPanel(false, true) {
 
-    private val displayedSeverityLevels = SeverityConfig.ALL.map { it.level }.toMutableSet()
-    private val treeManager = TreeModelManager(displayedSeverityLevels)
+    //TODO: move these to out of panel class (data provider)
+    private val severityManager = SeverityManager()
+    private val treeModelManager = TreeModelManager(severityManager::isSeverityLevelDisplayed)
     private val treeExpander = DefaultTreeExpander(tree)
 
     init {
-        treeManager.install(tree)
+        severityManager.addChangeListener {
+            treeModelManager.reload()
+        }
+        with(treeModelManager) {
+            install(tree)
+            addChangeListener {
+                repaint()
+                ActivityTracker.getInstance().inc()
+            }
+        }
         border = JBUI.Borders.empty(1)
         add(JBScrollPane(tree), BorderLayout.CENTER)
         addToolbar()
@@ -48,49 +51,15 @@ class PylintToolWindowPanel(private val project: Project, private val tree: Tree
     }
 
     override fun uiDataSnapshot(sink: DataSink) {
-        sink[PYLINT_PANEL_DATA_KEY] = this
         sink[PlatformDataKeys.TREE_EXPANDER] = treeExpander
+        sink[SEVERITY_MANAGER] = severityManager
+        sink[TREE_MODEL_MANAGER] = treeModelManager
         sink.lazy(CommonDataKeys.NAVIGATABLE) {
             val userObject = TreeUtil.getLastUserObject(tree.selectionPath) as? IssueNodeUserObject? ?: return@lazy null
             val file = VfsUtil.findFile(Path(userObject.file), true) ?: return@lazy null
             OpenFileDescriptor(project, file, userObject.line, userObject.column)
         }
         super.uiDataSnapshot(sink)
-    }
-
-    fun initializeResultTree(targets: Collection<VirtualFile>) {
-        treeManager.reinitialize(targets)
-    }
-
-    fun addScanResult(scanResult: PylintMessage) {
-        val item = with(scanResult) {
-            val severity = requireNotNull(SeverityConfig.find(type)) {
-                "Pylint message with type '$type' is not supported. Please, report this issue at  https://github.com/szabope/pylint-pycharm-plugin/issues"
-            }
-            TreeModelDataItem(absolutePath, line, column, message, symbol, severity)
-        }
-        treeManager.add(item)
-        repaint()
-        ActivityTracker.getInstance().inc()
-    }
-
-    fun isSeverityLevelDisplayed(severityLevel: String): Boolean {
-        return displayedSeverityLevels.contains(severityLevel)
-    }
-
-    fun setSeverityLevelDisplayed(severityLevel: String, isDisplayed: Boolean) {
-        val hadEffect = if (isDisplayed) {
-            displayedSeverityLevels.add(severityLevel)
-        } else {
-            displayedSeverityLevels.remove(severityLevel)
-        }
-        if (hadEffect) {
-            treeManager.reload()
-        }
-    }
-
-    fun getScanTargets(): Collection<VirtualFile> {
-        return treeManager.getRootScanPaths()
     }
 
     private fun addToolbar() {
@@ -117,10 +86,17 @@ class PylintToolWindowPanel(private val project: Project, private val tree: Tree
 
     companion object {
         private const val MAIN_ACTION_GROUP: String = "works.szabope.plugins.pylint.PylintPluginActions"
+        const val ID = "Pylint "
 
         @JvmStatic
-        val PYLINT_PANEL_DATA_KEY: DataKey<PylintToolWindowPanel> = DataKey.create("PylintToolWindowPanel")
+        val SEVERITY_MANAGER: DataKey<SeverityManager> = DataKey.create("PylintToolWindowPanel.severityManager")
 
-        const val ID = "Pylint "
+        @JvmStatic
+        val TREE_MODEL_MANAGER: DataKey<TreeModelManager> = DataKey.create("PylintToolWindowPanel.treeModelManager")
+
+        @JvmStatic
+        fun getInstance(project: Project) = requireNotNull(ToolWindowManager.getInstance(project).getToolWindow(ID)) {
+            "todo" //TODO
+        }.contentManager.contents.single().component
     }
 }
