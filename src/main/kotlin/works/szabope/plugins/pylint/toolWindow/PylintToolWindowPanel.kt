@@ -18,32 +18,45 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeUtil
 import works.szabope.plugins.pylint.action.ScrollToSourceDummyAction
 import works.szabope.plugins.pylint.services.PylintSettings
+import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel.Companion.SEVERITY_MANAGER
+import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel.Companion.TREE_MODEL_MANAGER
 import java.awt.BorderLayout
 import javax.swing.Box
 import kotlin.io.path.Path
 
-class PylintToolWindowPanel(private val project: Project, private val tree: Tree = Tree()) :
-    SimpleToolWindowPanel(false, true) {
-
-    //TODO: move these to out of panel class (data provider)
+class TreeManager(val tree: Tree = Tree()) : UiDataProvider {
     private val severityManager = SeverityManager()
-    private val treeModelManager = TreeModelManager(severityManager::isSeverityLevelDisplayed)
+    val modelManager = TreeModelManager(severityManager::isSeverityLevelDisplayed)
     private val treeExpander = DefaultTreeExpander(tree)
 
     init {
         severityManager.addChangeListener {
-            treeModelManager.reload()
+            modelManager.reload()
         }
-        with(treeModelManager) {
-            install(tree)
-            addChangeListener {
-                repaint()
-                ActivityTracker.getInstance().inc()
-            }
+        modelManager.install(tree)
+    }
+
+    override fun uiDataSnapshot(sink: DataSink) {
+        sink[PlatformDataKeys.TREE_EXPANDER] = treeExpander
+        sink[SEVERITY_MANAGER] = severityManager
+        sink[TREE_MODEL_MANAGER] = modelManager
+    }
+
+    fun getSelectedNodeUserObject() = TreeUtil.getLastUserObject(tree.selectionPath)
+}
+
+class PylintToolWindowPanel(private val project: Project, private val treeManager: TreeManager) :
+    SimpleToolWindowPanel(false, true) {
+
+    init {
+        treeManager.modelManager.addChangeListener {
+            repaint()
+            ActivityTracker.getInstance().inc()
         }
         border = JBUI.Borders.empty(1)
-        add(JBScrollPane(tree), BorderLayout.CENTER)
         addToolbar()
+        val tree = treeManager.tree
+        add(JBScrollPane(tree), BorderLayout.CENTER)
         EditSourceOnDoubleClickHandler.install(tree)
         EditSourceOnEnterKeyHandler.install(tree)
         TreeUIHelper.getInstance().installTreeSpeedSearch(tree)
@@ -51,11 +64,9 @@ class PylintToolWindowPanel(private val project: Project, private val tree: Tree
     }
 
     override fun uiDataSnapshot(sink: DataSink) {
-        sink[PlatformDataKeys.TREE_EXPANDER] = treeExpander
-        sink[SEVERITY_MANAGER] = severityManager
-        sink[TREE_MODEL_MANAGER] = treeModelManager
+        treeManager.uiDataSnapshot(sink)
         sink.lazy(CommonDataKeys.NAVIGATABLE) {
-            val userObject = TreeUtil.getLastUserObject(tree.selectionPath) as? IssueNodeUserObject? ?: return@lazy null
+            val userObject = treeManager.getSelectedNodeUserObject() as? IssueNodeUserObject? ?: return@lazy null
             val file = VfsUtil.findFile(Path(userObject.file), true) ?: return@lazy null
             OpenFileDescriptor(project, file, userObject.line, userObject.column)
         }
@@ -70,7 +81,7 @@ class PylintToolWindowPanel(private val project: Project, private val tree: Tree
                 PylintSettings.getInstance(project).isAutoScrollToSource = state
             }
         }
-        autoScrollToSourceHandler.install(tree)
+        autoScrollToSourceHandler.install(treeManager.tree)
         val actionManager = ActionManager.getInstance()
         actionManager.replaceAction(ScrollToSourceDummyAction.ID, autoScrollToSourceHandler.createToggleAction())
         val mainActionGroup = actionManager.getAction(MAIN_ACTION_GROUP) as ActionGroup

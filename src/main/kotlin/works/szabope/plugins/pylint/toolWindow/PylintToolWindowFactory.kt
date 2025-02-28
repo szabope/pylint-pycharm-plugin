@@ -22,6 +22,6 @@ internal open class PylintToolWindowFactory : ToolWindowFactory, DumbAware {
 
     @VisibleForTesting
     protected open fun createPanel(project: Project): PylintToolWindowPanel {
-        return PylintToolWindowPanel(project)
+        return PylintToolWindowPanel(project, TreeManager())
     }
 }

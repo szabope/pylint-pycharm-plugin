@@ -12,6 +12,7 @@ import com.intellij.ui.treeStructure.Tree
 import works.szabope.plugins.pylint.testutil.TestToolWindowHeadlessManagerImpl
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowFactory
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
+import works.szabope.plugins.pylint.toolWindow.TreeManager
 
 abstract class AbstractToolWindowTestCase : AbstractPylintTestCase() {
 
@@ -36,7 +37,7 @@ abstract class AbstractToolWindowTestCase : AbstractPylintTestCase() {
         val toolWindow = toolWindowManager.doRegisterToolWindow(PylintToolWindowPanel.ID)
         val factory = object : PylintToolWindowFactory() { //TODO: remove?
             override fun createPanel(project: Project): PylintToolWindowPanel {
-                val panel = PylintToolWindowPanel(project, tree)
+                val panel = PylintToolWindowPanel(project, TreeManager(tree))
                 val panelContext = IdeUiService.getInstance().createUiDataContext(panel)
                 testContext =
                     SimpleDataContext.builder().setParent(panelContext).add(CommonDataKeys.PROJECT, project).build()
