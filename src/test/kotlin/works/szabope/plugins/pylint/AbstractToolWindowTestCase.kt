@@ -13,7 +13,7 @@ import works.szabope.plugins.pylint.services.PylintSeverityConfigService
 import works.szabope.plugins.pylint.testutil.TestToolWindowHeadlessManagerImpl
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowFactory
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
-import works.szabope.plugins.pylint.toolWindow.TreeManager
+import works.szabope.plugins.common.toolWindow.TreeManager
 
 abstract class AbstractToolWindowTestCase : AbstractPylintTestCase() {
 

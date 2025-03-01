@@ -5,7 +5,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareToggleAction
 import org.jetbrains.annotations.VisibleForTesting
 import works.szabope.plugins.common.services.SeverityConfig
-import works.szabope.plugins.pylint.toolWindow.TreeManager
+import works.szabope.plugins.common.toolWindow.TreeManager
 
 class SeverityFilterAction(private val config: SeverityConfig) :
     DumbAwareToggleAction(config.text, config.description, config.icon) {

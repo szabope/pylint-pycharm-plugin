@@ -7,7 +7,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import works.szabope.plugins.common.messages.TreeListener
 import works.szabope.plugins.common.toolWindow.TreeModelDataItem
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
-import works.szabope.plugins.pylint.toolWindow.TreeManager
+import works.szabope.plugins.common.toolWindow.TreeManager
 
 @Suppress("UnstableApiUsage")
 class PylintTreeListener(project: Project) : TreeListener {

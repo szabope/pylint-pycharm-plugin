@@ -5,7 +5,7 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import works.szabope.plugins.pylint.services.AsyncScanService
 import works.szabope.plugins.pylint.services.PylintSettings
-import works.szabope.plugins.pylint.toolWindow.TreeManager
+import works.szabope.plugins.common.toolWindow.TreeManager
 
 abstract class AbstractScanAction : DumbAwareAction() {
     protected fun isReadyToScan(project: Project): Boolean {

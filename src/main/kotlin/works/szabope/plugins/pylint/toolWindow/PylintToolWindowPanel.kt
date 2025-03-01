@@ -1,7 +1,6 @@
 package works.szabope.plugins.pylint.toolWindow
 
 import com.intellij.ide.ActivityTracker
-import com.intellij.ide.DefaultTreeExpander
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
@@ -11,48 +10,16 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.AutoScrollToSourceHandler
 import com.intellij.ui.TreeUIHelper
 import com.intellij.ui.components.JBScrollPane
-import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.EditSourceOnDoubleClickHandler
 import com.intellij.util.EditSourceOnEnterKeyHandler
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.tree.TreeUtil
 import works.szabope.plugins.common.toolWindow.IssueNodeUserObject
-import works.szabope.plugins.common.toolWindow.SeverityManager
-import works.szabope.plugins.common.toolWindow.TreeModelManager
+import works.szabope.plugins.common.toolWindow.TreeManager
 import works.szabope.plugins.pylint.action.ScrollToSourceDummyAction
 import works.szabope.plugins.pylint.services.PylintSettings
 import java.awt.BorderLayout
 import javax.swing.Box
 import kotlin.io.path.Path
-
-class TreeManager(val tree: Tree = Tree(), severities: Set<String>) : UiDataProvider {
-    private val severityManager = SeverityManager(severities)
-    val modelManager = TreeModelManager(severityManager::isSeverityLevelDisplayed)
-    private val treeExpander = DefaultTreeExpander(tree)
-
-    init {
-        severityManager.addChangeListener {
-            modelManager.reload()
-        }
-        modelManager.install(tree)
-    }
-
-    override fun uiDataSnapshot(sink: DataSink) {
-        sink[PlatformDataKeys.TREE_EXPANDER] = treeExpander
-        sink[SEVERITY_MANAGER] = severityManager
-        sink[TREE_MODEL_MANAGER] = modelManager
-    }
-
-    fun getSelectedNodeUserObject() = TreeUtil.getLastUserObject(tree.selectionPath)
-
-    companion object {
-        @JvmStatic
-        val SEVERITY_MANAGER: DataKey<SeverityManager> = DataKey.create("PylintToolWindowPanel.severityManager")
-
-        @JvmStatic
-        val TREE_MODEL_MANAGER: DataKey<TreeModelManager> = DataKey.create("PylintToolWindowPanel.treeModelManager")
-    }
-}
 
 class PylintToolWindowPanel(private val project: Project, private val treeManager: TreeManager) :
     SimpleToolWindowPanel(false, true) {

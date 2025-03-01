@@ -7,6 +7,7 @@ import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.ui.content.ContentFactory
 import org.jetbrains.annotations.VisibleForTesting
+import works.szabope.plugins.common.toolWindow.TreeManager
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.services.PylintSeverityConfigService
 
