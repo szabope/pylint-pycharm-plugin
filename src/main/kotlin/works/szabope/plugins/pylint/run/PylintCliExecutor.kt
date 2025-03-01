@@ -3,12 +3,11 @@ package works.szabope.plugins.pylint.run
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.text.nullize
+import works.szabope.plugins.common.services.tool.ToolOutputHandler
 import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.services.Exclusions
 import works.szabope.plugins.pylint.services.cli.PythonEnvironmentAwareCli
-import works.szabope.plugins.pylint.services.parser.IPylintOutputHandler
-import works.szabope.plugins.pylint.services.parser.PylintJson2OutputParser
-import works.szabope.plugins.pylint.services.parser.PylintParserException
+import works.szabope.plugins.pylint.services.parser.*
 
 class PylintCliExecutor(private val project: Project) : IPylintExecutor {
 
@@ -18,7 +17,7 @@ class PylintCliExecutor(private val project: Project) : IPylintExecutor {
     class ParseFailedException(val command: String, val sourceJson: String, cause: Exception) : RuntimeException(cause)
 
     override suspend fun execute(
-        configuration: ExecutorConfiguration, targets: Collection<VirtualFile>, resultHandler: IPylintOutputHandler
+        configuration: ExecutorConfiguration, targets: Collection<VirtualFile>, resultHandler: ToolOutputHandler<PylintMessage, PylintResult>
     ) {
         require(!configuration.useProjectSdk) { "Configuration mismatch" }
         val command = buildCommand(configuration, targets)

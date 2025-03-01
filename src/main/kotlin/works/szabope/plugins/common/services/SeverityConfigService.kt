@@ -1,4 +1,4 @@
-package works.szabope.plugins.common.service
+package works.szabope.plugins.common.services
 
 interface SeverityConfigService {
     fun getAll(): Set<SeverityConfig>

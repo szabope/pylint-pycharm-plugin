@@ -1,6 +1,6 @@
 package works.szabope.plugins.common.toolWindow
 
-import works.szabope.plugins.common.service.SeverityConfig
+import works.szabope.plugins.common.services.SeverityConfig
 
 data class TreeModelDataItem(
     val file: String,

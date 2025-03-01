@@ -1,13 +1,15 @@
 package works.szabope.plugins.pylint.services.parser
 
 import kotlinx.serialization.Serializable
+import works.szabope.plugins.common.services.ToolResult
+import works.szabope.plugins.common.services.ToolResultItem
 
 // https://github.com/Kotlin/kotlinx.serialization/issues/2808
 @Suppress("PROVIDED_RUNTIME_TOO_LOW", "INLINE_CLASSES_NOT_SUPPORTED")
 @Serializable
 data class PylintResult(
-    val messages: List<PylintMessage>
-)
+    override val messages: List<PylintMessage>
+) : ToolResult<PylintMessage>
 
 @Suppress("PROVIDED_RUNTIME_TOO_LOW", "INLINE_CLASSES_NOT_SUPPORTED")
 @Serializable
@@ -25,4 +27,4 @@ data class PylintMessage(
     val column: Int,
     val endColumn: Int?,
     val obj: String
-)
+) : ToolResultItem

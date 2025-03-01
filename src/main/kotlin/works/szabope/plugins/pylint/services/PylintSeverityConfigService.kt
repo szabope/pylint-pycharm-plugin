@@ -4,8 +4,8 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import works.szabope.plugins.common.service.SeverityConfig
-import works.szabope.plugins.common.service.SeverityConfigService
+import works.szabope.plugins.common.services.SeverityConfig
+import works.szabope.plugins.common.services.SeverityConfigService
 import works.szabope.plugins.pylint.PylintBundle
 
 @Service(Service.Level.PROJECT)

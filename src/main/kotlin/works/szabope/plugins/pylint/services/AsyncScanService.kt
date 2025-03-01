@@ -16,7 +16,7 @@ import works.szabope.plugins.pylint.run.ExecutorConfiguration
 import works.szabope.plugins.pylint.run.PylintCliExecutor
 import works.szabope.plugins.pylint.run.PylintCliExecutor.ParseFailedException
 import works.szabope.plugins.pylint.run.PylintSdkExecutor
-import works.szabope.plugins.pylint.services.parser.PublishingOutputHandler
+import works.szabope.plugins.pylint.services.parser.PylintPublishingToolOutputHandler
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 import javax.swing.event.HyperlinkEvent
 
@@ -29,7 +29,7 @@ class AsyncScanService(private val project: Project, private val cs: CoroutineSc
         get() = manualScanJob?.isActive == true
 
     fun scan(targets: Collection<VirtualFile>, configuration: ExecutorConfiguration) {
-        val resultHandler = PublishingOutputHandler(project)
+        val resultHandler = PylintPublishingToolOutputHandler(project)
         if (configuration.useProjectSdk) {
             manualScanJob = cs.launch {
                 PylintSdkExecutor(project).execute(configuration, targets, resultHandler)
