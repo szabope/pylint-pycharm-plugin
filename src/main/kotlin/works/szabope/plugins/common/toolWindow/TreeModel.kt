@@ -1,4 +1,4 @@
-package works.szabope.plugins.pylint.toolWindow
+package works.szabope.plugins.common.toolWindow
 
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.navigation.NavigationItem

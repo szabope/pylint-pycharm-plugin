@@ -16,16 +16,17 @@ import com.intellij.util.EditSourceOnDoubleClickHandler
 import com.intellij.util.EditSourceOnEnterKeyHandler
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeUtil
+import works.szabope.plugins.common.toolWindow.IssueNodeUserObject
+import works.szabope.plugins.common.toolWindow.SeverityManager
+import works.szabope.plugins.common.toolWindow.TreeModelManager
 import works.szabope.plugins.pylint.action.ScrollToSourceDummyAction
 import works.szabope.plugins.pylint.services.PylintSettings
-import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel.Companion.SEVERITY_MANAGER
-import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel.Companion.TREE_MODEL_MANAGER
 import java.awt.BorderLayout
 import javax.swing.Box
 import kotlin.io.path.Path
 
-class TreeManager(val tree: Tree = Tree()) : UiDataProvider {
-    private val severityManager = SeverityManager()
+class TreeManager(val tree: Tree = Tree(), severities: Set<String>) : UiDataProvider {
+    private val severityManager = SeverityManager(severities)
     val modelManager = TreeModelManager(severityManager::isSeverityLevelDisplayed)
     private val treeExpander = DefaultTreeExpander(tree)
 
@@ -43,6 +44,14 @@ class TreeManager(val tree: Tree = Tree()) : UiDataProvider {
     }
 
     fun getSelectedNodeUserObject() = TreeUtil.getLastUserObject(tree.selectionPath)
+
+    companion object {
+        @JvmStatic
+        val SEVERITY_MANAGER: DataKey<SeverityManager> = DataKey.create("PylintToolWindowPanel.severityManager")
+
+        @JvmStatic
+        val TREE_MODEL_MANAGER: DataKey<TreeModelManager> = DataKey.create("PylintToolWindowPanel.treeModelManager")
+    }
 }
 
 class PylintToolWindowPanel(private val project: Project, private val treeManager: TreeManager) :
@@ -98,12 +107,6 @@ class PylintToolWindowPanel(private val project: Project, private val treeManage
     companion object {
         private const val MAIN_ACTION_GROUP: String = "works.szabope.plugins.pylint.PylintPluginActions"
         const val ID = "Pylint "
-
-        @JvmStatic
-        val SEVERITY_MANAGER: DataKey<SeverityManager> = DataKey.create("PylintToolWindowPanel.severityManager")
-
-        @JvmStatic
-        val TREE_MODEL_MANAGER: DataKey<TreeModelManager> = DataKey.create("PylintToolWindowPanel.treeModelManager")
 
         @JvmStatic
         fun getInstance(project: Project) = requireNotNull(ToolWindowManager.getInstance(project).getToolWindow(ID)) {

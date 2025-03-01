@@ -1,4 +1,6 @@
-package works.szabope.plugins.pylint.toolWindow
+package works.szabope.plugins.common.toolWindow
+
+import works.szabope.plugins.common.service.SeverityConfig
 
 data class TreeModelDataItem(
     val file: String,

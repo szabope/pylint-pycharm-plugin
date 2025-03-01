@@ -1,16 +1,16 @@
-package works.szabope.plugins.pylint.toolWindow
+package works.szabope.plugins.common.toolWindow
 
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.treeStructure.Tree
-import works.szabope.plugins.pylint.PylintBundle
+import works.szabope.plugins.common.CommonBundle
 
 class TreeModelManager(private val isDisplayed: (String) -> Boolean) {
 
     private val changeListeners = mutableSetOf<() -> Unit>()
     private val logger = logger<TreeModelManager>()
     private val issues = mutableSetOf<TreeModelDataItem>()
-    private val model = TreeModel(PylintBundle.message("pylint.toolwindow.name.empty"))
+    private val model = TreeModel(CommonBundle.message("toolwindow.name.empty"))
 
     fun add(issue: TreeModelDataItem) {
         issues.add(issue)
@@ -50,7 +50,7 @@ class TreeModelManager(private val isDisplayed: (String) -> Boolean) {
 
     private fun resetRoot(targetsMaybe: Collection<VirtualFile>? = null) {
         val targets = targetsMaybe ?: model.root.targets
-        model.setRoot(RootNode(PylintBundle.message("pylint.toolwindow.root.message", 0, 0), targets))
+        model.setRoot(RootNode(CommonBundle.message("toolwindow.root.message", 0, 0), targets))
     }
 
     private fun addToTree(issue: TreeModelDataItem) {
@@ -58,8 +58,8 @@ class TreeModelManager(private val isDisplayed: (String) -> Boolean) {
         val issueNode = IssueNode(issue)
         model.append(issueNode, fileNode)
         model.updateRootText(
-            PylintBundle.message(
-                "pylint.toolwindow.root.message", model.getIssueCount(), model.getChildCount(model.root)
+            CommonBundle.message(
+                "toolwindow.root.message", model.getIssueCount(), model.getChildCount(model.root)
             )
         )
     }

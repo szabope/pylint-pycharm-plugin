@@ -9,8 +9,8 @@ import com.intellij.platform.util.progress.withProgressText
 import com.intellij.ui.dsl.builder.panel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import works.szabope.plugins.common.messages.TreeListener
 import works.szabope.plugins.pylint.PylintBundle
-import works.szabope.plugins.pylint.messages.IScanResultListener
 import works.szabope.plugins.pylint.messages.PylintMessageConverter
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.services.ScanService
@@ -57,7 +57,7 @@ class PylintCheckinHandler(private val panel: CheckinProjectPanel) : CheckinHand
         if (changes.isEmpty()) return null
         val files = changes.mapNotNull { it.afterRevision?.file?.virtualFile }
         val runConfiguration = PylintSettings.getInstance(panel.project).toRunConfiguration()
-        val scanResults = withProgressText("Running pylint\u2026") {
+        val scanResults = withProgressText(PylintBundle.message("pylint.checkin-handler.in-progress")) {
             withContext(Dispatchers.Default) {
                 service.scan(files, runConfiguration)
             }
@@ -70,10 +70,10 @@ class PylintCheckinHandler(private val panel: CheckinProjectPanel) : CheckinHand
                 get() = "Review" //TODO
 
             override fun showDetails(project: Project) {
-                val converter = PylintMessageConverter()
-                project.messageBus.syncPublisher(IScanResultListener.TOPIC).reinitialize(files)
+                val converter = PylintMessageConverter(project)
+                project.messageBus.syncPublisher(TreeListener.TOPIC).reinitialize(files)
                 scanResults.map { converter.convert(it) }.forEach {
-                    project.messageBus.syncPublisher(IScanResultListener.TOPIC).add(it)
+                    project.messageBus.syncPublisher(TreeListener.TOPIC).add(it)
                 }
                 ActivityTracker.getInstance().inc()
                 PylintToolWindowPanel.getInstance(project).isVisible = true

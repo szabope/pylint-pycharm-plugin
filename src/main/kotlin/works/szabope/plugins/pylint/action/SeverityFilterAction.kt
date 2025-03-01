@@ -4,8 +4,8 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareToggleAction
 import org.jetbrains.annotations.VisibleForTesting
-import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
-import works.szabope.plugins.pylint.toolWindow.SeverityConfig
+import works.szabope.plugins.common.service.SeverityConfig
+import works.szabope.plugins.pylint.toolWindow.TreeManager
 
 class SeverityFilterAction(private val config: SeverityConfig) :
     DumbAwareToggleAction(config.text, config.description, config.icon) {
@@ -15,14 +15,14 @@ class SeverityFilterAction(private val config: SeverityConfig) :
     }
 
     override fun isSelected(event: AnActionEvent): Boolean {
-        val severityManager = requireNotNull(event.getData(PylintToolWindowPanel.SEVERITY_MANAGER)) {
+        val severityManager = requireNotNull(event.getData(TreeManager.SEVERITY_MANAGER)) {
             "please report TODO" // TODO
         }
         return severityManager.isSeverityLevelDisplayed(config.level)
     }
 
     override fun setSelected(event: AnActionEvent, selected: Boolean) {
-        val severityManager = requireNotNull(event.getData(PylintToolWindowPanel.SEVERITY_MANAGER)) {
+        val severityManager = requireNotNull(event.getData(TreeManager.SEVERITY_MANAGER)) {
             "please report TODO" // TODO
         }
         severityManager.setSeverityLevelDisplayed(config.level, selected)

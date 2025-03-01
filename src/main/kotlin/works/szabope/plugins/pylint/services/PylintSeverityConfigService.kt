@@ -1,15 +1,24 @@
-package works.szabope.plugins.pylint.toolWindow
+package works.szabope.plugins.pylint.services
 
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
+import works.szabope.plugins.common.service.SeverityConfig
+import works.szabope.plugins.common.service.SeverityConfigService
 import works.szabope.plugins.pylint.PylintBundle
-import javax.swing.Icon
 
-data class SeverityConfig(val level: String, val text: String, val description: String, val icon: Icon) {
+@Service(Service.Level.PROJECT)
+class PylintSeverityConfigService : SeverityConfigService {
+    override fun getAll() = ALL
+
     companion object {
-        fun find(severity: String) = ALL.find { it.level == severity }
 
         @JvmStatic
-        val ALL = arrayOf(
+        fun getInstance(project: Project): PylintSeverityConfigService = project.service()
+
+        @JvmStatic
+        val ALL = setOf(
             SeverityConfig(
                 "fatal",
                 PylintBundle.message("action.PyLintDisplayFatalAction.text"),

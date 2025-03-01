@@ -8,6 +8,7 @@ import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.ui.content.ContentFactory
 import org.jetbrains.annotations.VisibleForTesting
 import works.szabope.plugins.pylint.PylintBundle
+import works.szabope.plugins.pylint.services.PylintSeverityConfigService
 
 @VisibleForTesting
 internal open class PylintToolWindowFactory : ToolWindowFactory, DumbAware {
@@ -22,6 +23,7 @@ internal open class PylintToolWindowFactory : ToolWindowFactory, DumbAware {
 
     @VisibleForTesting
     protected open fun createPanel(project: Project): PylintToolWindowPanel {
-        return PylintToolWindowPanel(project, TreeManager())
+        val severities = PylintSeverityConfigService.getInstance(project).getAll().map { it.level }.toSet()
+        return PylintToolWindowPanel(project, TreeManager(severities = severities))
     }
 }

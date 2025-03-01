@@ -1,11 +1,11 @@
-package works.szabope.plugins.pylint.messages
+package works.szabope.plugins.common.messages
 
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.messages.Topic
 import com.intellij.util.messages.Topic.ProjectLevel
-import works.szabope.plugins.pylint.toolWindow.TreeModelDataItem
+import works.szabope.plugins.common.toolWindow.TreeModelDataItem
 
-interface IScanResultListener {
+interface TreeListener {
 
     fun reinitialize(targets: Collection<VirtualFile>)
     fun add(item: TreeModelDataItem)
@@ -13,6 +13,6 @@ interface IScanResultListener {
     companion object {
         @JvmStatic
         @ProjectLevel
-        val TOPIC = Topic(IScanResultListener::class.java, Topic.BroadcastDirection.NONE)
+        val TOPIC = Topic(TreeListener::class.java, Topic.BroadcastDirection.NONE)
     }
 }

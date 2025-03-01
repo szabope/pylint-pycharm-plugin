@@ -33,8 +33,8 @@
         <checkinHandlerFactory implementation="works.szabope.plugins.pylint.vcs.PylintCheckinHandlerFactory"/>
     </extensions>
     <projectListeners>
-        <listener class="works.szabope.plugins.pylint.messages.PylintResultListener"
-                  topic="works.szabope.plugins.pylint.messages.IScanResultListener"/>
+        <listener class="works.szabope.plugins.pylint.messages.PylintTreeListener"
+                  topic="works.szabope.plugins.common.messages.TreeListener"/>
     </projectListeners>
 
     <actions>

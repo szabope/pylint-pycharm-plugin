@@ -8,8 +8,8 @@ import com.intellij.ui.tree.TreeTestUtil
 import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.pylint.action.SeverityFiltersActionGroup
 import works.szabope.plugins.pylint.services.PylintSettings
+import works.szabope.plugins.pylint.services.PylintSeverityConfigService
 import works.szabope.plugins.pylint.testutil.scan
-import works.szabope.plugins.pylint.toolWindow.SeverityConfig
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
 
@@ -32,7 +32,8 @@ class SeverityFilterTest : AbstractToolWindowTestCase() {
     }
 
     fun `test all filters selected shows all items`() {
-        setSelectedFilters(*SeverityConfig.ALL.map { it.level }.toTypedArray())
+        val allSeverities = PylintSeverityConfigService.getInstance(project).getAll().map { it.level }.toSet()
+        setSelectedFilters(*allSeverities.toTypedArray())
         runBlocking {
             waitUntilAssertSucceeds { treeUtil.assertStructure("+Found 6 issue(s) in 1 file(s)\n") }.also {
                 treeUtil.expandAll()

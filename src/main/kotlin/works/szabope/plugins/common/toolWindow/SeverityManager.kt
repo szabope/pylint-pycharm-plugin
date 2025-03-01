@@ -1,7 +1,7 @@
-package works.szabope.plugins.pylint.toolWindow
+package works.szabope.plugins.common.toolWindow
 
-class SeverityManager {
-    private val displayedSeverityLevels = SeverityConfig.ALL.map { it.level }.toMutableSet()
+class SeverityManager(severities: Set<String>) {
+    private val displayedSeverityLevels = severities.toMutableSet()
     private val listeners = mutableListOf<() -> Unit>()
 
     fun isSeverityLevelDisplayed(severityLevel: String): Boolean {

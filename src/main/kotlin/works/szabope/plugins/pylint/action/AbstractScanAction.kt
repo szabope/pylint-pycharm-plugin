@@ -5,12 +5,12 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import works.szabope.plugins.pylint.services.AsyncScanService
 import works.szabope.plugins.pylint.services.PylintSettings
-import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
+import works.szabope.plugins.pylint.toolWindow.TreeManager
 
 abstract class AbstractScanAction : DumbAwareAction() {
     protected fun isReadyToScan(project: Project): Boolean {
         return PylintSettings.getInstance(project).isComplete() && !AsyncScanService.getInstance(project).scanInProgress
     }
 
-    fun getTreeModelManager(event: AnActionEvent) = event.getData(PylintToolWindowPanel.TREE_MODEL_MANAGER)
+    fun getTreeModelManager(event: AnActionEvent) = event.getData(TreeManager.TREE_MODEL_MANAGER)
 }
