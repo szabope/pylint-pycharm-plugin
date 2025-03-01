@@ -5,7 +5,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
  * This is a placeholder.
- * See init of [PylintToolWindowPanel.addToolbar][works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel.addToolbar]
+ * See init of [PylintToolWindowPanel.addToolbar][works.szabope.plugins.pylint.toolWindow.AbstractToolWindowPanel.addToolbar]
  */
 class ScrollToSourceDummyAction : AnAction() {
     override fun actionPerformed(e: AnActionEvent) {
