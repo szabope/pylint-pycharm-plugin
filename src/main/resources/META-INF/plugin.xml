@@ -50,7 +50,7 @@
                     icon="AllIcons.Actions.Execute"/>
             <separator/>
             <action id="works.szabope.plugins.pylint.action.ScrollToSourceAction"
-                    class="works.szabope.plugins.pylint.action.ScrollToSourceDummyAction"
+                    class="works.szabope.plugins.common.action.ScrollToSourceDummyAction"
                     icon="AllIcons.General.AutoscrollToSource"/>
             <separator/>
             <reference ref="ExpandAll"/>

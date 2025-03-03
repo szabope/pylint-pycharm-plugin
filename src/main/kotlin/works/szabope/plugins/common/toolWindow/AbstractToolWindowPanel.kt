@@ -1,4 +1,4 @@
-package works.szabope.plugins.pylint.toolWindow
+package works.szabope.plugins.common.toolWindow
 
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -16,9 +16,6 @@ import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.EditSourceOnDoubleClickHandler
 import com.intellij.util.EditSourceOnEnterKeyHandler
 import com.intellij.util.ui.JBUI
-import works.szabope.plugins.common.toolWindow.IssueNodeUserObject
-import works.szabope.plugins.common.toolWindow.TreeManager
-import works.szabope.plugins.pylint.action.ScrollToSourceDummyAction
 import java.awt.BorderLayout
 import javax.swing.Box
 import kotlin.io.path.Path
@@ -58,6 +55,7 @@ abstract class AbstractToolWindowPanel(private val project: Project, private val
     interface AutoScrollConfig {
         var isAutoScrollToSource: Boolean
         val tree: Tree
+        val placeholderActionId: String
     }
 
     private fun addAutoScrollToSource(config: AutoScrollConfig) {
@@ -70,7 +68,7 @@ abstract class AbstractToolWindowPanel(private val project: Project, private val
         }
         autoScrollToSourceHandler.install(config.tree)
         ActionManager.getInstance()
-            .replaceAction(ScrollToSourceDummyAction.ID, autoScrollToSourceHandler.createToggleAction())
+            .replaceAction(config.placeholderActionId, autoScrollToSourceHandler.createToggleAction())
     }
 
     private fun addToolbar(toolWindowId: String, mainActionGroupId: String) {
