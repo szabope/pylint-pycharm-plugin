@@ -15,7 +15,7 @@ import kotlinx.coroutines.withContext
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.dialog.IDialogManager
 import works.szabope.plugins.pylint.services.OldPylintSettings
-import works.szabope.plugins.pylint.services.PylintPackageUtil
+import works.szabope.plugins.pylint.services.PylintPackageManagementFacade
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 
@@ -25,7 +25,7 @@ class InstallPylintAction : DumbAwareAction() {
         val project = e.project ?: return
         runWithModalProgressBlocking(project, PylintBundle.message("action.InstallPylintAction.in_progress")) {
             withContext(Dispatchers.EDT) {
-                val errorDescription = PylintPackageUtil.install(project)
+                val errorDescription = PylintPackageManagementFacade.install(project)
                 if (errorDescription == null) {
                     @Suppress("DialogTitleCapitalization") ToolWindowManager.getInstance(project).notifyByBalloon(
                         PylintToolWindowPanel.ID,
@@ -46,7 +46,7 @@ class InstallPylintAction : DumbAwareAction() {
     }
 
     override fun update(event: AnActionEvent) {
-        event.presentation.isEnabled = event.project?.let { PylintPackageUtil.canInstall(it) } ?: false
+        event.presentation.isEnabled = event.project?.let { PylintPackageManagementFacade.canInstall(it) } ?: false
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {

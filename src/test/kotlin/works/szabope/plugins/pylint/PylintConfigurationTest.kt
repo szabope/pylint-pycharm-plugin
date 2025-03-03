@@ -13,7 +13,7 @@ import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.pylint.dialog.IDialogManager
 import works.szabope.plugins.pylint.dialog.PylintExecutionErrorDialog
 import works.szabope.plugins.pylint.services.OldPylintSettings
-import works.szabope.plugins.pylint.services.PylintPackageUtil
+import works.szabope.plugins.pylint.services.PylintPackageManagementFacade
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.services.cli.Cli
 import works.szabope.plugins.pylint.testutil.TestDialogManager
@@ -74,7 +74,7 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
     }
 
     fun testProjectSdkSelectedWhenSet() = withMockSdk(mockSdkPath) {
-        runBlocking { PylintPackageUtil.install(project) }
+        runBlocking { PylintPackageManagementFacade.install(project) }
         val settings = PylintSettings.getInstance(project)
         settings.reset()
         runBlocking { triggerReconfiguration() }
@@ -85,7 +85,7 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
     }
 
     fun testProjectSdkNotSelectedWhenWsl() = withMockSdk(mockSdkPath) { packageManager ->
-        runBlocking { PylintPackageUtil.install(project) }
+        runBlocking { PylintPackageManagementFacade.install(project) }
         // let's lie that it's WSL
         val mockSdk = packageManager.sdk
         val mockAdditionalData = mockk<PyTargetAwareAdditionalData>()

@@ -16,7 +16,7 @@ import com.intellij.ui.tree.TreeTestUtil
 import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.pylint.AbstractToolWindowTestCase
 import works.szabope.plugins.pylint.dialog.IDialogManager
-import works.szabope.plugins.pylint.services.PylintPackageUtil
+import works.szabope.plugins.pylint.services.PylintPackageManagementFacade
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.testutil.TestDialogManager
 import works.szabope.plugins.pylint.testutil.scan
@@ -45,9 +45,7 @@ class ScanSdkTest : AbstractToolWindowTestCase() {
 
     fun testManualScan() = withMockSdk("${Paths.get(testDataPath).absolutePathString()}/MockSdk") {
         myFixture.copyDirectoryToProject("/", "/")
-        runBlocking {
-            PylintPackageUtil.install(project)
-        }
+        runBlocking { PylintPackageManagementFacade.install(project) }
         setUpSettings()
         val workspaceModel = WorkspaceModel.getInstance(project)
         val excludedDir = workspaceModel.currentSnapshot.entities(ContentRootEntity::class.java).first().url.append(

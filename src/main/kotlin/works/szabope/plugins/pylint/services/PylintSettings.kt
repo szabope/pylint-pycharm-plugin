@@ -6,6 +6,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.Version
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.remote.RemoteSdkProperties
 import com.jetbrains.python.sdk.pythonSdk
@@ -211,25 +212,26 @@ class PylintSettings(internal val project: Project) :
         if (pylintVersion == null) {
             return SettingsValidationProblem(PylintBundle.message("pylint.settings.path_to_executable.unknown_version"))
         }
-        return validateVersion(pylintVersion)
+        return validateVersion(Version.parseVersion(pylintVersion)!!)
     }
 
     fun validateSdk(): SettingsValidationProblem? {
         if ((project.pythonSdk?.sdkAdditionalData as? RemoteSdkProperties)?.sdkId?.startsWith("WSL") == true) {
             return SettingsValidationProblem(PylintBundle.message("pylint.settings.wsl_not_supported"))
         }
-
-        val installedVersion = PylintPackageUtil.getInstalledVersion(project) ?: return SettingsValidationProblem(
-            PylintBundle.message("pylint.settings.pylint_not_installed")
-        )
+        val installedVersion =
+            PylintPackageManagementFacade.getInstalledVersion(project) ?: return SettingsValidationProblem(
+                PylintBundle.message("pylint.settings.pylint_not_installed")
+            )
         return validateVersion(installedVersion)
     }
 
-    private fun validateVersion(pylintVersion: String): SettingsValidationProblem? {
-        if (!PylintPackageUtil.isVersionSupported(pylintVersion)) {
+    private fun validateVersion(version: Version): SettingsValidationProblem? {
+        if (!PylintPackageManagementFacade.isVersionSupported(version)) {
             return SettingsValidationProblem(
                 PylintBundle.message(
-                    "pylint.settings.pylint_invalid_version", pylintVersion, PylintPackageUtil.MINIMUM_VERSION
+                    "pylint.settings.pylint_invalid_version",
+                    "${version.major}.${version.minor}.${version.bugfix}"
                 )
             )
         }

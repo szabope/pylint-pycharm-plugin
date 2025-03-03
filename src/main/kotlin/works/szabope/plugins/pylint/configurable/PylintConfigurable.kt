@@ -26,7 +26,7 @@ import org.jetbrains.annotations.ApiStatus
 import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.action.InstallPylintAction
-import works.szabope.plugins.pylint.services.PylintPackageUtil
+import works.szabope.plugins.pylint.services.PylintPackageManagementFacade
 import works.szabope.plugins.pylint.services.PylintSettings
 import javax.swing.JButton
 
@@ -82,7 +82,7 @@ class PylintConfigurable(private val project: Project) : BoundSearchableConfigur
                 buttonClicked.set(false)
             }
         }.enabledIf(object : ComponentPredicate() {
-            override fun invoke() = !buttonClicked.get() && PylintPackageUtil.canInstall(project)
+            override fun invoke() = !buttonClicked.get() && PylintPackageManagementFacade.canInstall(project)
             override fun addListener(listener: (Boolean) -> Unit) {
                 buttonClicked.afterChange(listener)
             }
@@ -138,7 +138,7 @@ class PylintConfigurable(private val project: Project) : BoundSearchableConfigur
                 sdkOption.component
                 installButton(sdkOption.selected)
             }.rowComment(
-                comment = if (!PylintPackageUtil.isLocalEnvironment(project)) {
+                comment = if (!PylintPackageManagementFacade.isLocalEnvironment(project)) {
                     PylintBundle.message("pylint.intention.install_pylint.not_supported.system_wide")
                 } else {
                     ""

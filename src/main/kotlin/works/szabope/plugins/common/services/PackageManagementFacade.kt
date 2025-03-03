@@ -1,26 +1,21 @@
 @file:Suppress("removal", "UnstableApiUsage")
 
-package works.szabope.plugins.pylint.services
+package works.szabope.plugins.common.services
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.Sdk
+import com.intellij.openapi.util.Version
 import com.intellij.webcore.packaging.PackageManagementService
 import com.jetbrains.python.packaging.PyExecutionException
-import com.jetbrains.python.packaging.PyPackageVersionComparator
+import com.jetbrains.python.packaging.PyPackage
+import com.jetbrains.python.packaging.PyRequirement
 import com.jetbrains.python.packaging.common.PythonSimplePackageSpecification
 import com.jetbrains.python.packaging.management.PythonPackageManager
-import com.jetbrains.python.packaging.requirement.PyRequirementRelation
 import com.jetbrains.python.packaging.ui.PyPackageManagementService
 import com.jetbrains.python.sdk.PythonSdkUtil
 import com.jetbrains.python.sdk.pythonSdk
 
-object PylintPackageUtil {
-
-    const val MINIMUM_VERSION = "3.0"
-
-    private val PACKAGE = PythonSimplePackageSpecification(
-        "pylint", MINIMUM_VERSION, null, PyRequirementRelation.COMPATIBLE
-    )
+open class PackageManagementFacade(private val requirement: PyRequirement) {
 
     fun canInstall(project: Project): Boolean {
         val sdk = getSdk(project) ?: return false
@@ -39,12 +34,23 @@ object PylintPackageUtil {
         Result.failure(e)
     }
 
-    fun getInstalledVersion(project: Project): String? {
-        return getPackageManager(project)?.installedPackages?.firstOrNull { it.name == PACKAGE.name }?.version
+    fun getInstalledVersion(project: Project): Version? {
+        return getPackageManager(project)?.installedPackages?.firstOrNull { it.name == requirement.name }?.version?.let {
+            Version.parseVersion(
+                it
+            )
+        }
     }
 
-    fun isVersionSupported(version: String): Boolean {
-        return PyPackageVersionComparator.STR_COMPARATOR.compare(version, MINIMUM_VERSION) >= 0
+    fun isVersionSupported(version: Version): Boolean {
+        return requirement.match(
+            mutableListOf(
+                PyPackage(
+                    "pylint",
+                    "${version.major}.${version.minor}.${version.bugfix}"
+                )
+            )
+        ) != null
     }
 
     private fun getPackageManager(project: Project): PythonPackageManager? {
@@ -63,9 +69,12 @@ object PylintPackageUtil {
         if (isInstalled(project)) return null
         val packageManager = getPackageManager(project)!!
         try {
-            packageManager.installPackage(PACKAGE, emptyList()).getOrThrow()
+            packageManager.installPackage(
+                PythonSimplePackageSpecification(requirement.name, null, null, null),
+                emptyList()
+            ).getOrThrow()
         } catch (ex: PyExecutionException) {
-            return PyPackageManagementService.toErrorDescription(listOf(ex), getSdk(project), PACKAGE.name)
+            return PyPackageManagementService.toErrorDescription(listOf(ex), getSdk(project), requirement.name)
         }
         return null
     }
