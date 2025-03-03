@@ -19,7 +19,6 @@ import com.intellij.util.ui.JBUI
 import works.szabope.plugins.common.toolWindow.IssueNodeUserObject
 import works.szabope.plugins.common.toolWindow.TreeManager
 import works.szabope.plugins.pylint.action.ScrollToSourceDummyAction
-import works.szabope.plugins.pylint.services.PylintSettings
 import java.awt.BorderLayout
 import javax.swing.Box
 import kotlin.io.path.Path
@@ -27,13 +26,13 @@ import kotlin.io.path.Path
 abstract class AbstractToolWindowPanel(private val project: Project, private val treeManager: TreeManager) :
     SimpleToolWindowPanel(false, true) {
 
-    fun init(toolWindowId: String, mainActionGroupId: String) {
+    fun init(toolWindowId: String, mainActionGroupId: String, autoScrollConfig: AutoScrollConfig) {
         treeManager.modelManager.addChangeListener {
             repaint()
             ActivityTracker.getInstance().inc()
         }
         border = JBUI.Borders.empty(1)
-        addAutoScrollToSource(AutoScrollConfig(project, treeManager.tree))
+        addAutoScrollToSource(autoScrollConfig)
         addToolbar(toolWindowId, mainActionGroupId)
         addPane(treeManager.tree)
     }
@@ -56,13 +55,9 @@ abstract class AbstractToolWindowPanel(private val project: Project, private val
         TreeUIHelper.getInstance().installSmartExpander(tree)
     }
 
-    protected class AutoScrollConfig(private val project: Project, val tree: Tree) {
-        var isAutoScrollToSource
-            get() = PylintSettings.getInstance(project).isAutoScrollToSource
-            set(value) {
-                PylintSettings.getInstance(project).isAutoScrollToSource = value
-            }
-
+    interface AutoScrollConfig {
+        var isAutoScrollToSource: Boolean
+        val tree: Tree
     }
 
     private fun addAutoScrollToSource(config: AutoScrollConfig) {
