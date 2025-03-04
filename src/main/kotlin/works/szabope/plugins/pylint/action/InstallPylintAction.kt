@@ -25,7 +25,7 @@ class InstallPylintAction : DumbAwareAction() {
         val project = e.project ?: return
         runWithModalProgressBlocking(project, PylintBundle.message("action.InstallPylintAction.in_progress")) {
             withContext(Dispatchers.EDT) {
-                val errorDescription = PylintPackageManagementFacade.install(project)
+                val errorDescription = PylintPackageManagementFacade(project).install()
                 if (errorDescription == null) {
                     @Suppress("DialogTitleCapitalization") ToolWindowManager.getInstance(project).notifyByBalloon(
                         PylintToolWindowPanel.ID,
@@ -46,7 +46,7 @@ class InstallPylintAction : DumbAwareAction() {
     }
 
     override fun update(event: AnActionEvent) {
-        event.presentation.isEnabled = event.project?.let { PylintPackageManagementFacade.canInstall(it) } ?: false
+        event.presentation.isEnabled = event.project?.let { PylintPackageManagementFacade(it).canInstall() } ?: false
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {

@@ -74,7 +74,7 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
     }
 
     fun testProjectSdkSelectedWhenSet() = withMockSdk(mockSdkPath) {
-        runBlocking { PylintPackageManagementFacade.install(project) }
+        runBlocking { PylintPackageManagementFacade(project).install() }
         val settings = PylintSettings.getInstance(project)
         settings.reset()
         runBlocking { triggerReconfiguration() }
@@ -85,7 +85,7 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
     }
 
     fun testProjectSdkNotSelectedWhenWsl() = withMockSdk(mockSdkPath) { packageManager ->
-        runBlocking { PylintPackageManagementFacade.install(project) }
+        runBlocking { PylintPackageManagementFacade(project).install() }
         // let's lie that it's WSL
         val mockSdk = packageManager.sdk
         val mockAdditionalData = mockk<PyTargetAwareAdditionalData>()

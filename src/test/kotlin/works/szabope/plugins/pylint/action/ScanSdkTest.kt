@@ -45,7 +45,7 @@ class ScanSdkTest : AbstractToolWindowTestCase() {
 
     fun testManualScan() = withMockSdk("${Paths.get(testDataPath).absolutePathString()}/MockSdk") {
         myFixture.copyDirectoryToProject("/", "/")
-        runBlocking { PylintPackageManagementFacade.install(project) }
+        runBlocking { PylintPackageManagementFacade(project).install() }
         setUpSettings()
         val workspaceModel = WorkspaceModel.getInstance(project)
         val excludedDir = workspaceModel.currentSnapshot.entities(ContentRootEntity::class.java).first().url.append(
@@ -67,8 +67,7 @@ class ScanSdkTest : AbstractToolWindowTestCase() {
         dialogManager.onAnyDialog {
             fail(it.toString())
         }
-        val target =
-            workspaceModel.currentSnapshot.entities(ContentRootEntity::class.java).first().url.virtualFile!!
+        val target = workspaceModel.currentSnapshot.entities(ContentRootEntity::class.java).first().url.virtualFile!!
         scan(getContext { it.add(CommonDataKeys.VIRTUAL_FILE_ARRAY, arrayOf(target)) })
         runBlocking {
             waitUntilAssertSucceeds {

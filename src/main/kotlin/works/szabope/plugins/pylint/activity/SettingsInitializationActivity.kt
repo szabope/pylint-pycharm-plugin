@@ -33,14 +33,14 @@ internal class SettingsInitializationActivity : ProjectActivity {
 
     @TestOnly
     suspend fun configurePlugin(project: Project) {
-        PylintPackageManagementFacade.reloadPackages(project)
+        PylintPackageManagementFacade(project).reloadPackages()
         val settings = PylintSettings.getInstance(project)
         if (!settings.isComplete()) {
             settings.initSettings(OldPylintSettings.getInstance(project))
         }
         if (!settings.isComplete()) {
             val notificationService = IncompleteConfigurationNotificationService.getInstance(project)
-            val canInstall = PylintPackageManagementFacade.canInstall(project)
+            val canInstall = PylintPackageManagementFacade(project).canInstall()
             notificationService.notify(canInstall)
         }
         configurationCalled.send(Unit)

@@ -2,7 +2,6 @@
 
 package works.szabope.plugins.common.services
 
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.util.Version
 import com.intellij.webcore.packaging.PackageManagementService
@@ -15,66 +14,64 @@ import com.jetbrains.python.packaging.ui.PyPackageManagementService
 import com.jetbrains.python.sdk.PythonSdkUtil
 import com.jetbrains.python.sdk.pythonSdk
 
-open class PackageManagementFacade(private val requirement: PyRequirement) {
+abstract class PackageManagementFacade(private val requirement: PyRequirement) : IPackageManagementFacade {
 
-    fun canInstall(project: Project): Boolean {
-        val sdk = getSdk(project) ?: return false
-        return !PythonSdkUtil.isRemote(sdk) && !isInstalled(project)
+    override fun canInstall(): Boolean {
+        val sdk = getSdk() ?: return false
+        return !PythonSdkUtil.isRemote(sdk) && !isInstalled()
     }
 
-    fun isLocalEnvironment(project: Project): Boolean {
-        val sdk = getSdk(project) ?: return false
+    override fun isLocalEnvironment(): Boolean {
+        val sdk = getSdk() ?: return false
         return PythonSdkUtil.isVirtualEnv(sdk) || PythonSdkUtil.isCondaVirtualEnv(sdk)
     }
 
-    suspend fun reloadPackages(project: Project) = try {
-        getPackageManager(project)?.reloadPackages()
+    override suspend fun reloadPackages() = try {
+        getPackageManager()?.reloadPackages()
     } catch (e: Exception) {
         // e.g. org.apache.hc.client5.http.HttpHostConnectException thrown when docker (in given SDK) is unavailable
         Result.failure(e)
     }
 
-    fun getInstalledVersion(project: Project): Version? {
-        return getPackageManager(project)?.installedPackages?.firstOrNull { it.name == requirement.name }?.version?.let {
+    override fun getInstalledVersion(): Version? {
+        return getPackageManager()?.installedPackages?.firstOrNull { it.name == requirement.name }?.version?.let {
             Version.parseVersion(
                 it
             )
         }
     }
 
-    fun isVersionSupported(version: Version): Boolean {
+    override fun isVersionSupported(version: Version): Boolean {
         return requirement.match(
             mutableListOf(
                 PyPackage(
-                    "pylint",
-                    "${version.major}.${version.minor}.${version.bugfix}"
+                    "pylint", "${version.major}.${version.minor}.${version.bugfix}"
                 )
             )
         ) != null
     }
 
-    private fun getPackageManager(project: Project): PythonPackageManager? {
-        return getSdk(project)?.let { PythonPackageManager.forSdk(project, it) }
+    override fun getPackageManager(): PythonPackageManager? {
+        return getSdk()?.let { PythonPackageManager.forSdk(project, it) }
     }
 
-    private fun getSdk(project: Project): Sdk? {
+    override fun getSdk(): Sdk? {
         return project.pythonSdk
     }
 
-    private fun isInstalled(project: Project): Boolean {
-        return getInstalledVersion(project) != null
+    override fun isInstalled(): Boolean {
+        return getInstalledVersion() != null
     }
 
-    suspend fun install(project: Project): PackageManagementService.ErrorDescription? {
-        if (isInstalled(project)) return null
-        val packageManager = getPackageManager(project)!!
+    override suspend fun install(): PackageManagementService.ErrorDescription? {
+        if (isInstalled()) return null
+        val packageManager = getPackageManager()!!
         try {
             packageManager.installPackage(
-                PythonSimplePackageSpecification(requirement.name, null, null, null),
-                emptyList()
+                PythonSimplePackageSpecification(requirement.name, null, null, null), emptyList()
             ).getOrThrow()
         } catch (ex: PyExecutionException) {
-            return PyPackageManagementService.toErrorDescription(listOf(ex), getSdk(project), requirement.name)
+            return PyPackageManagementService.toErrorDescription(listOf(ex), getSdk(), requirement.name)
         }
         return null
     }

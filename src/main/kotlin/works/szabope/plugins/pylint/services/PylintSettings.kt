@@ -13,6 +13,8 @@ import com.jetbrains.python.sdk.pythonSdk
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.TestOnly
+import works.szabope.plugins.common.services.Settings
+import works.szabope.plugins.common.services.SettingsValidationProblem
 import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.dialog.IDialogManager
@@ -24,8 +26,7 @@ import javax.swing.event.HyperlinkEvent
 
 @Service(Service.Level.PROJECT)
 @State(name = "PylintSettings", storages = [Storage("PylintPlugin.xml")], category = SettingsCategory.PLUGINS)
-class PylintSettings(internal val project: Project) :
-    SimplePersistentStateComponent<PylintSettings.PylintState>(PylintState()) {
+class PylintSettings(internal val project: Project) : Settings<PylintSettings.PylintState>(PylintState()) {
 
     @ApiStatus.Internal
     class PylintState : BaseState() {
@@ -40,7 +41,7 @@ class PylintSettings(internal val project: Project) :
         var scanBeforeCheckIn by property(false)
     }
 
-    var useProjectSdk
+    override var useProjectSdk
         get() = state.useProjectSdk
         set(value) {
             if (!value || validateSdk() == null) {
@@ -48,7 +49,7 @@ class PylintSettings(internal val project: Project) :
             }
         }
 
-    var executablePath
+    override var executablePath
         get() = state.executablePath
         set(value) {
             val validityProblem = validateExecutable(value)
@@ -59,7 +60,7 @@ class PylintSettings(internal val project: Project) :
             }
         }
 
-    var configFilePath
+    override var configFilePath
         get() = state.configFilePath
         set(value) {
             val validityProblem = validateConfigFile(value)
@@ -70,7 +71,7 @@ class PylintSettings(internal val project: Project) :
             }
         }
 
-    var arguments
+    override var arguments
         get() = state.arguments
         set(value) {
             state.arguments = value
@@ -82,13 +83,13 @@ class PylintSettings(internal val project: Project) :
             state.autoScrollToSource = value
         }
 
-    var isExcludeNonProjectFiles
+    override var isExcludeNonProjectFiles
         get() = state.excludeNonProjectFiles
         set(value) {
             state.excludeNonProjectFiles = value
         }
 
-    var projectDirectory
+    override var projectDirectory
         get() = state.projectDirectory
         set(value) {
             val validityProblem = validateProjectDirectory(value)
@@ -120,11 +121,6 @@ class PylintSettings(internal val project: Project) :
         set(value) {
             state.scanBeforeCheckIn = value
         }
-
-    @JvmInline
-    value class SettingsValidationProblem(val message: String) {
-        override fun toString() = message
-    }
 
     // TODO: projectDirectory != null is failing for tests: cannot set /src because it does not exist
     fun isComplete(): Boolean {
@@ -180,7 +176,7 @@ class PylintSettings(internal val project: Project) :
         }
     }
 
-    fun validateExecutable(path: String?): SettingsValidationProblem? {
+    override fun validateExecutable(path: String?): SettingsValidationProblem? {
         if (path == null) return null
         require(path.isNotBlank())
         val file = File(path)
@@ -215,30 +211,29 @@ class PylintSettings(internal val project: Project) :
         return validateVersion(Version.parseVersion(pylintVersion)!!)
     }
 
-    fun validateSdk(): SettingsValidationProblem? {
+    override fun validateSdk(): SettingsValidationProblem? {
         if ((project.pythonSdk?.sdkAdditionalData as? RemoteSdkProperties)?.sdkId?.startsWith("WSL") == true) {
             return SettingsValidationProblem(PylintBundle.message("pylint.settings.wsl_not_supported"))
         }
         val installedVersion =
-            PylintPackageManagementFacade.getInstalledVersion(project) ?: return SettingsValidationProblem(
+            PylintPackageManagementFacade(project).getInstalledVersion() ?: return SettingsValidationProblem(
                 PylintBundle.message("pylint.settings.pylint_not_installed")
             )
         return validateVersion(installedVersion)
     }
 
     private fun validateVersion(version: Version): SettingsValidationProblem? {
-        if (!PylintPackageManagementFacade.isVersionSupported(version)) {
+        if (!PylintPackageManagementFacade(project).isVersionSupported(version)) {
             return SettingsValidationProblem(
                 PylintBundle.message(
-                    "pylint.settings.pylint_invalid_version",
-                    "${version.major}.${version.minor}.${version.bugfix}"
+                    "pylint.settings.pylint_invalid_version", "${version.major}.${version.minor}.${version.bugfix}"
                 )
             )
         }
         return null
     }
 
-    fun validateConfigFile(path: String?): SettingsValidationProblem? {
+    override fun validateConfigFile(path: String?): SettingsValidationProblem? {
         if (path != null) {
             require(path.isNotBlank())
             val file = File(path)
@@ -252,7 +247,7 @@ class PylintSettings(internal val project: Project) :
         return null
     }
 
-    fun validateProjectDirectory(path: String?): SettingsValidationProblem? {
+    override fun validateProjectDirectory(path: String?): SettingsValidationProblem? {
         if (path != null) {
             require(path.isNotBlank())
             val file = File(path)
