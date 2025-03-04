@@ -47,7 +47,7 @@ abstract class GeneralConfigurable<T : BaseState>(
     private val project: Project, private val config: ConfigurableConfiguration
 ) : BoundSearchableConfigurable(config.displayName, config.helpTopic, config.id), Configurable.NoScroll {
 
-    protected abstract val settings: Settings<T>
+    protected abstract val settings: Settings
     protected abstract val packageManagementService: IPackageManagementFacade
 
     override fun createPanel(): DialogPanel {

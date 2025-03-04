@@ -26,7 +26,8 @@ import javax.swing.event.HyperlinkEvent
 
 @Service(Service.Level.PROJECT)
 @State(name = "PylintSettings", storages = [Storage("PylintPlugin.xml")], category = SettingsCategory.PLUGINS)
-class PylintSettings(internal val project: Project) : Settings<PylintSettings.PylintState>(PylintState()) {
+class PylintSettings(internal val project: Project) :
+    SimplePersistentStateComponent<PylintSettings.PylintState>(PylintState()), Settings {
 
     @ApiStatus.Internal
     class PylintState : BaseState() {
