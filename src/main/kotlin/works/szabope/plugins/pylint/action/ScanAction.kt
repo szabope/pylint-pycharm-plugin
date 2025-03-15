@@ -4,6 +4,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.vfs.VirtualFile
 import com.jetbrains.python.PythonFileType
 import com.jetbrains.python.pyi.PyiFileType
@@ -12,13 +13,13 @@ import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.toRunConfiguration
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 
-open class ScanAction : AbstractScanAction() {
+open class ScanAction : DumbAwareAction() {
 
     override fun actionPerformed(event: AnActionEvent) {
         val targets = listTargets(event) ?: return
         val project = event.project ?: return
         val runConfiguration = PylintSettings.getInstance(project).toRunConfiguration()
-        getTreeModelManager(event)?.reinitialize(targets)
+        ScanActionUtil.getTreeModelManager(event)?.reinitialize(targets)
         FileDocumentManager.getInstance().saveAllDocuments()
         AsyncScanService.getInstance(project).scan(targets, runConfiguration)
         PylintToolWindowPanel.getInstance(project).isVisible = true
@@ -26,7 +27,7 @@ open class ScanAction : AbstractScanAction() {
 
     override fun update(event: AnActionEvent) {
         event.presentation.isEnabled =
-            isEligibleForScanning(listTargets(event)) && event.project?.let { isReadyToScan(it) } == true
+            isEligibleForScanning(listTargets(event)) && event.project?.let { ScanActionUtil.isReadyToScan(it) } == true
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {

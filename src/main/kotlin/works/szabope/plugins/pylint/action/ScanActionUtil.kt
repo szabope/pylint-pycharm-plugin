@@ -7,8 +7,8 @@ import works.szabope.plugins.pylint.services.AsyncScanService
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.common.toolWindow.TreeManager
 
-abstract class AbstractScanAction : DumbAwareAction() {
-    protected fun isReadyToScan(project: Project): Boolean {
+object ScanActionUtil {
+    fun isReadyToScan(project: Project): Boolean {
         return PylintSettings.getInstance(project).isComplete() && !AsyncScanService.getInstance(project).scanInProgress
     }
 

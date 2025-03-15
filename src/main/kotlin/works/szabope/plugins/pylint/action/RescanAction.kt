@@ -3,14 +3,15 @@ package works.szabope.plugins.pylint.action
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.project.DumbAwareAction
 import works.szabope.plugins.pylint.services.AsyncScanService
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.toRunConfiguration
 
-class RescanAction : AbstractScanAction() {
+class RescanAction : DumbAwareAction() {
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project ?: return
-        val treeManager = getTreeModelManager(event) ?: return
+        val treeManager = ScanActionUtil.getTreeModelManager(event) ?: return
         val latestScanTargets = treeManager.getRootScanPaths()
         treeManager.reinitialize(latestScanTargets)
         val runConfiguration = project.let { PylintSettings.getInstance(it).toRunConfiguration() }
@@ -20,8 +21,9 @@ class RescanAction : AbstractScanAction() {
 
     override fun update(event: AnActionEvent) {
         val project = event.project ?: return
-        val treeManager = getTreeModelManager(event) ?: return
-        event.presentation.isEnabled = treeManager.getRootScanPaths().isNotEmpty() && isReadyToScan(project)
+        val treeManager = ScanActionUtil.getTreeModelManager(event) ?: return
+        event.presentation.isEnabled =
+            treeManager.getRootScanPaths().isNotEmpty() && ScanActionUtil.isReadyToScan(project)
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {
