@@ -1,19 +1,37 @@
 package works.szabope.plugins.common.services
 
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
+import works.szabope.plugins.pylint.services.ExecutorConfiguration
+
 @JvmInline
 value class SettingsValidationProblem(val message: String) {
     override fun toString() = message
 }
 
-interface Settings {
-    var executablePath: String?
-    var useProjectSdk: Boolean
-    var configFilePath: String?
-    var arguments: String?
-    var projectDirectory: String?
-    var isExcludeNonProjectFiles: Boolean
+interface Settings : SettingsData {
+    var isAutoScrollToSource: Boolean
+    override var scanBeforeCheckIn: Boolean
+    override var excludeNonProjectFiles: Boolean
+    override var projectDirectory: String?
+    override var useProjectSdk: Boolean
+    override var arguments: String?
+    override var configFilePath: String?
+    override var executablePath: String?
+
     fun validateExecutable(path: String?): SettingsValidationProblem?
     fun validateSdk(): SettingsValidationProblem?
     fun validateConfigFile(path: String?): SettingsValidationProblem?
     fun validateProjectDirectory(path: String?): SettingsValidationProblem?
+    suspend fun initSettings(oldSettings: BasicSettingsData?)
+    fun ensureValid(): SettingsValidationProblem?
+    fun isComplete(): Boolean
+    fun getExecutorConfiguration(): ExecutorConfiguration
+    fun reset()
+    suspend fun autodetectExecutable(): String?
+
+    companion object {
+        @JvmStatic
+        fun getInstance(project: Project): Settings = project.service()
+    }
 }

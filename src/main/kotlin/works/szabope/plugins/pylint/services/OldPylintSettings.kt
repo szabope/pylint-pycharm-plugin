@@ -4,6 +4,7 @@ import com.intellij.openapi.components.*
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.TestOnly
+import works.szabope.plugins.common.services.BasicSettingsData
 
 @Service(Service.Level.PROJECT)
 @State(
@@ -14,7 +15,7 @@ import org.jetbrains.annotations.TestOnly
 )
 class OldPylintSettings : SimplePersistentStateComponent<OldPylintSettings.OldPylintSettingsState>(
     OldPylintSettingsState()
-) {
+), BasicSettingsData {
 
     @ApiStatus.Internal
     class OldPylintSettingsState : BaseState() {
@@ -24,14 +25,10 @@ class OldPylintSettings : SimplePersistentStateComponent<OldPylintSettings.OldPy
         var scanBeforeCheckin by property(false)
     }
 
-    val executablePath
-        get() = state.customPylintPath
-    val configFilePath
-        get() = state.pylintrcPath
-    val arguments
-        get() = state.pylintArguments
-    val isScanBeforeCheckIn
-        get() = state.scanBeforeCheckin
+    override val executablePath get() = state.customPylintPath
+    override val configFilePath get() = state.pylintrcPath
+    override val arguments get() = state.pylintArguments
+    override val scanBeforeCheckIn get() = state.scanBeforeCheckin
 
     @TestOnly
     fun reset() {

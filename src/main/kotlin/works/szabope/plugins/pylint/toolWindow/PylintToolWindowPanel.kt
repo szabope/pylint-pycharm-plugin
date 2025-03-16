@@ -2,9 +2,9 @@ package works.szabope.plugins.pylint.toolWindow
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowManager
+import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.common.toolWindow.AbstractToolWindowPanel
 import works.szabope.plugins.common.toolWindow.TreeManager
-import works.szabope.plugins.pylint.services.PylintSettings
 
 class PylintToolWindowPanel(project: Project, treeManager: TreeManager) :
     AbstractToolWindowPanel(project, treeManager) {
@@ -12,9 +12,9 @@ class PylintToolWindowPanel(project: Project, treeManager: TreeManager) :
     init {
         super.init(ID, MAIN_ACTION_GROUP, object : AutoScrollConfig {
             override var isAutoScrollToSource
-                get() = PylintSettings.getInstance(project).isAutoScrollToSource
+                get() = Settings.getInstance(project).isAutoScrollToSource
                 set(value) {
-                    PylintSettings.getInstance(project).isAutoScrollToSource = value
+                    Settings.getInstance(project).isAutoScrollToSource = value
                 }
             override val tree
                 get() = treeManager.tree

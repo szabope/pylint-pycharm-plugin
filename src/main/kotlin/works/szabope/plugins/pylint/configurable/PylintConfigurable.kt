@@ -5,6 +5,7 @@ import com.intellij.openapi.util.SystemInfo
 import works.szabope.plugins.common.configurable.ConfigurableConfiguration
 import works.szabope.plugins.common.configurable.GeneralConfigurable
 import works.szabope.plugins.common.services.IPackageManagementFacade
+import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.action.InstallPylintAction
@@ -35,8 +36,8 @@ class PylintConfigurable(private val project: Project) : GeneralConfigurable<Pyl
     )
 ) {
 
-    override val settings: PylintSettings
-        get() = PylintSettings.getInstance(project)
+    override val settings: Settings
+        get() = Settings.getInstance(project)
 
     override val packageManagementService: IPackageManagementFacade
         get() = PylintPackageManagementFacade(project)

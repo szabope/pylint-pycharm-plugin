@@ -16,9 +16,10 @@ import com.intellij.util.text.nullize
 import com.jetbrains.python.sdk.pythonSdk
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.suspendCancellableCoroutine
+import works.szabope.plugins.common.services.tool.ToolOutputHandler
 import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.services.Exclusions
-import works.szabope.plugins.common.services.tool.ToolOutputHandler
+import works.szabope.plugins.pylint.services.ExecutorConfiguration
 import works.szabope.plugins.pylint.services.parser.PylintJson2OutputParser
 import works.szabope.plugins.pylint.services.parser.PylintMessage
 import works.szabope.plugins.pylint.services.parser.PylintResult
@@ -31,7 +32,9 @@ class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
     private val configurationFactory = PylintConfigurationType.INSTANCE.getFactory()
 
     override suspend fun execute(
-        configuration: ExecutorConfiguration, targets: Collection<VirtualFile>, resultHandler: ToolOutputHandler<PylintMessage, PylintResult>
+        configuration: ExecutorConfiguration,
+        targets: Collection<VirtualFile>,
+        resultHandler: ToolOutputHandler<PylintMessage, PylintResult>
     ) {
         require(configuration.useProjectSdk) { "Configuration mismatch" }
         val environment = createEnvironment(configuration, targets)
@@ -72,7 +75,7 @@ class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
             configFilePath.nullize(true)?.apply { sb.append(" --rcfile").append(" \"$this\"") }
             arguments.nullize(true)?.apply { sb.append(" ").append(arguments) }
             if (excludeNonProjectFiles) {
-                Exclusions(project).findAll(targets).union(customExclusions).joinToString(",").nullize()
+                Exclusions(project).findAll(targets).joinToString(",").nullize()
                     ?.apply { sb.append(" --ignore-paths ").append("\"$this\"") }
             }
             sb.append(" ").append(PylintArgs.PYLINT_MANDATORY_COMMAND_ARGS).append(" ")

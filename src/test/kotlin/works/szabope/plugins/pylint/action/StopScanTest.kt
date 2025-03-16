@@ -4,9 +4,9 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.testFramework.TestDataPath
 import com.intellij.testFramework.common.waitUntil
 import kotlinx.coroutines.runBlocking
+import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.AbstractToolWindowTestCase
 import works.szabope.plugins.pylint.services.AsyncScanService
-import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.testutil.scan
 import works.szabope.plugins.pylint.testutil.stopScan
 import java.nio.file.Paths
@@ -19,7 +19,7 @@ class StopScanTest : AbstractToolWindowTestCase() {
 
     override fun setUp() {
         super.setUp()
-        with(PylintSettings.getInstance(project)) {
+        with(Settings.getInstance(project)) {
             reset()
             executablePath = Paths.get(testDataPath).resolve("pylint").absolutePathString()
             projectDirectory = Paths.get(testDataPath).absolutePathString()

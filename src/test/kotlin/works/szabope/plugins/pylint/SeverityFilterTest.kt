@@ -6,8 +6,8 @@ import com.intellij.testFramework.TestDataPath
 import com.intellij.testFramework.common.waitUntilAssertSucceeds
 import com.intellij.ui.tree.TreeTestUtil
 import kotlinx.coroutines.runBlocking
+import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.action.SeverityFiltersActionGroup
-import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.services.PylintSeverityConfigService
 import works.szabope.plugins.pylint.testutil.scan
 import java.nio.file.Paths
@@ -22,7 +22,7 @@ class SeverityFilterTest : AbstractToolWindowTestCase() {
 
     override fun setUp() {
         super.setUp()
-        with(PylintSettings.getInstance(project)) {
+        with(Settings.getInstance(project)) {
             reset()
             executablePath = Paths.get(testDataPath).resolve("pylint").absolutePathString()
             projectDirectory = Paths.get(testDataPath).absolutePathString()

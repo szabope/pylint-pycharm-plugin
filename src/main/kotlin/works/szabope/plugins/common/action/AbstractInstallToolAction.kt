@@ -14,9 +14,9 @@ import com.jetbrains.python.packaging.ui.PyPackageManagementService.PyPackageIns
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import works.szabope.plugins.common.services.PackageManagementFacade
+import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.dialog.IDialogManager
 import works.szabope.plugins.pylint.services.OldPylintSettings
-import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 
 class InstallationToolActionConfig(
@@ -37,7 +37,7 @@ abstract class AbstractInstallToolAction(private val config: InstallationToolAct
                     ToolWindowManager.getInstance(project).notifyByBalloon(
                         PylintToolWindowPanel.ID, MessageType.INFO, config.messageInstalled
                     )
-                    PylintSettings.getInstance(project).initSettings(OldPylintSettings.getInstance(project))
+                    Settings.getInstance(project).initSettings(OldPylintSettings.getInstance(project))
                 } else {
                     val title = config.messageInstallationFailed
                     if (errorDescription is PyPackageInstallationErrorDescription) {

@@ -15,7 +15,8 @@ import works.szabope.plugins.pylint.services.PylintSeverityConfigService
 internal open class PylintToolWindowFactory : ToolWindowFactory, DumbAware {
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-        val panel = createPanel(project)
+        val severities = PylintSeverityConfigService.getInstance(project).getAll().map { it.level }.toSet()
+        val panel = PylintToolWindowPanel(project, createTreeManager(severities))
         val content =
             ContentFactory.getInstance().createContent(panel, PylintBundle.message("pylint.toolwindow.name"), false)
         toolWindow.contentManager.addContent(content)
@@ -23,8 +24,5 @@ internal open class PylintToolWindowFactory : ToolWindowFactory, DumbAware {
     }
 
     @VisibleForTesting
-    protected open fun createPanel(project: Project): PylintToolWindowPanel {
-        val severities = PylintSeverityConfigService.getInstance(project).getAll().map { it.level }.toSet()
-        return PylintToolWindowPanel(project, TreeManager(severities = severities))
-    }
+    protected open fun createTreeManager(severities: Set<String>) = TreeManager(severities = severities)
 }

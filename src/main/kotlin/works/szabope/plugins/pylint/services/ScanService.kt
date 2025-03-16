@@ -7,7 +7,6 @@ import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import works.szabope.plugins.pylint.PylintBundle
-import works.szabope.plugins.pylint.run.ExecutorConfiguration
 import works.szabope.plugins.pylint.run.PylintCliExecutor
 import works.szabope.plugins.pylint.run.PylintSdkExecutor
 import works.szabope.plugins.common.services.tool.CollectingToolOutputHandler

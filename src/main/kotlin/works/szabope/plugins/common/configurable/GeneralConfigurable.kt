@@ -199,8 +199,8 @@ abstract class GeneralConfigurable<T : BaseState>(
 
     private fun Panel.excludeNonProjectFilesCheckbox() = row {
         checkBox(CommonBundle.message("settings.exclude_non_project_files.label")).bindSelected(
-            getter = { settings.isExcludeNonProjectFiles },
-            setter = { settings.isExcludeNonProjectFiles = it })
+            getter = { settings.excludeNonProjectFiles },
+            setter = { settings.excludeNonProjectFiles = it })
     }.layout(RowLayout.PARENT_GRID)
 
     companion object {

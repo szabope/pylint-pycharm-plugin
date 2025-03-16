@@ -10,11 +10,10 @@ import com.intellij.ui.dsl.builder.panel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import works.szabope.plugins.common.messages.TreeListener
+import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.messages.PylintMessageConverter
-import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.services.ScanService
-import works.szabope.plugins.pylint.toRunConfiguration
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 import javax.swing.JCheckBox
 import javax.swing.JComponent
@@ -22,7 +21,7 @@ import javax.swing.JComponent
 @Suppress("UnstableApiUsage")
 class PylintCheckinHandler(private val panel: CheckinProjectPanel) : CheckinHandler(), CommitCheck {
 
-    private val settings = PylintSettings.getInstance(panel.project)
+    private val settings = Settings.getInstance(panel.project)
     private val service = ScanService.getInstance(panel.project)
 
     override fun getBeforeCheckinConfigurationPanel(): RefreshableOnComponent {
@@ -31,11 +30,11 @@ class PylintCheckinHandler(private val panel: CheckinProjectPanel) : CheckinHand
             val checkbox = JCheckBox(PylintBundle.message("pylint.checkin-handler.checkbox"))
 
             override fun saveState() {
-                settings.isScanBeforeCheckIn = checkbox.isSelected
+                settings.scanBeforeCheckIn = checkbox.isSelected
             }
 
             override fun restoreState() {
-                checkbox.isSelected = settings.isScanBeforeCheckIn
+                checkbox.isSelected = settings.scanBeforeCheckIn
             }
 
             override fun getComponent(): JComponent {
@@ -50,13 +49,13 @@ class PylintCheckinHandler(private val panel: CheckinProjectPanel) : CheckinHand
 
     override fun getExecutionOrder() = CommitCheck.ExecutionOrder.EARLY
 
-    override fun isEnabled() = PylintSettings.getInstance(panel.project).isScanBeforeCheckIn
+    override fun isEnabled() = Settings.getInstance(panel.project).scanBeforeCheckIn
 
     override suspend fun runCheck(commitInfo: CommitInfo): CommitProblem? {
         val changes = commitInfo.committedChanges
         if (changes.isEmpty()) return null
         val files = changes.mapNotNull { it.afterRevision?.file?.virtualFile }
-        val runConfiguration = PylintSettings.getInstance(panel.project).toRunConfiguration()
+        val runConfiguration = Settings.getInstance(panel.project).getExecutorConfiguration()
         val scanResults = withProgressText(PylintBundle.message("pylint.checkin-handler.in-progress")) {
             withContext(Dispatchers.Default) {
                 service.scan(files, runConfiguration)

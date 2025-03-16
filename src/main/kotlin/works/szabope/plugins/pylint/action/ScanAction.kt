@@ -8,9 +8,8 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.vfs.VirtualFile
 import com.jetbrains.python.PythonFileType
 import com.jetbrains.python.pyi.PyiFileType
+import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.services.AsyncScanService
-import works.szabope.plugins.pylint.services.PylintSettings
-import works.szabope.plugins.pylint.toRunConfiguration
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 
 open class ScanAction : DumbAwareAction() {
@@ -18,7 +17,7 @@ open class ScanAction : DumbAwareAction() {
     override fun actionPerformed(event: AnActionEvent) {
         val targets = listTargets(event) ?: return
         val project = event.project ?: return
-        val runConfiguration = PylintSettings.getInstance(project).toRunConfiguration()
+        val runConfiguration = Settings.getInstance(project).getExecutorConfiguration()
         ScanActionUtil.getTreeModelManager(event)?.reinitialize(targets)
         FileDocumentManager.getInstance().saveAllDocuments()
         AsyncScanService.getInstance(project).scan(targets, runConfiguration)

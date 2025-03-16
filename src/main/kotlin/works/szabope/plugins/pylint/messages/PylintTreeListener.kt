@@ -10,20 +10,20 @@ import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 import works.szabope.plugins.common.toolWindow.TreeManager
 
 @Suppress("UnstableApiUsage")
-class PylintTreeListener(project: Project) : TreeListener {
-
-    private var uiContext: DataContext =
-        PylintToolWindowPanel.getInstance(project).let { IdeUiService.getInstance().createUiDataContext(it) }
+class PylintTreeListener(private val project: Project) : TreeListener {
 
     override fun reinitialize(targets: Collection<VirtualFile>) {
-        requireNotNull(uiContext.getData(TreeManager.TREE_MODEL_MANAGER)) {
+        requireNotNull(getUiContext().getData(TreeManager.TREE_MODEL_MANAGER)) {
             "todo" // TODO
         }.reinitialize(targets)
     }
 
     override fun add(item: TreeModelDataItem) {
-        requireNotNull(uiContext.getData(TreeManager.TREE_MODEL_MANAGER)) {
+        requireNotNull(getUiContext().getData(TreeManager.TREE_MODEL_MANAGER)) {
             "todo" // TODO
         }.add(item)
     }
+
+    private fun getUiContext(): DataContext =
+        PylintToolWindowPanel.getInstance(project).let { IdeUiService.getInstance().createUiDataContext(it) }
 }

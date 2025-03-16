@@ -6,6 +6,7 @@ import com.intellij.testFramework.common.waitUntil
 import com.intellij.testFramework.common.waitUntilAssertSucceeds
 import com.intellij.ui.tree.TreeTestUtil
 import kotlinx.coroutines.runBlocking
+import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.AbstractToolWindowTestCase
 import works.szabope.plugins.pylint.services.AsyncScanService
 import works.szabope.plugins.pylint.services.PylintSettings
@@ -23,7 +24,7 @@ class RescanTest : AbstractToolWindowTestCase() {
 
     override fun setUp() {
         super.setUp()
-        with(PylintSettings.getInstance(project)) {
+        with(Settings.getInstance(project)) {
             reset()
             executablePath = Paths.get(testDataPath).resolve("pylint").absolutePathString()
             projectDirectory = Paths.get(testDataPath).absolutePathString()
@@ -38,7 +39,7 @@ class RescanTest : AbstractToolWindowTestCase() {
      * `pylint` executable returns no results
      */
     fun `test rescan running for the same file scan did`() {
-        PylintSettings.getInstance(project).executablePath =
+        Settings.getInstance(project).executablePath =
             Paths.get(testDataPath).resolve("pylint2").absolutePathString()
         rescan(getContext())
         runBlocking {

@@ -13,6 +13,7 @@ import com.jetbrains.python.sdk.pythonSdk
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.TestOnly
+import works.szabope.plugins.common.services.BasicSettingsData
 import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.common.services.SettingsValidationProblem
 import works.szabope.plugins.pylint.PylintArgs
@@ -24,7 +25,6 @@ import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 import java.io.File
 import javax.swing.event.HyperlinkEvent
 
-@Service(Service.Level.PROJECT)
 @State(name = "PylintSettings", storages = [Storage("PylintPlugin.xml")], category = SettingsCategory.PLUGINS)
 class PylintSettings(internal val project: Project) :
     SimplePersistentStateComponent<PylintSettings.PylintState>(PylintState()), Settings {
@@ -38,7 +38,6 @@ class PylintSettings(internal val project: Project) :
         var autoScrollToSource by property(false)
         var excludeNonProjectFiles by property(true)
         var projectDirectory by string()
-        val customExclusions by list<String>() // use scopes instead?
         var scanBeforeCheckIn by property(false)
     }
 
@@ -78,13 +77,13 @@ class PylintSettings(internal val project: Project) :
             state.arguments = value
         }
 
-    var isAutoScrollToSource
+    override var isAutoScrollToSource
         get() = state.autoScrollToSource
         set(value) {
             state.autoScrollToSource = value
         }
 
-    override var isExcludeNonProjectFiles
+    override var excludeNonProjectFiles
         get() = state.excludeNonProjectFiles
         set(value) {
             state.excludeNonProjectFiles = value
@@ -101,32 +100,26 @@ class PylintSettings(internal val project: Project) :
             }
         }
 
-    val customExclusions
-        get() = state.customExclusions
-
-    fun addExclusion(exclusion: String) {
-        require(exclusion.isNotBlank())
-        if (!customExclusions.contains(exclusion)) {
-            customExclusions.add(exclusion)
-        }
-    }
-
-    fun removeExclusion(exclusion: String) {
-        if (customExclusions.contains(exclusion)) {
-            customExclusions.remove(exclusion)
-        }
-    }
-
-    var isScanBeforeCheckIn
+    override var scanBeforeCheckIn
         get() = state.scanBeforeCheckIn
         set(value) {
             state.scanBeforeCheckIn = value
         }
 
     // TODO: projectDirectory != null is failing for tests: cannot set /src because it does not exist
-    fun isComplete(): Boolean {
+    override fun isComplete(): Boolean {
         return canExecute() && validateConfigFile(executablePath) == null && validateProjectDirectory(projectDirectory) == null
     }
+
+    override fun getExecutorConfiguration() = ExecutorConfiguration(
+        executablePath,
+        useProjectSdk,
+        configFilePath,
+        arguments,
+        projectDirectory!!,
+        excludeNonProjectFiles,
+        scanBeforeCheckIn
+    )
 
     private fun canExecute(): Boolean {
         return if (useProjectSdk) {
@@ -136,7 +129,7 @@ class PylintSettings(internal val project: Project) :
         }
     }
 
-    fun ensureValid(): SettingsValidationProblem? {
+    override fun ensureValid(): SettingsValidationProblem? {
         validateExecutable(executablePath)?.also {
             logger.warn("clearing invalid executablePath $executablePath")
             executablePath = null
@@ -155,22 +148,22 @@ class PylintSettings(internal val project: Project) :
         return null
     }
 
-    suspend fun initSettings(oldPylintSettings: OldPylintSettings?) {
-        if (executablePath == null && oldPylintSettings?.executablePath != null) {
-            executablePath = oldPylintSettings.executablePath
+    override suspend fun initSettings(oldSettings: BasicSettingsData?) {
+        if (executablePath == null && oldSettings?.executablePath != null) {
+            executablePath = oldSettings.executablePath
         }
         useProjectSdk = useProjectSdk || (executablePath == null && project.pythonSdk != null)
         if (!useProjectSdk && executablePath == null) {
             executablePath = autodetectExecutable()
         }
         if (configFilePath == null) {
-            configFilePath = oldPylintSettings?.configFilePath
+            configFilePath = oldSettings?.configFilePath
         }
         if (arguments == null) {
-            arguments = oldPylintSettings?.arguments ?: PylintArgs.PYLINT_RECOMMENDED_COMMAND_ARGS
+            arguments = oldSettings?.arguments ?: PylintArgs.PYLINT_RECOMMENDED_COMMAND_ARGS
         }
-        if (!isScanBeforeCheckIn) {
-            isScanBeforeCheckIn = oldPylintSettings?.isScanBeforeCheckIn ?: false
+        if (!scanBeforeCheckIn) {
+            scanBeforeCheckIn = oldSettings?.scanBeforeCheckIn ?: false
         }
         if (projectDirectory == null) {
             projectDirectory = project.guessProjectDir()?.path
@@ -262,7 +255,7 @@ class PylintSettings(internal val project: Project) :
         return null
     }
 
-    suspend fun autodetectExecutable(): String? {
+    override suspend fun autodetectExecutable(): String? {
         val locateCommand = if (SystemInfo.isWindows) arrayOf("where.exe", "pylint.exe") else arrayOf("which", "pylint")
         val processResult = PythonEnvironmentAwareCli(project).execute(command = locateCommand)
         return when (processResult.resultCode) { // same for linux and windows
@@ -287,14 +280,11 @@ class PylintSettings(internal val project: Project) :
     }
 
     @TestOnly
-    fun reset() {
+    override fun reset() {
         loadState(PylintState())
     }
 
     companion object {
-        @JvmStatic
-        fun getInstance(project: Project): PylintSettings = project.service()
-
         val logger = thisLogger()
     }
 }

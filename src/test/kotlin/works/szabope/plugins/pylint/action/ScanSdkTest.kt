@@ -1,23 +1,24 @@
 package works.szabope.plugins.pylint.action
 
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.components.service
 import com.intellij.platform.backend.workspace.WorkspaceModel
 import com.intellij.platform.backend.workspace.virtualFile
 import com.intellij.platform.workspace.jps.entities.ContentRootEntity
 import com.intellij.platform.workspace.jps.entities.ExcludeUrlEntity
 import com.intellij.platform.workspace.storage.EntitySource
+import com.intellij.platform.workspace.storage.WorkspaceEntity
 import com.intellij.platform.workspace.storage.url.VirtualFileUrl
 import com.intellij.testFramework.TestDataPath
 import com.intellij.testFramework.common.waitUntilAssertSucceeds
 import com.intellij.testFramework.workspaceModel.updateProjectModel
 import com.intellij.ui.tree.TreeTestUtil
 import kotlinx.coroutines.runBlocking
+import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.AbstractToolWindowTestCase
 import works.szabope.plugins.pylint.dialog.IDialogManager
 import works.szabope.plugins.pylint.services.PylintPackageManagementFacade
-import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.testutil.TestDialogManager
 import works.szabope.plugins.pylint.testutil.scan
 import java.net.URL
@@ -55,7 +56,12 @@ class ScanSdkTest : AbstractToolWindowTestCase() {
             override val virtualFileUrl: VirtualFileUrl?
                 get() = excludedDir
         })
-        runWriteAction { workspaceModel.updateProjectModel { model -> model.addEntity(excludedEntity) } }
+        lateinit var exclusionWorkspaceEntity: WorkspaceEntity
+        runWriteActionAndWait {
+            workspaceModel.updateProjectModel { model ->
+                exclusionWorkspaceEntity = model.addEntity(excludedEntity)
+            }
+        }
 
         toolWindowManager.onBalloon {
             it.listener?.hyperlinkUpdate(
@@ -83,17 +89,24 @@ class ScanSdkTest : AbstractToolWindowTestCase() {
                 )
             }
         }
+        runWriteActionAndWait {
+            workspaceModel.updateProjectModel { model ->
+                model.removeEntity(
+                    exclusionWorkspaceEntity
+                )
+            }
+        }
     }
 
     private fun setUpSettings() {
-        with(PylintSettings.getInstance(project)) {
+        with(Settings.getInstance(project)) {
             executablePath = null
             projectDirectory = Paths.get(testDataPath).absolutePathString()
             useProjectSdk = true
             configFilePath = null
-            isScanBeforeCheckIn = false
+            scanBeforeCheckIn = false
             arguments = null
-            isExcludeNonProjectFiles = true
+            excludeNonProjectFiles = true
         }
     }
 }
