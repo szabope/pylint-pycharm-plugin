@@ -13,7 +13,6 @@ import works.szabope.plugins.pylint.run.PylintCliExecutor
 import works.szabope.plugins.pylint.run.PylintSdkExecutor
 import works.szabope.plugins.pylint.services.parser.PylintMessage
 import works.szabope.plugins.pylint.services.parser.PylintParserException
-import works.szabope.plugins.pylint.services.parser.PylintResult
 
 @Service(Service.Level.PROJECT)
 class ScanService(private val project: Project) {
@@ -22,7 +21,7 @@ class ScanService(private val project: Project) {
 
     @Suppress("UnstableApiUsage")
     fun scan(targets: Collection<VirtualFile>, configuration: ImmutableSettingsData): List<PylintMessage> {
-        val resultHandler = CollectingToolOutputHandler<PylintMessage, PylintResult>()
+        val resultHandler = CollectingToolOutputHandler<PylintMessage>()
         if (configuration.useProjectSdk) {
             runBlockingCancellable {
                 PylintSdkExecutor(project).execute(configuration, targets, resultHandler)

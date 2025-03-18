@@ -22,19 +22,18 @@ import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.services.Exclusions
 import works.szabope.plugins.pylint.services.parser.PylintJson2OutputParser
 import works.szabope.plugins.pylint.services.parser.PylintMessage
-import works.szabope.plugins.pylint.services.parser.PylintResult
 import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
+class PylintSdkExecutor(private val project: Project) : IPylintExecutor<PylintMessage> {
 
     private val configurationFactory = PylintConfigurationType.INSTANCE.getFactory()
 
     override suspend fun execute(
         configuration: ImmutableSettingsData,
         targets: Collection<VirtualFile>,
-        resultHandler: ToolOutputHandler<PylintMessage, PylintResult>
+        resultHandler: ToolOutputHandler<PylintMessage>
     ) {
         require(configuration.useProjectSdk) { "Configuration mismatch" }
         val environment = createEnvironment(configuration, targets)

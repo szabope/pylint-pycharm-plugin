@@ -10,8 +10,8 @@ import works.szabope.plugins.common.services.ToolResult
 import works.szabope.plugins.common.services.ToolResultItem
 import works.szabope.plugins.common.toolWindow.TreeModelDataItem
 
-abstract class PublishingToolOutputHandler<I : ToolResultItem, R : ToolResult<I>>(private val project: Project) :
-    AbstractToolOutputHandler<I, R>() {
+abstract class PublishingToolOutputHandler<I : ToolResultItem>(private val project: Project) :
+    AbstractToolOutputHandler<I>() {
 
     abstract fun convert(message: I): TreeModelDataItem
 
@@ -22,7 +22,7 @@ abstract class PublishingToolOutputHandler<I : ToolResultItem, R : ToolResult<I>
         }
     }
 
-    override suspend fun handle(result: R) {
+    override suspend fun handle(result: ToolResult<I>) {
         super.handle(result)
         ActivityTracker.getInstance().inc()
     }
