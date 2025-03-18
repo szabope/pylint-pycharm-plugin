@@ -55,10 +55,9 @@ class PylintCheckinHandler(private val panel: CheckinProjectPanel) : CheckinHand
         val changes = commitInfo.committedChanges
         if (changes.isEmpty()) return null
         val files = changes.mapNotNull { it.afterRevision?.file?.virtualFile }
-        val runConfiguration = Settings.getInstance(panel.project).getExecutorConfiguration()
         val scanResults = withProgressText(PylintBundle.message("pylint.checkin-handler.in-progress")) {
             withContext(Dispatchers.Default) {
-                service.scan(files, runConfiguration)
+                service.scan(files, Settings.getInstance(panel.project).getData())
             }
         }
         if (scanResults.isEmpty()) return null

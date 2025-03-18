@@ -6,10 +6,11 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import works.szabope.plugins.common.services.ImmutableSettingsData
+import works.szabope.plugins.common.services.tool.CollectingToolOutputHandler
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.run.PylintCliExecutor
 import works.szabope.plugins.pylint.run.PylintSdkExecutor
-import works.szabope.plugins.common.services.tool.CollectingToolOutputHandler
 import works.szabope.plugins.pylint.services.parser.PylintMessage
 import works.szabope.plugins.pylint.services.parser.PylintParserException
 import works.szabope.plugins.pylint.services.parser.PylintResult
@@ -20,7 +21,7 @@ class ScanService(private val project: Project) {
     private val logger = logger<ScanService>()
 
     @Suppress("UnstableApiUsage")
-    fun scan(targets: Collection<VirtualFile>, configuration: ExecutorConfiguration): List<PylintMessage> {
+    fun scan(targets: Collection<VirtualFile>, configuration: ImmutableSettingsData): List<PylintMessage> {
         val resultHandler = CollectingToolOutputHandler<PylintMessage, PylintResult>()
         if (configuration.useProjectSdk) {
             runBlockingCancellable {

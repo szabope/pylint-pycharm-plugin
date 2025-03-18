@@ -111,7 +111,7 @@ class PylintSettings(internal val project: Project) :
         return canExecute() && validateConfigFile(executablePath) == null && validateProjectDirectory(projectDirectory) == null
     }
 
-    override fun getExecutorConfiguration() = ExecutorConfiguration(
+    override fun getData() = PylintExecutorConfiguration(
         executablePath,
         useProjectSdk,
         configFilePath,

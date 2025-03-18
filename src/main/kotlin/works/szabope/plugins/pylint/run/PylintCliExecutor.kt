@@ -3,10 +3,10 @@ package works.szabope.plugins.pylint.run
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.text.nullize
+import works.szabope.plugins.common.services.ImmutableSettingsData
 import works.szabope.plugins.common.services.tool.ToolOutputHandler
 import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.services.Exclusions
-import works.szabope.plugins.pylint.services.ExecutorConfiguration
 import works.szabope.plugins.pylint.services.cli.PythonEnvironmentAwareCli
 import works.szabope.plugins.pylint.services.parser.PylintJson2OutputParser
 import works.szabope.plugins.pylint.services.parser.PylintMessage
@@ -21,7 +21,7 @@ class PylintCliExecutor(private val project: Project) : IPylintExecutor {
     class ParseFailedException(val command: String, val sourceJson: String, cause: Exception) : RuntimeException(cause)
 
     override suspend fun execute(
-        configuration: ExecutorConfiguration,
+        configuration: ImmutableSettingsData,
         targets: Collection<VirtualFile>,
         resultHandler: ToolOutputHandler<PylintMessage, PylintResult>
     ) {
@@ -39,7 +39,7 @@ class PylintCliExecutor(private val project: Project) : IPylintExecutor {
         }
     }
 
-    private fun buildCommand(configuration: ExecutorConfiguration, targets: Collection<VirtualFile>) =
+    private fun buildCommand(configuration: ImmutableSettingsData, targets: Collection<VirtualFile>) =
         with(configuration) {
             val command = mutableListOf(executablePath!!)
             configFilePath.nullize(true)?.apply { command.add("--rcfile"); command.add(this) }

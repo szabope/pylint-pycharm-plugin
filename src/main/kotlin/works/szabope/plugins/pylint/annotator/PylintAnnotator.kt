@@ -50,11 +50,10 @@ internal class PylintAnnotator : ExternalAnnotator<PylintAnnotator.AnnotatorInfo
             tempFile.toFile().deleteOnExit()
             tempFile.writeText(document.charsSequence)
             val service = ScanService.getInstance(info.project)
-            val runConfiguration = settings.getExecutorConfiguration()
             val virtualTempFile = requireNotNull(VirtualFileManager.getInstance().findFileByNioPath(tempFile)) {
                 "Could not find virtual file at ${tempFile.toCanonicalPath()}"
             }
-            return service.scan(listOf(virtualTempFile), runConfiguration)
+            return service.scan(listOf(virtualTempFile), settings.getData())
         } finally {
             tempFile.delete()
         }

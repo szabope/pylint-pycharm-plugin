@@ -13,9 +13,8 @@ class RescanAction : DumbAwareAction() {
         val treeManager = ScanActionUtil.getTreeModelManager(event) ?: return
         val latestScanTargets = treeManager.getRootScanPaths()
         treeManager.reinitialize(latestScanTargets)
-        val runConfiguration = project.let { Settings.getInstance(it).getExecutorConfiguration() }
         FileDocumentManager.getInstance().saveAllDocuments()
-        AsyncScanService.getInstance(project).scan(latestScanTargets, runConfiguration)
+        AsyncScanService.getInstance(project).scan(latestScanTargets, Settings.getInstance(project).getData())
     }
 
     override fun update(event: AnActionEvent) {

@@ -2,7 +2,6 @@ package works.szabope.plugins.common.services
 
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import works.szabope.plugins.pylint.services.ExecutorConfiguration
 
 @JvmInline
 value class SettingsValidationProblem(val message: String) {
@@ -26,7 +25,7 @@ interface Settings : SettingsData {
     suspend fun initSettings(oldSettings: BasicSettingsData?)
     fun ensureValid(): SettingsValidationProblem?
     fun isComplete(): Boolean
-    fun getExecutorConfiguration(): ExecutorConfiguration
+    fun getData(): ImmutableSettingsData
     fun reset()
     suspend fun autodetectExecutable(): String?
 

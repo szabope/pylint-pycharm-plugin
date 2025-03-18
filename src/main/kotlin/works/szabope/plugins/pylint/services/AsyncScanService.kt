@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
+import works.szabope.plugins.common.services.ImmutableSettingsData
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.dialog.IDialogManager
 import works.szabope.plugins.pylint.run.PylintCliExecutor
@@ -27,8 +28,9 @@ class AsyncScanService(private val project: Project, private val cs: CoroutineSc
     val scanInProgress: Boolean
         get() = manualScanJob?.isActive == true
 
-    fun scan(targets: Collection<VirtualFile>, configuration: ExecutorConfiguration) {
-        val resultHandler = PylintPublishingToolOutputHandler(project)
+    fun scan(targets: Collection<VirtualFile>, configuration: ImmutableSettingsData) {
+        val resultHandler =
+            PylintPublishingToolOutputHandler(project) // todo: move upper level -> enable extracting scan method to IF
         if (configuration.useProjectSdk) {
             manualScanJob = cs.launch {
                 PylintSdkExecutor(project).execute(configuration, targets, resultHandler)

@@ -17,10 +17,9 @@ open class ScanAction : DumbAwareAction() {
     override fun actionPerformed(event: AnActionEvent) {
         val targets = listTargets(event) ?: return
         val project = event.project ?: return
-        val runConfiguration = Settings.getInstance(project).getExecutorConfiguration()
         ScanActionUtil.getTreeModelManager(event)?.reinitialize(targets)
         FileDocumentManager.getInstance().saveAllDocuments()
-        AsyncScanService.getInstance(project).scan(targets, runConfiguration)
+        AsyncScanService.getInstance(project).scan(targets, Settings.getInstance(project).getData())
         PylintToolWindowPanel.getInstance(project).isVisible = true
     }
 

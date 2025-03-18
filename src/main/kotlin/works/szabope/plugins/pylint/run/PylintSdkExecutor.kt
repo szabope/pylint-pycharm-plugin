@@ -16,10 +16,10 @@ import com.intellij.util.text.nullize
 import com.jetbrains.python.sdk.pythonSdk
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.suspendCancellableCoroutine
+import works.szabope.plugins.common.services.ImmutableSettingsData
 import works.szabope.plugins.common.services.tool.ToolOutputHandler
 import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.services.Exclusions
-import works.szabope.plugins.pylint.services.ExecutorConfiguration
 import works.szabope.plugins.pylint.services.parser.PylintJson2OutputParser
 import works.szabope.plugins.pylint.services.parser.PylintMessage
 import works.szabope.plugins.pylint.services.parser.PylintResult
@@ -32,7 +32,7 @@ class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
     private val configurationFactory = PylintConfigurationType.INSTANCE.getFactory()
 
     override suspend fun execute(
-        configuration: ExecutorConfiguration,
+        configuration: ImmutableSettingsData,
         targets: Collection<VirtualFile>,
         resultHandler: ToolOutputHandler<PylintMessage, PylintResult>
     ) {
@@ -51,7 +51,7 @@ class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
     }
 
     private fun createEnvironment(
-        configuration: ExecutorConfiguration,
+        configuration: ImmutableSettingsData,
         targets: Collection<VirtualFile>
     ): ExecutionEnvironment {
         val conf = configurationFactory.createConfiguration(project, "pylint")
@@ -69,7 +69,7 @@ class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
         return ExecutionEnvironmentBuilder.create(executor, settings).runner(PylintRunner.INSTANCE).build()
     }
 
-    private fun buildScriptParameters(configuration: ExecutorConfiguration, targets: Collection<VirtualFile>) =
+    private fun buildScriptParameters(configuration: ImmutableSettingsData, targets: Collection<VirtualFile>) =
         with(configuration) {
             val sb = StringBuilder()
             configFilePath.nullize(true)?.apply { sb.append(" --rcfile").append(" \"$this\"") }
