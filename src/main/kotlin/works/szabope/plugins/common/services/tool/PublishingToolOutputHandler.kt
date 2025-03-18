@@ -5,15 +5,17 @@ import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import works.szabope.plugins.common.messages.MessageConverter
 import works.szabope.plugins.common.messages.TreeListener
 import works.szabope.plugins.common.services.ToolResult
 import works.szabope.plugins.common.services.ToolResultItem
 import works.szabope.plugins.common.toolWindow.TreeModelDataItem
 
-abstract class PublishingToolOutputHandler<I : ToolResultItem>(private val project: Project) :
-    AbstractToolOutputHandler<I>() {
+abstract class PublishingToolOutputHandler<in I : ToolResultItem>(
+    private val project: Project, private val converter: MessageConverter<I, TreeModelDataItem>
+) : AbstractToolOutputHandler<I>() {
 
-    abstract fun convert(message: I): TreeModelDataItem
+    private fun convert(message: I): TreeModelDataItem = converter.convert(message)
 
     override suspend fun handleResult(message: I) {
         val item = convert(message)
