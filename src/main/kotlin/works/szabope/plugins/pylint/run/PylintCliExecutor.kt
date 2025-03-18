@@ -3,12 +3,12 @@ package works.szabope.plugins.pylint.run
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.text.nullize
+import kotlinx.coroutines.flow.flow
 import works.szabope.plugins.common.services.ImmutableSettingsData
 import works.szabope.plugins.common.services.tool.ToolOutputHandler
 import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.services.Exclusions
 import works.szabope.plugins.pylint.services.cli.PythonEnvironmentAwareCli
-import works.szabope.plugins.pylint.services.parser.PylintJson2OutputParser
 import works.szabope.plugins.pylint.services.parser.PylintMessage
 import works.szabope.plugins.pylint.services.parser.PylintParserException
 
@@ -31,8 +31,7 @@ class PylintCliExecutor(private val project: Project) : IPylintExecutor<PylintMe
             throw CommandExecutionException(command.joinToString(" "), cliResult.resultCode, cliResult.stderr)
         }
         try {
-            val pylintResult = PylintJson2OutputParser.parse(cliResult.stdout)
-            resultHandler.handle(pylintResult)
+            resultHandler.handle(flow { emit(cliResult.stdout) })
         } catch (e: PylintParserException) {
             throw ParseFailedException(command.joinToString(" "), e.sourceJson, e)
         }

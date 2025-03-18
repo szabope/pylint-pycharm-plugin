@@ -1,13 +1,10 @@
 package works.szabope.plugins.pylint.services.parser
 
-import com.intellij.openapi.project.Project
 import kotlinx.coroutines.flow.Flow
 import works.szabope.plugins.common.services.ToolResult
-import works.szabope.plugins.common.services.tool.PublishingToolOutputHandler
-import works.szabope.plugins.pylint.messages.PylintMessageConverter
+import works.szabope.plugins.common.services.tool.CollectingToolOutputHandler
 
-class PylintPublishingToolOutputHandler(project: Project) :
-    PublishingToolOutputHandler<PylintMessage>(project, PylintMessageConverter(project)) {
+class PylintCollectingToolOutputHandler : CollectingToolOutputHandler<PylintMessage>() {
     override suspend fun parse(stdout: Flow<String>): ToolResult<PylintMessage> {
         val fullStdOut = buildString { stdout.collect { append(it) } }
         return PylintJson2OutputParser.parse(fullStdOut)

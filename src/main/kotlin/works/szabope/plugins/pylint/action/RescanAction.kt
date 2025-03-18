@@ -6,6 +6,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.DumbAwareAction
 import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.services.AsyncScanService
+import works.szabope.plugins.pylint.services.parser.PylintPublishingToolOutputHandler
 
 class RescanAction : DumbAwareAction() {
     override fun actionPerformed(event: AnActionEvent) {
@@ -14,7 +15,7 @@ class RescanAction : DumbAwareAction() {
         val latestScanTargets = treeManager.getRootScanPaths()
         treeManager.reinitialize(latestScanTargets)
         FileDocumentManager.getInstance().saveAllDocuments()
-        AsyncScanService.getInstance(project).scan(latestScanTargets, Settings.getInstance(project).getData())
+        AsyncScanService.getInstance(project).scan(latestScanTargets, Settings.getInstance(project).getData(), PylintPublishingToolOutputHandler(project))
     }
 
     override fun update(event: AnActionEvent) {

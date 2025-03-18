@@ -4,14 +4,14 @@ import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import works.szabope.plugins.common.messages.MessageConverter
 import works.szabope.plugins.common.messages.TreeListener
-import works.szabope.plugins.common.services.ToolResult
 import works.szabope.plugins.common.services.ToolResultItem
 import works.szabope.plugins.common.toolWindow.TreeModelDataItem
 
-abstract class PublishingToolOutputHandler<in I : ToolResultItem>(
+abstract class PublishingToolOutputHandler<I : ToolResultItem>(
     private val project: Project, private val converter: MessageConverter<I, TreeModelDataItem>
 ) : AbstractToolOutputHandler<I>() {
 
@@ -24,8 +24,8 @@ abstract class PublishingToolOutputHandler<in I : ToolResultItem>(
         }
     }
 
-    override suspend fun handle(result: ToolResult<I>) {
-        super.handle(result)
+    override suspend fun handle(stdout: Flow<String>) {
+        super.handle(stdout)
         ActivityTracker.getInstance().inc()
     }
 }

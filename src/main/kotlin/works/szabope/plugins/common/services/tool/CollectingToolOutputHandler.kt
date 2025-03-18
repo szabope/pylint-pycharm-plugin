@@ -2,7 +2,7 @@ package works.szabope.plugins.common.services.tool
 
 import works.szabope.plugins.common.services.ToolResultItem
 
-class CollectingToolOutputHandler<I : ToolResultItem> : AbstractToolOutputHandler<I>() {
+abstract class CollectingToolOutputHandler<I : ToolResultItem> : AbstractToolOutputHandler<I>() {
     private val results = mutableListOf<I>()
 
     override suspend fun handleResult(message: I) {

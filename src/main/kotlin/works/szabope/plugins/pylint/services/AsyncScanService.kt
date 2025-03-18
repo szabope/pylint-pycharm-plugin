@@ -11,26 +11,30 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import works.szabope.plugins.common.services.ImmutableSettingsData
+import works.szabope.plugins.common.services.ScanService
+import works.szabope.plugins.common.services.tool.AbstractToolOutputHandler
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.dialog.IDialogManager
 import works.szabope.plugins.pylint.run.PylintCliExecutor
 import works.szabope.plugins.pylint.run.PylintCliExecutor.ParseFailedException
 import works.szabope.plugins.pylint.run.PylintSdkExecutor
-import works.szabope.plugins.pylint.services.parser.PylintPublishingToolOutputHandler
+import works.szabope.plugins.pylint.services.parser.PylintMessage
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 import javax.swing.event.HyperlinkEvent
 
 @Service(Service.Level.PROJECT)
-class AsyncScanService(private val project: Project, private val cs: CoroutineScope) {
+class AsyncScanService(private val project: Project, private val cs: CoroutineScope) : ScanService<PylintMessage> {
 
     private var manualScanJob: Job? = null
 
     val scanInProgress: Boolean
         get() = manualScanJob?.isActive == true
 
-    fun scan(targets: Collection<VirtualFile>, configuration: ImmutableSettingsData) {
-        val resultHandler =
-            PylintPublishingToolOutputHandler(project) // todo: move upper level -> enable extracting scan method to IF
+    override fun scan(
+        targets: Collection<VirtualFile>,
+        configuration: ImmutableSettingsData,
+        resultHandler: AbstractToolOutputHandler<PylintMessage>
+    ) {
         if (configuration.useProjectSdk) {
             manualScanJob = cs.launch {
                 PylintSdkExecutor(project).execute(configuration, targets, resultHandler)

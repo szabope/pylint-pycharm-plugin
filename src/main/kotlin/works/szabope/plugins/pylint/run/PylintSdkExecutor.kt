@@ -14,13 +14,13 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.text.nullize
 import com.jetbrains.python.sdk.pythonSdk
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.suspendCancellableCoroutine
 import works.szabope.plugins.common.services.ImmutableSettingsData
 import works.szabope.plugins.common.services.tool.ToolOutputHandler
 import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.services.Exclusions
-import works.szabope.plugins.pylint.services.parser.PylintJson2OutputParser
 import works.szabope.plugins.pylint.services.parser.PylintMessage
 import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.resume
@@ -44,8 +44,7 @@ class PylintSdkExecutor(private val project: Project) : IPylintExecutor<PylintMe
         }
         val processHandler = futureProcessHandler.await()
         processHandler.collectOutput { outputType -> outputType == ProcessOutputType.STDOUT }.let { stdout ->
-            val result = PylintJson2OutputParser.parse(stdout)
-            resultHandler.handle(result)
+            resultHandler.handle(flow { emit(stdout) })
         }
     }
 

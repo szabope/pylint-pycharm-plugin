@@ -7,7 +7,8 @@ import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import works.szabope.plugins.common.services.ImmutableSettingsData
-import works.szabope.plugins.common.services.tool.CollectingToolOutputHandler
+import works.szabope.plugins.common.services.ScanService
+import works.szabope.plugins.common.services.tool.AbstractToolOutputHandler
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.run.PylintCliExecutor
 import works.szabope.plugins.pylint.run.PylintSdkExecutor
@@ -15,13 +16,16 @@ import works.szabope.plugins.pylint.services.parser.PylintMessage
 import works.szabope.plugins.pylint.services.parser.PylintParserException
 
 @Service(Service.Level.PROJECT)
-class ScanService(private val project: Project) {
+class SyncScanService(private val project: Project) : ScanService<PylintMessage> {
 
-    private val logger = logger<ScanService>()
+    private val logger = logger<SyncScanService>()
 
     @Suppress("UnstableApiUsage")
-    fun scan(targets: Collection<VirtualFile>, configuration: ImmutableSettingsData): List<PylintMessage> {
-        val resultHandler = CollectingToolOutputHandler<PylintMessage>()
+    override fun scan(
+        targets: Collection<VirtualFile>,
+        configuration: ImmutableSettingsData,
+        resultHandler: AbstractToolOutputHandler<PylintMessage>
+    ) {
         if (configuration.useProjectSdk) {
             runBlockingCancellable {
                 PylintSdkExecutor(project).execute(configuration, targets, resultHandler)
@@ -39,11 +43,10 @@ class ScanService(private val project: Project) {
                 )
             }
         }
-        return resultHandler.getResults()
     }
 
     companion object {
         @JvmStatic
-        fun getInstance(project: Project): ScanService = project.service()
+        fun getInstance(project: Project): SyncScanService = project.service()
     }
 }

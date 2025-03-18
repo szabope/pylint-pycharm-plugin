@@ -13,7 +13,8 @@ import works.szabope.plugins.common.messages.TreeListener
 import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.messages.PylintMessageConverter
-import works.szabope.plugins.pylint.services.ScanService
+import works.szabope.plugins.pylint.services.SyncScanService
+import works.szabope.plugins.pylint.services.parser.PylintCollectingToolOutputHandler
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 import javax.swing.JCheckBox
 import javax.swing.JComponent
@@ -22,7 +23,7 @@ import javax.swing.JComponent
 class PylintCheckinHandler(private val panel: CheckinProjectPanel) : CheckinHandler(), CommitCheck {
 
     private val settings = Settings.getInstance(panel.project)
-    private val service = ScanService.getInstance(panel.project)
+    private val service = SyncScanService.getInstance(panel.project)
 
     override fun getBeforeCheckinConfigurationPanel(): RefreshableOnComponent {
         return object : RefreshableOnComponent {
@@ -55,9 +56,11 @@ class PylintCheckinHandler(private val panel: CheckinProjectPanel) : CheckinHand
         val changes = commitInfo.committedChanges
         if (changes.isEmpty()) return null
         val files = changes.mapNotNull { it.afterRevision?.file?.virtualFile }
+        val resultHandler = PylintCollectingToolOutputHandler()
         val scanResults = withProgressText(PylintBundle.message("pylint.checkin-handler.in-progress")) {
             withContext(Dispatchers.Default) {
-                service.scan(files, Settings.getInstance(panel.project).getData())
+                service.scan(files, Settings.getInstance(panel.project).getData(), resultHandler)
+                resultHandler.getResults()
             }
         }
         if (scanResults.isEmpty()) return null
