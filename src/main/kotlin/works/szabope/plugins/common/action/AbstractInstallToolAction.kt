@@ -7,17 +7,12 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.MessageType
-import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.jetbrains.python.packaging.ui.PyPackageManagementService.PyPackageInstallationErrorDescription
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import works.szabope.plugins.common.services.PackageManagementFacade
-import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.common.dialog.IDialogManager
-import works.szabope.plugins.pylint.services.OldPylintSettings
-import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
+import works.szabope.plugins.common.services.PackageManagementFacade
 
 class InstallationToolActionConfig(
     val messageInstalling: String,
@@ -34,10 +29,8 @@ abstract class AbstractInstallToolAction(private val config: InstallationToolAct
             withContext(Dispatchers.EDT) {
                 val errorDescription = getPackageManager(project).install()
                 if (errorDescription == null) {
-                    ToolWindowManager.getInstance(project).notifyByBalloon(
-                        PylintToolWindowPanel.ID, MessageType.INFO, config.messageInstalled
-                    )
-                    Settings.getInstance(project).initSettings(OldPylintSettings.getInstance(project))
+                    notifyPanel(project, config.messageInstalled)
+                    migrateSettings(project)
                 } else {
                     val title = config.messageInstallationFailed
                     if (errorDescription is PyPackageInstallationErrorDescription) {
@@ -57,4 +50,7 @@ abstract class AbstractInstallToolAction(private val config: InstallationToolAct
     override fun getActionUpdateThread(): ActionUpdateThread {
         return ActionUpdateThread.BGT
     }
+
+    abstract suspend fun notifyPanel(project: Project, message: String)
+    abstract suspend fun migrateSettings(project: Project)
 }
