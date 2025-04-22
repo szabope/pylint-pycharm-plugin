@@ -9,14 +9,13 @@ import com.intellij.ui.content.ContentFactory
 import org.jetbrains.annotations.VisibleForTesting
 import works.szabope.plugins.common.toolWindow.TreeManager
 import works.szabope.plugins.pylint.PylintBundle
-import works.szabope.plugins.pylint.services.PylintSeverityConfigService
+import works.szabope.plugins.pylint.services.pylintSeverityConfigs
 
 @VisibleForTesting
 internal open class PylintToolWindowFactory : ToolWindowFactory, DumbAware {
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-        val severities = PylintSeverityConfigService.getInstance(project).getAll().map { it.level }.toSet()
-        val panel = PylintToolWindowPanel(project, createTreeManager(severities))
+        val panel = PylintToolWindowPanel(project, createTreeManager(pylintSeverityConfigs.keys))
         val content =
             ContentFactory.getInstance().createContent(panel, PylintBundle.message("pylint.toolwindow.name"), false)
         toolWindow.contentManager.addContent(content)

@@ -7,7 +7,7 @@ import works.szabope.plugins.common.services.tool.PublishingToolOutputHandler
 import works.szabope.plugins.pylint.messages.PylintMessageConverter
 
 class PylintPublishingToolOutputHandler(project: Project) :
-    PublishingToolOutputHandler<PylintMessage>(project, PylintMessageConverter(project)) {
+    PublishingToolOutputHandler<PylintMessage>(project, PylintMessageConverter) {
     override suspend fun parse(stdout: Flow<String>): ToolResult<PylintMessage> {
         val fullStdOut = buildString { stdout.collect { append(it) } }
         return PylintJson2OutputParser.parse(fullStdOut)

@@ -4,7 +4,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAware
-import works.szabope.plugins.pylint.services.PylintSeverityConfigService
+import works.szabope.plugins.pylint.services.pylintSeverityConfigs
 
 class SeverityFiltersActionGroup : DumbAware, ActionGroup() {
 
@@ -14,8 +14,7 @@ class SeverityFiltersActionGroup : DumbAware, ActionGroup() {
 
     override fun getChildren(e: AnActionEvent?): Array<out SeverityFilterAction> {
         if (!::children.isInitialized) {
-            children = PylintSeverityConfigService.getInstance(requireNotNull(e?.project)).getAll()
-                .map { SeverityFilterAction(it) }.toTypedArray()
+            children = pylintSeverityConfigs.map { SeverityFilterAction(it.value) }.toTypedArray()
         }
         return children
     }

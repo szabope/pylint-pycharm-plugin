@@ -71,9 +71,8 @@ class PylintCheckinHandler(private val panel: CheckinProjectPanel) : CheckinHand
                 get() = "Review" //TODO
 
             override fun showDetails(project: Project) {
-                val converter = PylintMessageConverter(project)
                 project.messageBus.syncPublisher(TreeListener.TOPIC).reinitialize(files)
-                scanResults.map { converter.convert(it) }.forEach {
+                scanResults.map { PylintMessageConverter.convert(it) }.forEach {
                     project.messageBus.syncPublisher(TreeListener.TOPIC).add(it)
                 }
                 ActivityTracker.getInstance().inc()

@@ -1,15 +1,13 @@
 package works.szabope.plugins.pylint.messages
 
-import com.intellij.openapi.project.Project
 import works.szabope.plugins.common.messages.MessageConverter
 import works.szabope.plugins.common.toolWindow.TreeModelDataItem
-import works.szabope.plugins.pylint.services.PylintSeverityConfigService
 import works.szabope.plugins.pylint.services.parser.PylintMessage
+import works.szabope.plugins.pylint.services.pylintSeverityConfigs
 
-class PylintMessageConverter(private val project: Project) : MessageConverter<PylintMessage, TreeModelDataItem> {
+object PylintMessageConverter : MessageConverter<PylintMessage, TreeModelDataItem> {
     override fun convert(message: PylintMessage): TreeModelDataItem {
-        //TODO: remove service call maybe?
-        val severity = PylintSeverityConfigService.getInstance(project).findByType(message.type) {
+        val severity = requireNotNull(pylintSeverityConfigs[message.type]) {
             """Pylint message with type '${message.type}' is not supported. Please, report this issue at  
                     |https://github.com/szabope/pylint-pycharm-plugin/issues""".trimMargin()
         }
