@@ -3,7 +3,6 @@
 
 package works.szabope.plugins.pylint.dialog
 
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.webcore.packaging.PackageManagementService
 import com.intellij.webcore.packaging.PackagingErrorDialog
@@ -31,7 +30,4 @@ class DialogManager : IDialogManager {
 
     override fun createPylintParseErrorDialog(command: String, commandOutput: String, error: String) =
         PylintParseErrorDialog(command, commandOutput, error).toPylintDialog()
-
-    override fun createPreCheckinConfirmationDialog(project: Project, errorCount: Int, commitButtonText: String) =
-        PreCheckinConfirmationDialog(project, errorCount, commitButtonText).toPylintDialog()
 }
