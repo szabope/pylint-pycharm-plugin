@@ -17,7 +17,7 @@ import com.intellij.ui.tree.TreeTestUtil
 import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.AbstractToolWindowTestCase
-import works.szabope.plugins.pylint.dialog.IDialogManager
+import works.szabope.plugins.common.dialog.IDialogManager
 import works.szabope.plugins.pylint.services.PylintPackageManagementFacade
 import works.szabope.plugins.pylint.testutil.TestDialogManager
 import works.szabope.plugins.pylint.testutil.scan

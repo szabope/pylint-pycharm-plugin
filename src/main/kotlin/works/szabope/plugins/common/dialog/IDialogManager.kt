@@ -1,31 +1,31 @@
 @file:Suppress("removal")
 
-package works.szabope.plugins.pylint.dialog
+package works.szabope.plugins.common.dialog
 
 import com.intellij.openapi.components.service
 import com.intellij.webcore.packaging.PackageManagementService
 import com.jetbrains.python.packaging.ui.PyPackageManagementService.PyPackageInstallationErrorDescription
 import org.jetbrains.annotations.Nls
 
-interface PylintDialog {
+interface PluginDialog {
     fun show()
     fun getExitCode(): Int = 0
 }
 
 interface IDialogManager {
-    fun showDialog(dialog: PylintDialog)
+    fun showDialog(dialog: PluginDialog)
 
     fun createPyPackageInstallationErrorDialog(
         @Nls title: String, errorDescription: PyPackageInstallationErrorDescription
-    ): PylintDialog
+    ): PluginDialog
 
     fun createPackagingErrorDialog(
         @Nls title: String, errorDescription: PackageManagementService.ErrorDescription
-    ): PylintDialog
+    ): PluginDialog
 
-    fun createPylintExecutionErrorDialog(command: String, result: String, resultCode: Int): PylintDialog
+    fun createToolExecutionErrorDialog(command: String, result: String, resultCode: Int): PluginDialog
 
-    fun createPylintParseErrorDialog(command: String, commandOutput: String, error: String): PylintDialog
+    fun createToolOutputParseErrorDialog(command: String, commandOutput: String, error: String): PluginDialog
 
     companion object {
         fun showPyPackageInstallationErrorDialog(
@@ -42,13 +42,13 @@ interface IDialogManager {
             showDialog(dialog)
         }
 
-        fun showPylintExecutionErrorDialog(command: String, result: String, resultCode: Int) = with(dialogManager()) {
-            val dialog = createPylintExecutionErrorDialog(command, result, resultCode)
+        fun showToolExecutionErrorDialog(command: String, result: String, resultCode: Int) = with(dialogManager()) {
+            val dialog = createToolExecutionErrorDialog(command, result, resultCode)
             showDialog(dialog)
         }
 
-        fun showPylintParseErrorDialog(command: String, commandOutput: String, error: String) = with(dialogManager()) {
-            val dialog = createPylintParseErrorDialog(command, commandOutput, error)
+        fun showToolOutputParseErrorDialog(command: String, commandOutput: String, error: String) = with(dialogManager()) {
+            val dialog = createToolOutputParseErrorDialog(command, commandOutput, error)
             showDialog(dialog)
         }
 

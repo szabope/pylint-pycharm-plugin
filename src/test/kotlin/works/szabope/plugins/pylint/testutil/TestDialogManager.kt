@@ -10,8 +10,8 @@ import com.intellij.webcore.packaging.PackagingErrorDialog
 import com.jetbrains.python.packaging.PyPackageInstallationErrorDialog
 import com.jetbrains.python.packaging.ui.PyPackageManagementService
 import org.junit.Assert.assertNull
-import works.szabope.plugins.pylint.dialog.IDialogManager
-import works.szabope.plugins.pylint.dialog.PylintDialog
+import works.szabope.plugins.common.dialog.IDialogManager
+import works.szabope.plugins.common.dialog.PluginDialog
 import works.szabope.plugins.pylint.dialog.PylintExecutionErrorDialog
 import works.szabope.plugins.pylint.dialog.PylintParseErrorDialog
 
@@ -19,7 +19,7 @@ class TestDialogManager : IDialogManager {
     private val myHandlers = hashMapOf<Class<out DialogWrapper>, (TestDialogWrapper) -> Int>()
     private var myAnyHandler: ((TestDialogWrapper) -> Int)? = null
 
-    override fun showDialog(dialog: PylintDialog) {
+    override fun showDialog(dialog: PluginDialog) {
         val testDialog = dialog.requireIs<TestDialogWrapper>()
         testDialog.show()
         var exitCode: Int? = null
@@ -41,10 +41,10 @@ class TestDialogManager : IDialogManager {
         title: String, errorDescription: PackageManagementService.ErrorDescription
     ) = TestDialogWrapper(PackagingErrorDialog::class.java, title, errorDescription)
 
-    override fun createPylintExecutionErrorDialog(command: String, result: String, resultCode: Int) =
+    override fun createToolExecutionErrorDialog(command: String, result: String, resultCode: Int) =
         TestDialogWrapper(PylintExecutionErrorDialog::class.java, command, result, resultCode)
 
-    override fun createPylintParseErrorDialog(command: String, commandOutput: String, error: String) =
+    override fun createToolOutputParseErrorDialog(command: String, commandOutput: String, error: String) =
         TestDialogWrapper(PylintParseErrorDialog::class.java, command, commandOutput, error)
 
     fun onDialog(dialogClass: Class<out DialogWrapper>, handler: (TestDialogWrapper) -> Int) {

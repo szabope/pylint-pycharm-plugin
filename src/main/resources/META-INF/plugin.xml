@@ -27,7 +27,7 @@
                          bundle="messages.PylintBundle" key="pylint.inspection.name" enabledByDefault="true"/>
         <postStartupActivity implementation="works.szabope.plugins.pylint.activity.SettingsInitializationActivity"/>
         <notificationGroup displayType="STICKY_BALLOON" id="Pylint Group" toolWindowId="PyLint"/>
-        <applicationService serviceInterface="works.szabope.plugins.pylint.dialog.IDialogManager"
+        <applicationService serviceInterface="works.szabope.plugins.common.dialog.IDialogManager"
                             serviceImplementation="works.szabope.plugins.pylint.dialog.DialogManager"
                             testServiceImplementation="works.szabope.plugins.pylint.testutil.TestDialogManager"/>
         <checkinHandlerFactory implementation="works.szabope.plugins.pylint.vcs.PylintCheckinHandlerFactory"/>

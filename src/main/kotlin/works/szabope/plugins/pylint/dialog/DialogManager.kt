@@ -9,13 +9,15 @@ import com.intellij.webcore.packaging.PackagingErrorDialog
 import com.jetbrains.python.packaging.PyPackageInstallationErrorDialog
 import com.jetbrains.python.packaging.ui.PyPackageManagementService.PyPackageInstallationErrorDescription
 import org.jetbrains.annotations.Nls
+import works.szabope.plugins.common.dialog.IDialogManager
+import works.szabope.plugins.common.dialog.PluginDialog
 
-private fun DialogWrapper.toPylintDialog() = object : PylintDialog {
+private fun DialogWrapper.toPylintDialog() = object : PluginDialog {
     override fun show() = this@toPylintDialog.show()
 }
 
 class DialogManager : IDialogManager {
-    override fun showDialog(dialog: PylintDialog) = dialog.show()
+    override fun showDialog(dialog: PluginDialog) = dialog.show()
 
     override fun createPyPackageInstallationErrorDialog(
         @Nls title: String, errorDescription: PyPackageInstallationErrorDescription
@@ -25,9 +27,9 @@ class DialogManager : IDialogManager {
         @Nls title: String, errorDescription: PackageManagementService.ErrorDescription
     ) = PackagingErrorDialog(title, errorDescription).toPylintDialog()
 
-    override fun createPylintExecutionErrorDialog(command: String, result: String, resultCode: Int) =
+    override fun createToolExecutionErrorDialog(command: String, result: String, resultCode: Int) =
         PylintExecutionErrorDialog(command, result, resultCode).toPylintDialog()
 
-    override fun createPylintParseErrorDialog(command: String, commandOutput: String, error: String) =
+    override fun createToolOutputParseErrorDialog(command: String, commandOutput: String, error: String) =
         PylintParseErrorDialog(command, commandOutput, error).toPylintDialog()
 }

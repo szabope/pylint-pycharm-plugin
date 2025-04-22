@@ -18,7 +18,7 @@ import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.common.services.SettingsValidationProblem
 import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.PylintBundle
-import works.szabope.plugins.pylint.dialog.IDialogManager
+import works.szabope.plugins.common.dialog.IDialogManager
 import works.szabope.plugins.pylint.services.cli.Cli
 import works.szabope.plugins.pylint.services.cli.PythonEnvironmentAwareCli
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
@@ -269,7 +269,7 @@ class PylintSettings(internal val project: Project) :
                     null
                 ) {
                     if (it.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-                        IDialogManager.showPylintExecutionErrorDialog(
+                        IDialogManager.showToolExecutionErrorDialog(
                             locateCommand.joinToString(" "), processResult.stderr, processResult.resultCode
                         )
                     }

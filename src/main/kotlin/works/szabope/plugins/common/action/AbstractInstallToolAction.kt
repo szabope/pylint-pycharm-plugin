@@ -15,7 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import works.szabope.plugins.common.services.PackageManagementFacade
 import works.szabope.plugins.common.services.Settings
-import works.szabope.plugins.pylint.dialog.IDialogManager
+import works.szabope.plugins.common.dialog.IDialogManager
 import works.szabope.plugins.pylint.services.OldPylintSettings
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 

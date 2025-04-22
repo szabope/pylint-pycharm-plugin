@@ -14,7 +14,7 @@ import works.szabope.plugins.common.services.ImmutableSettingsData
 import works.szabope.plugins.common.services.ScanService
 import works.szabope.plugins.common.services.tool.AbstractToolOutputHandler
 import works.szabope.plugins.pylint.PylintBundle
-import works.szabope.plugins.pylint.dialog.IDialogManager
+import works.szabope.plugins.common.dialog.IDialogManager
 import works.szabope.plugins.pylint.run.PylintCliExecutor
 import works.szabope.plugins.pylint.run.PylintCliExecutor.ParseFailedException
 import works.szabope.plugins.pylint.run.PylintSdkExecutor
@@ -45,13 +45,13 @@ class AsyncScanService(private val project: Project, private val cs: CoroutineSc
                     PylintCliExecutor(project).execute(configuration, targets, resultHandler)
                 } catch (e: ParseFailedException) { //TODO: make useProjectSdk throw same exs; move these to caller
                     showClickableBalloonError(PylintBundle.message("pylint.toolwindow.balloon.parse_error")) {
-                        IDialogManager.showPylintParseErrorDialog(
+                        IDialogManager.showToolOutputParseErrorDialog(
                             e.command, e.sourceJson, e.cause?.message ?: "N/A"
                         )
                     }
                 } catch (e: PylintCliExecutor.CommandExecutionException) {
                     showClickableBalloonError(PylintBundle.message("pylint.toolwindow.balloon.external_error")) {
-                        IDialogManager.showPylintExecutionErrorDialog(
+                        IDialogManager.showToolExecutionErrorDialog(
                             e.command, e.stderr, e.statusCode
                         )
                     }
