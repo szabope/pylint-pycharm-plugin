@@ -30,9 +30,9 @@ class TreeManager(val tree: Tree = Tree(), severities: Set<String>) : UiDataProv
 
     companion object {
         @JvmStatic
-        val SEVERITY_MANAGER: DataKey<SeverityManager> = DataKey.create("PylintToolWindowPanel.severityManager")
+        val SEVERITY_MANAGER: DataKey<SeverityManager> = DataKey.create("SeverityManager")
 
         @JvmStatic
-        val TREE_MODEL_MANAGER: DataKey<TreeModelManager> = DataKey.create("PylintToolWindowPanel.treeModelManager")
+        val TREE_MODEL_MANAGER: DataKey<TreeModelManager> = DataKey.create("TreeModelManager")
     }
 }
