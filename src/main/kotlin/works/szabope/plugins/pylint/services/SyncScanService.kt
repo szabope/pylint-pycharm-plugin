@@ -11,9 +11,9 @@ import works.szabope.plugins.common.services.ScanService
 import works.szabope.plugins.common.services.tool.AbstractToolOutputHandler
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.run.PylintCliExecutor
+import works.szabope.plugins.pylint.run.PylintCliExecutor.ParseFailedException
 import works.szabope.plugins.pylint.run.PylintSdkExecutor
 import works.szabope.plugins.pylint.services.parser.PylintMessage
-import works.szabope.plugins.pylint.services.parser.PylintParserException
 
 @Service(Service.Level.PROJECT)
 class SyncScanService(private val project: Project) : ScanService<PylintMessage> {
@@ -33,7 +33,7 @@ class SyncScanService(private val project: Project) : ScanService<PylintMessage>
         } else {
             try {
                 runBlockingCancellable { PylintCliExecutor(project).execute(configuration, targets, resultHandler) }
-            } catch (e: PylintParserException) {
+            } catch (e: ParseFailedException) {
                 logger.warn(PylintBundle.message("pylint.executable.parsing-result-failed", e))
             } catch (e: PylintCliExecutor.CommandExecutionException) {
                 logger.warn(
