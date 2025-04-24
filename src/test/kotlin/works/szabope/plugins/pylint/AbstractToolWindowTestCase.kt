@@ -8,14 +8,13 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.treeStructure.Tree
-import works.szabope.plugins.common.toolWindow.TreeManager
 import works.szabope.plugins.pylint.testutil.TestToolWindowHeadlessManagerImpl
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowFactory
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 
 abstract class AbstractToolWindowTestCase : AbstractPylintTestCase() {
 
-    protected val tree: Tree = Tree()
+    protected lateinit var tree: Tree
     protected lateinit var toolWindowManager: TestToolWindowHeadlessManagerImpl
     private lateinit var testContext: DataContext
 
@@ -24,7 +23,8 @@ abstract class AbstractToolWindowTestCase : AbstractPylintTestCase() {
         toolWindowManager = TestToolWindowHeadlessManagerImpl(project)
         project.replaceService(ToolWindowManager::class.java, toolWindowManager, testRootDisposable)
         setUpToolWindow()
-        val panel = PylintToolWindowPanel.getInstance(project)
+        val panel = PylintToolWindowPanel.getInstance(project) as PylintToolWindowPanel
+        tree = panel.getTree()
         val panelContext = IdeUiService.getInstance().createUiDataContext(panel)
         testContext = SimpleDataContext.builder().setParent(panelContext).add(CommonDataKeys.PROJECT, project).build()
     }
@@ -37,15 +37,20 @@ abstract class AbstractToolWindowTestCase : AbstractPylintTestCase() {
     private fun setUpToolWindow() {
         val toolWindowManager = ToolWindowManager.getInstance(project) as ToolWindowHeadlessManagerImpl
         val toolWindow = toolWindowManager.doRegisterToolWindow(PylintToolWindowPanel.ID)
-        val factory = object : PylintToolWindowFactory() {
-            override fun createTreeManager(severities: Set<String>) = TreeManager(tree, severities)
-        }
-        factory.createToolWindowContent(myFixture.project, toolWindow)
+        PylintToolWindowFactory().createToolWindowContent(myFixture.project, toolWindow)
     }
 
     protected fun getContext(customizer: ((SimpleDataContext.Builder) -> SimpleDataContext.Builder)? = null): DataContext {
         if (!::testContext.isInitialized) error("Testing context is not initialized")
         val builder = SimpleDataContext.builder().setParent(testContext)
+        customizer?.invoke(builder)
+        return builder.build()
+    }
+
+    protected fun getProjectContext(customizer: ((SimpleDataContext.Builder) -> SimpleDataContext.Builder)? = null): DataContext {
+        if (!::testContext.isInitialized) error("Testing context is not initialized")
+        val builder = SimpleDataContext.builder().setParent(testContext)
+        builder.add(CommonDataKeys.PROJECT, project)
         customizer?.invoke(builder)
         return builder.build()
     }

@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 package works.szabope.plugins.common.services
 
 import com.intellij.openapi.project.Project
@@ -19,5 +21,5 @@ interface IPackageManagementFacade {
     fun getSdk(): Sdk?
     fun isInstalled(): Boolean
 
-    suspend fun install(): PackageManagementService.ErrorDescription?
+    suspend fun installRequirement(): PackageManagementService.ErrorDescription?
 }

@@ -16,8 +16,6 @@ import kotlin.io.path.absolutePathString
 @TestDataPath("\$CONTENT_ROOT/testData/severity")
 class SeverityFilterTest : AbstractToolWindowTestCase() {
 
-    private val treeUtil = TreeTestUtil(tree)
-
     override fun getTestDataPath() = "src/test/testData/severity"
 
     override fun setUp() {
@@ -33,6 +31,7 @@ class SeverityFilterTest : AbstractToolWindowTestCase() {
 
     fun `test all filters selected shows all items`() {
         setSelectedFilters(*pylintSeverityConfigs.keys.toTypedArray())
+        val treeUtil = TreeTestUtil(tree)
         runBlocking {
             waitUntilAssertSucceeds { treeUtil.assertStructure("+Found 6 issue(s) in 1 file(s)\n") }.also {
                 treeUtil.expandAll()
@@ -53,6 +52,7 @@ class SeverityFilterTest : AbstractToolWindowTestCase() {
 
     fun `test no filters selected shows no items`() {
         setSelectedFilters()
+        val treeUtil = TreeTestUtil(tree)
         runBlocking {
             waitUntilAssertSucceeds { treeUtil.assertStructure("Found 0 issue(s) in 0 file(s)\n") }.also {
                 treeUtil.expandAll()
@@ -63,6 +63,7 @@ class SeverityFilterTest : AbstractToolWindowTestCase() {
 
     fun `test convention selected shows convention-related items only`() {
         setSelectedFilters("convention")
+        val treeUtil = TreeTestUtil(tree)
         runBlocking {
             waitUntilAssertSucceeds { treeUtil.assertStructure("+Found 1 issue(s) in 1 file(s)\n") }.also {
                 treeUtil.expandAll()

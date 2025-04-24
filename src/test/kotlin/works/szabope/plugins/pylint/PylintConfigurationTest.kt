@@ -10,12 +10,12 @@ import com.jetbrains.python.target.PyTargetAwareAdditionalData
 import io.mockk.*
 import junit.framework.TestCase
 import kotlinx.coroutines.runBlocking
-import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.common.dialog.IDialogManager
+import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.dialog.PylintExecutionErrorDialog
 import works.szabope.plugins.pylint.services.OldPylintSettings
-import works.szabope.plugins.pylint.services.PylintPackageManagementFacade
 import works.szabope.plugins.pylint.services.cli.Cli
+import works.szabope.plugins.pylint.testutil.PylintAction
 import works.szabope.plugins.pylint.testutil.TestDialogManager
 import works.szabope.plugins.pylint.testutil.TestDialogWrapper
 import java.io.File
@@ -74,7 +74,7 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
     }
 
     fun testProjectSdkSelectedWhenSet() = withMockSdk(mockSdkPath) {
-        runBlocking { PylintPackageManagementFacade(project).install() }
+        PylintAction.installPylint(getProjectContext())
         val settings = Settings.getInstance(project)
         settings.reset()
         runBlocking { triggerReconfiguration() }
@@ -85,7 +85,7 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
     }
 
     fun testProjectSdkNotSelectedWhenWsl() = withMockSdk(mockSdkPath) { packageManager ->
-        runBlocking { PylintPackageManagementFacade(project).install() }
+        PylintAction.installPylint(getProjectContext())
         // let's lie that it's WSL
         val mockSdk = packageManager.sdk
         val mockAdditionalData = mockk<PyTargetAwareAdditionalData>()

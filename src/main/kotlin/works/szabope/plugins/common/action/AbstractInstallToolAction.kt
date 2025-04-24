@@ -20,6 +20,7 @@ class InstallationToolActionConfig(
     val messageInstallationFailed: String,
 )
 
+@Suppress("removal")
 abstract class AbstractInstallToolAction(private val config: InstallationToolActionConfig) : DumbAwareAction() {
     abstract fun getPackageManager(project: Project): PackageManagementFacade
 
@@ -27,7 +28,7 @@ abstract class AbstractInstallToolAction(private val config: InstallationToolAct
         val project = e.project ?: return
         runWithModalProgressBlocking(project, config.messageInstalling) {
             withContext(Dispatchers.EDT) {
-                val errorDescription = getPackageManager(project).install()
+                val errorDescription = getPackageManager(project).installRequirement()
                 if (errorDescription == null) {
                     notifyPanel(project, config.messageInstalled)
                     migrateSettings(project)

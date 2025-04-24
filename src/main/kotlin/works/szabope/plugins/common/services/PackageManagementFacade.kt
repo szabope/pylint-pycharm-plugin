@@ -1,4 +1,4 @@
-@file:Suppress("removal", "UnstableApiUsage")
+@file:Suppress("UnstableApiUsage")
 
 package works.szabope.plugins.common.services
 
@@ -14,7 +14,8 @@ import com.jetbrains.python.packaging.ui.PyPackageManagementService
 import com.jetbrains.python.sdk.PythonSdkUtil
 import com.jetbrains.python.sdk.pythonSdk
 
-abstract class PackageManagementFacade(private val requirement: PyRequirement) : IPackageManagementFacade {
+@Suppress("removal")
+abstract class PackageManagementFacade : IPackageManagementFacade {
 
     override fun canInstall(): Boolean {
         val sdk = getSdk() ?: return false
@@ -34,7 +35,7 @@ abstract class PackageManagementFacade(private val requirement: PyRequirement) :
     }
 
     override fun getInstalledVersion(): Version? {
-        return getPackageManager()?.installedPackages?.firstOrNull { it.name == requirement.name }?.version?.let {
+        return getPackageManager()?.installedPackages?.firstOrNull { it.name == getRequirement().name }?.version?.let {
             Version.parseVersion(
                 it
             )
@@ -42,10 +43,10 @@ abstract class PackageManagementFacade(private val requirement: PyRequirement) :
     }
 
     override fun isVersionSupported(version: Version): Boolean {
-        return requirement.match(
+        return getRequirement().match(
             mutableListOf(
                 PyPackage(
-                    "pylint", "${version.major}.${version.minor}.${version.bugfix}"
+                    getRequirement().name, "${version.major}.${version.minor}.${version.bugfix}"
                 )
             )
         ) != null
@@ -63,16 +64,20 @@ abstract class PackageManagementFacade(private val requirement: PyRequirement) :
         return getInstalledVersion() != null
     }
 
-    override suspend fun install(): PackageManagementService.ErrorDescription? {
-        if (isInstalled()) return null
+    override suspend fun installRequirement(): PackageManagementService.ErrorDescription? {
         val packageManager = getPackageManager()!!
+        val requirement = getRequirement()
+        val versionSpec = requirement.versionSpecs.firstOrNull()
+        val specification = PythonSimplePackageSpecification(
+            requirement.name, versionSpec?.version, null, versionSpec?.relation
+        )
         try {
-            packageManager.installPackage(
-                PythonSimplePackageSpecification(requirement.name, null, null, null), emptyList()
-            ).getOrThrow()
+            packageManager.installPackage(specification, options = emptyList()).getOrThrow()
         } catch (ex: PyExecutionException) {
             return PyPackageManagementService.toErrorDescription(listOf(ex), getSdk(), requirement.name)
         }
         return null
     }
+
+    protected abstract fun getRequirement(): PyRequirement
 }

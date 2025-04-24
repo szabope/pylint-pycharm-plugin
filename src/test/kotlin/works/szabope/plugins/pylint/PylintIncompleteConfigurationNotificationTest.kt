@@ -78,10 +78,7 @@ class PylintIncompleteConfigurationNotificationTest : AbstractToolWindowTestCase
     }
 
     private fun getAnActionEvent(notification: Notification): AnActionEvent {
-        val context = getContext {
-            it.add(CommonDataKeys.PROJECT, project)
-            it.add(Notification.KEY, notification)
-        }
+        val context = getProjectContext { it.add(Notification.KEY, notification) }
         return AnActionEvent.createEvent(context, null, ActionPlaces.NOTIFICATION, ActionUiKind.NONE, null)
     }
 

@@ -15,13 +15,10 @@ import works.szabope.plugins.pylint.services.pylintSeverityConfigs
 internal open class PylintToolWindowFactory : ToolWindowFactory, DumbAware {
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-        val panel = PylintToolWindowPanel(project, createTreeManager(pylintSeverityConfigs.keys))
+        val panel = PylintToolWindowPanel(project, TreeManager(severities = pylintSeverityConfigs.keys))
         val content =
             ContentFactory.getInstance().createContent(panel, PylintBundle.message("pylint.toolwindow.name"), false)
         toolWindow.contentManager.addContent(content)
         toolWindow.setType(ToolWindowType.DOCKED, null)
     }
-
-    @VisibleForTesting
-    protected open fun createTreeManager(severities: Set<String>) = TreeManager(severities = severities)
 }

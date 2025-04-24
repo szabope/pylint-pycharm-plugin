@@ -9,7 +9,6 @@ import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.AbstractToolWindowTestCase
 import works.szabope.plugins.pylint.services.AsyncScanService
-import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.testutil.rescan
 import works.szabope.plugins.pylint.testutil.scan
 import java.nio.file.Paths
@@ -17,8 +16,6 @@ import kotlin.io.path.absolutePathString
 
 @TestDataPath("\$CONTENT_ROOT/testData/action/rescan")
 class RescanTest : AbstractToolWindowTestCase() {
-
-    private val treeUtil = TreeTestUtil(tree)
 
     override fun getTestDataPath() = "src/test/testData/action/rescan"
 
@@ -42,6 +39,7 @@ class RescanTest : AbstractToolWindowTestCase() {
         Settings.getInstance(project).executablePath =
             Paths.get(testDataPath).resolve("pylint2").absolutePathString()
         rescan(getContext())
+        val treeUtil = TreeTestUtil(tree)
         runBlocking {
             waitUntilAssertSucceeds { treeUtil.assertStructure("+Found 1 issue(s) in 1 file(s)\n") }.also {
                 treeUtil.expandAll()

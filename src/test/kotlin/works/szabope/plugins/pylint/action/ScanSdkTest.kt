@@ -15,10 +15,10 @@ import com.intellij.testFramework.common.waitUntilAssertSucceeds
 import com.intellij.testFramework.workspaceModel.updateProjectModel
 import com.intellij.ui.tree.TreeTestUtil
 import kotlinx.coroutines.runBlocking
+import works.szabope.plugins.common.dialog.IDialogManager
 import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.AbstractToolWindowTestCase
-import works.szabope.plugins.common.dialog.IDialogManager
-import works.szabope.plugins.pylint.services.PylintPackageManagementFacade
+import works.szabope.plugins.pylint.testutil.PylintAction
 import works.szabope.plugins.pylint.testutil.TestDialogManager
 import works.szabope.plugins.pylint.testutil.scan
 import java.net.URL
@@ -29,7 +29,6 @@ import kotlin.io.path.absolutePathString
 @TestDataPath("\$CONTENT_ROOT/testData/action/scan_sdk")
 class ScanSdkTest : AbstractToolWindowTestCase() {
 
-    private val treeUtil = TreeTestUtil(tree)
     private lateinit var dialogManager: TestDialogManager
 
     override fun getTestDataPath() = "src/test/testData/action/scan_sdk"
@@ -46,7 +45,7 @@ class ScanSdkTest : AbstractToolWindowTestCase() {
 
     fun testManualScan() = withMockSdk("${Paths.get(testDataPath).absolutePathString()}/MockSdk") {
         myFixture.copyDirectoryToProject("/", "/")
-        runBlocking { PylintPackageManagementFacade(project).install() }
+        PylintAction.installPylint(getProjectContext())
         setUpSettings()
         val workspaceModel = WorkspaceModel.getInstance(project)
         val excludedDir = workspaceModel.currentSnapshot.entities(ContentRootEntity::class.java).first().url.append(
@@ -75,6 +74,7 @@ class ScanSdkTest : AbstractToolWindowTestCase() {
         }
         val target = workspaceModel.currentSnapshot.entities(ContentRootEntity::class.java).first().url.virtualFile!!
         scan(getContext { it.add(CommonDataKeys.VIRTUAL_FILE_ARRAY, arrayOf(target)) })
+        val treeUtil = TreeTestUtil(tree)
         runBlocking {
             waitUntilAssertSucceeds {
                 treeUtil.assertStructure("+Found 2 issue(s) in 1 file(s)\n")

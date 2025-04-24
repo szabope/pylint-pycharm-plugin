@@ -16,6 +16,7 @@ import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.EditSourceOnDoubleClickHandler
 import com.intellij.util.EditSourceOnEnterKeyHandler
 import com.intellij.util.ui.JBUI
+import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import javax.swing.Box
 import kotlin.io.path.Path
@@ -43,6 +44,9 @@ abstract class AbstractToolWindowPanel(private val project: Project, private val
         }
         super.uiDataSnapshot(sink)
     }
+
+    @TestOnly
+    fun getTree() = treeManager.tree
 
     private fun addPane(tree: Tree) {
         add(JBScrollPane(tree), BorderLayout.CENTER)
