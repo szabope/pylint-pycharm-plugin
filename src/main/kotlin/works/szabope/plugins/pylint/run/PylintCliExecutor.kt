@@ -9,10 +9,9 @@ import works.szabope.plugins.common.services.tool.ToolOutputHandler
 import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.services.Exclusions
 import works.szabope.plugins.pylint.services.cli.PythonEnvironmentAwareCli
-import works.szabope.plugins.pylint.services.parser.PylintMessage
 import works.szabope.plugins.pylint.services.parser.PylintParserException
 
-class PylintCliExecutor(private val project: Project) : IPylintExecutor<PylintMessage> {
+class PylintCliExecutor(private val project: Project) : IPylintExecutor {
 
     class CommandExecutionException(val command: String, val statusCode: Int, val stderr: String) :
         RuntimeException(statusCode.toString())
@@ -22,7 +21,7 @@ class PylintCliExecutor(private val project: Project) : IPylintExecutor<PylintMe
     override suspend fun execute(
         configuration: ImmutableSettingsData,
         targets: Collection<VirtualFile>,
-        resultHandler: ToolOutputHandler<PylintMessage>
+        resultHandler: ToolOutputHandler
     ) {
         require(!configuration.useProjectSdk) { "Configuration mismatch" }
         val command = buildCommand(configuration, targets)

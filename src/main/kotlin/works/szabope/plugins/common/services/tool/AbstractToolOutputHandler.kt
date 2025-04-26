@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import works.szabope.plugins.common.services.ToolResult
 import works.szabope.plugins.common.services.ToolResultItem
 
-abstract class AbstractToolOutputHandler<I : ToolResultItem> : ToolOutputHandler<I> {
+abstract class AbstractToolOutputHandler<I : ToolResultItem> : ToolOutputHandler {
 
     override suspend fun handle(stdout: Flow<String>) {
         val items = parse(stdout)
