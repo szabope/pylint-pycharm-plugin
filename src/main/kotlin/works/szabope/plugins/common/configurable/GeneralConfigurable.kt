@@ -7,7 +7,6 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.ActionUtil
-import com.intellij.openapi.components.BaseState
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.observable.properties.AtomicBooleanProperty
 import com.intellij.openapi.options.BoundSearchableConfigurable
@@ -43,7 +42,8 @@ data class ConfigurableConfiguration(
     val recommendedArguments: String,
 )
 
-abstract class GeneralConfigurable<T : BaseState>(
+@Suppress("UnstableApiUsage")
+abstract class GeneralConfigurable(
     private val project: Project, private val config: ConfigurableConfiguration
 ) : BoundSearchableConfigurable(config.displayName, config.helpTopic, config.id), Configurable.NoScroll {
 
@@ -86,6 +86,7 @@ abstract class GeneralConfigurable<T : BaseState>(
             Align.FILL
         )
         lateinit var result: Cell<JButton>
+        @Suppress("AssignedValueIsNeverRead")
         result = button(config.installButtonText) {
             val dataContext = DataManager.getInstance().getDataContext(result.component)
             val event = AnActionEvent.createEvent(
@@ -104,7 +105,8 @@ abstract class GeneralConfigurable<T : BaseState>(
 
     private fun Panel.toolPicker() = buttonsGroup(title = config.pickerTitle) {
         row {
-            val executableOption = radioButton(config.pickerDirectOptionTitle, !USE_PROJECT_SDK)
+            @Suppress("KotlinConstantConditions") val executableOption =
+                radioButton(config.pickerDirectOptionTitle, !USE_PROJECT_SDK)
             executableOption.component
             val executableChooserDescriptor =
                 FileChooserDescriptor(true, false, false, false, false, false).withFileFilter(

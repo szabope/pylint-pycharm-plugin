@@ -10,11 +10,9 @@ import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.action.InstallPylintAction
 import works.szabope.plugins.pylint.services.PylintPackageManagementFacade
-import works.szabope.plugins.pylint.services.PylintSettings
 
-class PylintConfigurable(private val project: Project) : GeneralConfigurable<PylintSettings.PylintState>(
-    project,
-    ConfigurableConfiguration(
+class PylintConfigurable(private val project: Project) : GeneralConfigurable(
+    project, ConfigurableConfiguration(
         PylintBundle.message("pylint.configurable.name"),
         PylintBundle.message("pylint.configurable.name"),
         ID,
