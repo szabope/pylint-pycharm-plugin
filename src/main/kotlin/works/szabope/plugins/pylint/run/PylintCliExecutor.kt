@@ -19,21 +19,24 @@ class PylintCliExecutor(private val project: Project) : IPylintExecutor {
     class ParseFailedException(val command: String, val sourceJson: String, cause: Exception) : RuntimeException(cause)
 
     override suspend fun execute(
-        configuration: ImmutableSettingsData,
-        targets: Collection<VirtualFile>,
-        resultHandler: ToolOutputHandler
-    ) {
+        configuration: ImmutableSettingsData, targets: Collection<VirtualFile>, resultHandler: ToolOutputHandler
+    ): Result<Unit> {
         require(!configuration.useProjectSdk) { "Configuration mismatch" }
         val command = buildCommand(configuration, targets)
         val cliResult = PythonEnvironmentAwareCli(project).execute(command = command, configuration.projectDirectory)
         if (cliResult.resultCode != 0) {
-            throw CommandExecutionException(command.joinToString(" "), cliResult.resultCode, cliResult.stderr)
+            return Result.failure(
+                CommandExecutionException(
+                    command.joinToString(" "), cliResult.resultCode, cliResult.stderr
+                )
+            )
         }
         try {
             resultHandler.handle(flow { emit(cliResult.stdout) })
         } catch (e: PylintParserException) {
-            throw ParseFailedException(command.joinToString(" "), e.sourceJson, e)
+            return Result.failure(ParseFailedException(command.joinToString(" "), e.sourceJson, e))
         }
+        return Result.success(Unit)
     }
 
     private fun buildCommand(configuration: ImmutableSettingsData, targets: Collection<VirtualFile>) =

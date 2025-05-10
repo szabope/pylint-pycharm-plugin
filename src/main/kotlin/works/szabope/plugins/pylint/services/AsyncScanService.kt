@@ -2,6 +2,7 @@ package works.szabope.plugins.pylint.services
 
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.vfs.VirtualFile
@@ -10,11 +11,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
+import works.szabope.plugins.common.dialog.IDialogManager
 import works.szabope.plugins.common.services.ImmutableSettingsData
 import works.szabope.plugins.common.services.ScanService
 import works.szabope.plugins.common.services.tool.AbstractToolOutputHandler
 import works.szabope.plugins.pylint.PylintBundle
-import works.szabope.plugins.common.dialog.IDialogManager
 import works.szabope.plugins.pylint.run.PylintCliExecutor
 import works.szabope.plugins.pylint.run.PylintCliExecutor.ParseFailedException
 import works.szabope.plugins.pylint.run.PylintSdkExecutor
@@ -35,27 +36,39 @@ class AsyncScanService(private val project: Project, private val cs: CoroutineSc
         configuration: ImmutableSettingsData,
         resultHandler: AbstractToolOutputHandler<PylintMessage>
     ) {
-        if (configuration.useProjectSdk) {
-            manualScanJob = cs.launch {
+        manualScanJob = if (configuration.useProjectSdk) {
+            cs.launch {
                 PylintSdkExecutor(project).execute(configuration, targets, resultHandler)
+                    .onFailure { ex -> handleException(ex) }
             }
         } else {
-            manualScanJob = cs.launch {
-                try {
-                    PylintCliExecutor(project).execute(configuration, targets, resultHandler)
-                } catch (e: ParseFailedException) { //TODO: make useProjectSdk throw same exs; move these to caller
-                    showClickableBalloonError(PylintBundle.message("pylint.toolwindow.balloon.parse_error")) {
-                        IDialogManager.showToolOutputParseErrorDialog(
-                            e.command, e.sourceJson, e.cause?.message ?: "N/A"
-                        )
-                    }
-                } catch (e: PylintCliExecutor.CommandExecutionException) {
-                    showClickableBalloonError(PylintBundle.message("pylint.toolwindow.balloon.external_error")) {
-                        IDialogManager.showToolExecutionErrorDialog(
-                            e.command, e.stderr, e.statusCode
-                        )
-                    }
+            cs.launch {
+                PylintCliExecutor(project).execute(configuration, targets, resultHandler)
+                    .onFailure { ex -> handleException(ex) }
+            }
+        }
+    }
+
+    private fun handleException(e: Throwable) {
+        when (e) {
+            is ParseFailedException -> {
+                showClickableBalloonError(PylintBundle.message("pylint.toolwindow.balloon.parse_error")) {
+                    IDialogManager.showToolOutputParseErrorDialog(
+                        e.command, e.sourceJson, e.cause?.message ?: "N/A"
+                    )
                 }
+            }
+
+            is PylintCliExecutor.CommandExecutionException -> {
+                showClickableBalloonError(PylintBundle.message("pylint.toolwindow.balloon.external_error")) {
+                    IDialogManager.showToolExecutionErrorDialog(
+                        e.command, e.stderr, e.statusCode
+                    )
+                }
+            }
+
+            else -> {
+                thisLogger().error(PylintBundle.message("pylint.please_report_this_issue"), e)
             }
         }
     }

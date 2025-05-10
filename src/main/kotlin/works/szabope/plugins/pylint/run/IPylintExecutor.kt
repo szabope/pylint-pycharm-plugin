@@ -9,5 +9,5 @@ interface IPylintExecutor {
         configuration: ImmutableSettingsData,
         targets: Collection<VirtualFile>,
         resultHandler: ToolOutputHandler
-    )
+    ): Result<Unit>
 }

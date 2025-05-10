@@ -24,8 +24,9 @@ abstract class PublishingToolOutputHandler<I : ToolResultItem>(
         }
     }
 
-    override suspend fun handle(stdout: Flow<String>) {
-        super.handle(stdout)
+    override suspend fun handle(stdout: Flow<String>): Result<Unit> {
+        super.handle(stdout).onFailure { return Result.failure(it) }
         ActivityTracker.getInstance().inc()
+        return Result.success(Unit)
     }
 }

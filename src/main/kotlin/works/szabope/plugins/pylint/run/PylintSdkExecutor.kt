@@ -32,7 +32,7 @@ class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
         configuration: ImmutableSettingsData,
         targets: Collection<VirtualFile>,
         resultHandler: ToolOutputHandler
-    ) {
+    ): Result<Unit> {
         require(configuration.useProjectSdk) { "Configuration mismatch" }
         val environment = createEnvironment(configuration, targets)
         val futureProcessHandler = CompletableFuture<ProcessHandler>()
@@ -42,8 +42,9 @@ class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
         }
         val processHandler = futureProcessHandler.await()
         processHandler.collectOutput { outputType -> outputType == ProcessOutputType.STDOUT }.let { stdoutFlow ->
-            resultHandler.handle(stdoutFlow)
+            resultHandler.handle(stdoutFlow).onFailure { ex -> return Result.failure(ex) }
         }
+        return Result.success(Unit)
     }
 
     private fun createEnvironment(

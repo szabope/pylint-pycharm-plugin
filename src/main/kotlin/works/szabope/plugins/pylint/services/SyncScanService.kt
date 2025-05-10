@@ -14,6 +14,7 @@ import works.szabope.plugins.pylint.run.PylintCliExecutor
 import works.szabope.plugins.pylint.run.PylintCliExecutor.ParseFailedException
 import works.szabope.plugins.pylint.run.PylintSdkExecutor
 import works.szabope.plugins.pylint.services.parser.PylintMessage
+import works.szabope.plugins.pylint.services.parser.PylintParserException
 
 @Service(Service.Level.PROJECT)
 class SyncScanService(private val project: Project) : ScanService<PylintMessage> {
@@ -31,16 +32,26 @@ class SyncScanService(private val project: Project) : ScanService<PylintMessage>
                 PylintSdkExecutor(project).execute(configuration, targets, resultHandler)
             }
         } else {
-            try {
-                runBlockingCancellable { PylintCliExecutor(project).execute(configuration, targets, resultHandler) }
-            } catch (e: ParseFailedException) {
-                logger.warn(PylintBundle.message("pylint.executable.parsing-result-failed", e))
-            } catch (e: PylintCliExecutor.CommandExecutionException) {
-                logger.warn(
-                    PylintBundle.message(
-                        "pylint.executable.error", e.command, e.statusCode, e.stderr
+            runBlockingCancellable { PylintCliExecutor(project).execute(configuration, targets, resultHandler) }
+        }.onFailure { error ->
+            when (error) {
+                is ParseFailedException -> {
+                    logger.error(PylintBundle.message("pylint.executable.parsing-result-failed", configuration), error)
+                }
+
+                is PylintParserException -> {
+                    logger.error(PylintBundle.message("pylint.executable.parsing-result-failed", configuration), error)
+                }
+
+                is PylintCliExecutor.CommandExecutionException -> {
+                    logger.error(
+                        PylintBundle.message(
+                            "pylint.executable.error", error.command, error.statusCode, error.stderr
+                        ), error
                     )
-                )
+                }
+
+                else -> logger.error(PylintBundle.message("pylint.please_report_this_issue"), error)
             }
         }
     }
