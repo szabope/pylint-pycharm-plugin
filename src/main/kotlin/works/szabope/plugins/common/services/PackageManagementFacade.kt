@@ -1,4 +1,4 @@
-@file:Suppress("UnstableApiUsage")
+@file:Suppress("UnstableApiUsage", "removal")
 
 package works.szabope.plugins.common.services
 
@@ -72,7 +72,7 @@ abstract class PackageManagementFacade : IPackageManagementFacade {
             requirement.name, versionSpec?.version, null, versionSpec?.relation
         )
         try {
-            packageManager.installPackage(specification, options = emptyList()).getOrThrow()
+            packageManager.installPackage(specification, options = emptyList(), true).getOrThrow()
         } catch (ex: PyExecutionException) {
             return PyPackageManagementService.toErrorDescription(listOf(ex), getSdk(), requirement.name)
         }
