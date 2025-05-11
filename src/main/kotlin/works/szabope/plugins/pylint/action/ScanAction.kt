@@ -6,6 +6,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.wm.ToolWindowManager
 import com.jetbrains.python.PythonFileType
 import com.jetbrains.python.pyi.PyiFileType
 import works.szabope.plugins.common.services.Settings
@@ -23,7 +24,7 @@ open class ScanAction : DumbAwareAction() {
         FileDocumentManager.getInstance().saveAllDocuments()
         AsyncScanService.getInstance(project)
             .scan(targets, Settings.getInstance(project).getData(), PylintPublishingToolOutputHandler(project))
-        PylintToolWindowPanel.getInstance(project).isVisible = true
+        ToolWindowManager.getInstance(project).getToolWindow(PylintToolWindowPanel.ID)?.show()
     }
 
     override fun update(event: AnActionEvent) {

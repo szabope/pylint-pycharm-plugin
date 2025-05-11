@@ -4,6 +4,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.CheckinProjectPanel
 import com.intellij.openapi.vcs.checkin.*
 import com.intellij.openapi.vcs.ui.RefreshableOnComponent
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.platform.util.progress.withProgressText
 import com.intellij.ui.dsl.builder.panel
 import kotlinx.coroutines.Dispatchers
@@ -74,10 +75,7 @@ class PylintCheckinHandler(private val panel: CheckinProjectPanel) : CheckinHand
                 scanResults.map { PylintMessageConverter.convert(it) }.forEach {
                     treeManager.add(it)
                 }
-                with(PylintToolWindowPanel.getInstance(project)) {
-                    isVisible = true
-                    requestFocusInWindow()
-                }
+                ToolWindowManager.getInstance(project).getToolWindow(PylintToolWindowPanel.ID)?.show()
             }
         }
     }

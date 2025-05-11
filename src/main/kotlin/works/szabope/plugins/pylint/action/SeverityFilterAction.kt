@@ -16,9 +16,7 @@ class SeverityFilterAction(private val config: SeverityConfig) :
     }
 
     override fun isSelected(event: AnActionEvent): Boolean {
-        val project = requireNotNull(event.project) {
-            PylintBundle.message("pylint.please_report_this_issue")
-        }
+        val project = event.project ?: return true
         return TreeManager.getInstance(project).isSeverityLevelDisplayed(config.level)
     }
 
