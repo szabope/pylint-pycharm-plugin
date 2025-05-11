@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.PropertyKey
 
 @NonNls
-private const val BUNDLE = "messages.CommonBundle"
+private const val BUNDLE = "messages.works_szabope_plugins_CommonBundle"
 
 object CommonBundle {
 
