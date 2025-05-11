@@ -1,17 +1,22 @@
 package works.szabope.plugins.common.toolWindow
 
 import com.intellij.ide.DefaultTreeExpander
-import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.openapi.actionSystem.DataSink
-import com.intellij.openapi.actionSystem.PlatformDataKeys
-import com.intellij.openapi.actionSystem.UiDataProvider
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.tree.TreeUtil
+import works.szabope.plugins.pylint.services.pylintSeverityConfigs
 
-class TreeManager(val tree: Tree = Tree(), severities: Set<String>) : UiDataProvider {
+@Service(Service.Level.PROJECT)
+class TreeManager {
+    val tree: Tree = Tree()
+    private val severities = pylintSeverityConfigs.keys
+
     private val severityManager = SeverityManager(severities)
-    val modelManager = TreeModelManager(severityManager::isSeverityLevelDisplayed)
-    private val treeExpander = DefaultTreeExpander(tree)
+    private val modelManager = TreeModelManager(severityManager::isSeverityLevelDisplayed)
+    val treeExpander = DefaultTreeExpander(tree)
 
     init {
         severityManager.addChangeListener {
@@ -20,19 +25,30 @@ class TreeManager(val tree: Tree = Tree(), severities: Set<String>) : UiDataProv
         modelManager.install(tree)
     }
 
-    override fun uiDataSnapshot(sink: DataSink) {
-        sink[PlatformDataKeys.TREE_EXPANDER] = treeExpander
-        sink[SEVERITY_MANAGER] = severityManager
-        sink[TREE_MODEL_MANAGER] = modelManager
+    fun getSelectedNodeUserObject() = TreeUtil.getLastUserObject(tree.selectionPath)
+
+    fun getRootScanPaths() = modelManager.getRootScanPaths()
+
+    fun reinitialize(targets: Collection<VirtualFile>) {
+        modelManager.reinitialize(targets)
     }
 
-    fun getSelectedNodeUserObject() = TreeUtil.getLastUserObject(tree.selectionPath)
+    fun addChangeListener(onModelChange: () -> Unit) {
+        modelManager.addChangeListener(onModelChange)
+    }
+
+    fun isSeverityLevelDisplayed(level: String) = severityManager.isSeverityLevelDisplayed(level)
+
+    fun setSeverityLevelDisplayed(level: String, selected: Boolean) {
+        severityManager.setSeverityLevelDisplayed(level, selected)
+    }
+
+    fun add(item: TreeModelDataItem) {
+        modelManager.add(item)
+    }
 
     companion object {
         @JvmStatic
-        val SEVERITY_MANAGER: DataKey<SeverityManager> = DataKey.create("SeverityManager")
-
-        @JvmStatic
-        val TREE_MODEL_MANAGER: DataKey<TreeModelManager> = DataKey.create("TreeModelManager")
+        fun getInstance(project: Project): TreeManager = project.service()
     }
 }

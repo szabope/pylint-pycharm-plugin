@@ -16,17 +16,17 @@ class SeverityFilterAction(private val config: SeverityConfig) :
     }
 
     override fun isSelected(event: AnActionEvent): Boolean {
-        val severityManager = requireNotNull(event.getData(TreeManager.SEVERITY_MANAGER)) {
+        val project = requireNotNull(event.project) {
             PylintBundle.message("pylint.please_report_this_issue")
         }
-        return severityManager.isSeverityLevelDisplayed(config.level)
+        return TreeManager.getInstance(project).isSeverityLevelDisplayed(config.level)
     }
 
     override fun setSelected(event: AnActionEvent, selected: Boolean) {
-        val severityManager = requireNotNull(event.getData(TreeManager.SEVERITY_MANAGER)) {
+        val project = requireNotNull(event.project) {
             PylintBundle.message("pylint.please_report_this_issue")
         }
-        severityManager.setSeverityLevelDisplayed(config.level, selected)
+        TreeManager.getInstance(project).setSeverityLevelDisplayed(config.level, selected)
     }
 
     @VisibleForTesting

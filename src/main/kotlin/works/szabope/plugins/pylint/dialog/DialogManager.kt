@@ -1,5 +1,5 @@
 // inspired by idea/243.19420.21 git4idea.DialogManager
-@file:Suppress("removal")
+@file:Suppress("removal", "DEPRECATION")
 
 package works.szabope.plugins.pylint.dialog
 
@@ -11,6 +11,7 @@ import com.jetbrains.python.packaging.ui.PyPackageManagementService.PyPackageIns
 import org.jetbrains.annotations.Nls
 import works.szabope.plugins.common.dialog.IDialogManager
 import works.szabope.plugins.common.dialog.PluginDialog
+import works.szabope.plugins.common.services.ImmutableSettingsData
 
 private fun DialogWrapper.toPylintDialog() = object : PluginDialog {
     override fun show() = this@toPylintDialog.show()
@@ -30,6 +31,10 @@ class DialogManager : IDialogManager {
     override fun createToolExecutionErrorDialog(command: String, result: String, resultCode: Int) =
         PylintExecutionErrorDialog(command, result, resultCode).toPylintDialog()
 
-    override fun createToolOutputParseErrorDialog(command: String, commandOutput: String, error: String) =
-        PylintParseErrorDialog(command, commandOutput, error).toPylintDialog()
+    override fun createToolOutputParseErrorDialog(
+        configuration: ImmutableSettingsData,
+        targets: String,
+        json: String,
+        error: String
+    ) = PylintParseErrorDialog(configuration, targets, json, error).toPylintDialog()
 }

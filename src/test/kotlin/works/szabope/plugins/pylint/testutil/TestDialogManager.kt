@@ -1,5 +1,5 @@
 // inspired by idea/243.19420.21 git4idea.test.TestDialogManager
-@file:Suppress("removal")
+@file:Suppress("removal", "DEPRECATION")
 
 package works.szabope.plugins.pylint.testutil
 
@@ -12,6 +12,7 @@ import com.jetbrains.python.packaging.ui.PyPackageManagementService
 import org.junit.Assert.assertNull
 import works.szabope.plugins.common.dialog.IDialogManager
 import works.szabope.plugins.common.dialog.PluginDialog
+import works.szabope.plugins.common.services.ImmutableSettingsData
 import works.szabope.plugins.pylint.dialog.PylintExecutionErrorDialog
 import works.szabope.plugins.pylint.dialog.PylintParseErrorDialog
 
@@ -44,8 +45,9 @@ class TestDialogManager : IDialogManager {
     override fun createToolExecutionErrorDialog(command: String, result: String, resultCode: Int) =
         TestDialogWrapper(PylintExecutionErrorDialog::class.java, command, result, resultCode)
 
-    override fun createToolOutputParseErrorDialog(command: String, commandOutput: String, error: String) =
-        TestDialogWrapper(PylintParseErrorDialog::class.java, command, commandOutput, error)
+    override fun createToolOutputParseErrorDialog(
+        configuration: ImmutableSettingsData, targets: String, json: String, error: String
+    ) = TestDialogWrapper(PylintParseErrorDialog::class.java, configuration, targets, json, error)
 
     fun onDialog(dialogClass: Class<out DialogWrapper>, handler: (TestDialogWrapper) -> Int) {
         assertNull(myHandlers.put(dialogClass, handler))

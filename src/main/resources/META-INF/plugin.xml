@@ -34,10 +34,6 @@
         <projectService serviceInterface="works.szabope.plugins.common.services.Settings"
                         serviceImplementation="works.szabope.plugins.pylint.services.PylintSettings" />
     </extensions>
-    <projectListeners>
-        <listener class="works.szabope.plugins.pylint.messages.PylintTreeListener"
-                  topic="works.szabope.plugins.common.messages.TreeListener"/>
-    </projectListeners>
 
     <actions>
         <group id="works.szabope.plugins.pylint.PylintPluginActions" text="Pylint" popup="true">

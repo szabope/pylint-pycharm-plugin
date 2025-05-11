@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
-class PylintParserException(val sourceJson: String, cause: SerializationException) :
+class PylintParseException(val sourceJson: String, override val cause: SerializationException) :
     SerializationException(sourceJson, cause)
 
 object PylintJson2OutputParser {
@@ -19,13 +19,13 @@ object PylintJson2OutputParser {
     )
 
     fun parse(json: String): Result<Collection<PylintMessage>> {
-        try {
-            val messages = withUnknownKeys.decodeFromString<PylintResult>(json).messages
-            adjustForPlatform(messages)
-            return Result.success(messages)
+        val messages = try {
+            withUnknownKeys.decodeFromString<PylintResult>(json).messages
         } catch (e: SerializationException) {
-            return Result.failure(e)
+            return Result.failure(PylintParseException(json, e))
         }
+        adjustForPlatform(messages)
+        return Result.success(messages)
     }
 
     /**

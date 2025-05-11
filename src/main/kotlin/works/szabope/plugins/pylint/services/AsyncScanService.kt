@@ -17,9 +17,9 @@ import works.szabope.plugins.common.services.ScanService
 import works.szabope.plugins.common.services.tool.AbstractToolOutputHandler
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.run.PylintCliExecutor
-import works.szabope.plugins.pylint.run.PylintCliExecutor.ParseFailedException
 import works.szabope.plugins.pylint.run.PylintSdkExecutor
 import works.szabope.plugins.pylint.services.parser.PylintMessage
+import works.szabope.plugins.pylint.services.parser.PylintParseException
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 import javax.swing.event.HyperlinkEvent
 
@@ -39,22 +39,22 @@ class AsyncScanService(private val project: Project, private val cs: CoroutineSc
         manualScanJob = if (configuration.useProjectSdk) {
             cs.launch {
                 PylintSdkExecutor(project).execute(configuration, targets, resultHandler)
-                    .onFailure { ex -> handleException(ex) }
+                    .onFailure { ex -> handleException(configuration, targets, ex) }
             }
         } else {
             cs.launch {
                 PylintCliExecutor(project).execute(configuration, targets, resultHandler)
-                    .onFailure { ex -> handleException(ex) }
+                    .onFailure { ex -> handleException(configuration, targets, ex) }
             }
         }
     }
 
-    private fun handleException(e: Throwable) {
+    private fun handleException(configuration: ImmutableSettingsData, targets: Collection<VirtualFile>, e: Throwable) {
         when (e) {
-            is ParseFailedException -> {
+            is PylintParseException -> {
                 showClickableBalloonError(PylintBundle.message("pylint.toolwindow.balloon.parse_error")) {
                     IDialogManager.showToolOutputParseErrorDialog(
-                        e.command, e.sourceJson, e.cause?.message ?: "N/A"
+                        configuration, targets.joinToString(" "), e.sourceJson, e.message ?: "N/A"
                     )
                 }
             }

@@ -9,8 +9,8 @@ import com.intellij.platform.util.progress.withProgressText
 import com.intellij.ui.dsl.builder.panel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import works.szabope.plugins.common.messages.TreeListener
 import works.szabope.plugins.common.services.Settings
+import works.szabope.plugins.common.toolWindow.TreeManager
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.messages.PylintMessageConverter
 import works.szabope.plugins.pylint.services.SyncScanService
@@ -19,7 +19,6 @@ import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 import javax.swing.JCheckBox
 import javax.swing.JComponent
 
-@Suppress("UnstableApiUsage")
 class PylintCheckinHandler(private val panel: CheckinProjectPanel) : CheckinHandler(), CommitCheck {
 
     private val settings = Settings.getInstance(panel.project)
@@ -71,9 +70,10 @@ class PylintCheckinHandler(private val panel: CheckinProjectPanel) : CheckinHand
                 get() = "Review" //TODO
 
             override fun showDetails(project: Project) {
-                project.messageBus.syncPublisher(TreeListener.TOPIC).reinitialize(files)
+                val treeManager = TreeManager.getInstance(project)
+                treeManager.reinitialize(files)
                 scanResults.map { PylintMessageConverter.convert(it) }.forEach {
-                    project.messageBus.syncPublisher(TreeListener.TOPIC).add(it)
+                    treeManager.add(it)
                 }
                 ActivityTracker.getInstance().inc()
                 PylintToolWindowPanel.getInstance(project).isVisible = true

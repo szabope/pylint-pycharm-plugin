@@ -9,14 +9,11 @@ import works.szabope.plugins.common.services.tool.ToolOutputHandler
 import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.services.Exclusions
 import works.szabope.plugins.pylint.services.cli.PythonEnvironmentAwareCli
-import works.szabope.plugins.pylint.services.parser.PylintParserException
 
 class PylintCliExecutor(private val project: Project) : IPylintExecutor {
 
     class CommandExecutionException(val command: String, val statusCode: Int, val stderr: String) :
         RuntimeException(statusCode.toString())
-
-    class ParseFailedException(val command: String, val sourceJson: String, cause: Exception) : RuntimeException(cause)
 
     override suspend fun execute(
         configuration: ImmutableSettingsData, targets: Collection<VirtualFile>, resultHandler: ToolOutputHandler
@@ -31,12 +28,7 @@ class PylintCliExecutor(private val project: Project) : IPylintExecutor {
                 )
             )
         }
-        try {
-            resultHandler.handle(flow { emit(cliResult.stdout) })
-        } catch (e: PylintParserException) {
-            return Result.failure(ParseFailedException(command.joinToString(" "), e.sourceJson, e))
-        }
-        return Result.success(Unit)
+        return resultHandler.handle(flow { emit(cliResult.stdout) })
     }
 
     private fun buildCommand(configuration: ImmutableSettingsData, targets: Collection<VirtualFile>) =

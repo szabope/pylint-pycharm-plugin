@@ -1,4 +1,4 @@
-@file:Suppress("removal")
+@file:Suppress("removal", "DEPRECATION")
 
 package works.szabope.plugins.common.dialog
 
@@ -6,6 +6,7 @@ import com.intellij.openapi.components.service
 import com.intellij.webcore.packaging.PackageManagementService
 import com.jetbrains.python.packaging.ui.PyPackageManagementService.PyPackageInstallationErrorDescription
 import org.jetbrains.annotations.Nls
+import works.szabope.plugins.common.services.ImmutableSettingsData
 
 interface PluginDialog {
     fun show()
@@ -25,7 +26,9 @@ interface IDialogManager {
 
     fun createToolExecutionErrorDialog(command: String, result: String, resultCode: Int): PluginDialog
 
-    fun createToolOutputParseErrorDialog(command: String, commandOutput: String, error: String): PluginDialog
+    fun createToolOutputParseErrorDialog(
+        configuration: ImmutableSettingsData, targets: String, json: String, error: String
+    ): PluginDialog
 
     companion object {
         fun showPyPackageInstallationErrorDialog(
@@ -47,8 +50,10 @@ interface IDialogManager {
             showDialog(dialog)
         }
 
-        fun showToolOutputParseErrorDialog(command: String, commandOutput: String, error: String) = with(dialogManager()) {
-            val dialog = createToolOutputParseErrorDialog(command, commandOutput, error)
+        fun showToolOutputParseErrorDialog(
+            configuration: ImmutableSettingsData, targets: String, json: String, error: String
+        ) = with(dialogManager()) {
+            val dialog = createToolOutputParseErrorDialog(configuration, targets, json, error)
             showDialog(dialog)
         }
 

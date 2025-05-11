@@ -1,10 +1,7 @@
 package works.szabope.plugins.common.toolWindow
 
 import com.intellij.ide.ActivityTracker
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.SimpleToolWindowPanel
@@ -17,26 +14,39 @@ import com.intellij.util.EditSourceOnDoubleClickHandler
 import com.intellij.util.EditSourceOnEnterKeyHandler
 import com.intellij.util.ui.JBUI
 import org.jetbrains.annotations.TestOnly
+import works.szabope.plugins.common.services.Settings
+import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel.Companion.SCROLL_TO_SOURCE_ID
 import java.awt.BorderLayout
 import javax.swing.Box
 import kotlin.io.path.Path
 
-abstract class AbstractToolWindowPanel(private val project: Project, private val treeManager: TreeManager) :
-    SimpleToolWindowPanel(false, true) {
+abstract class AbstractToolWindowPanel(private val project: Project) : SimpleToolWindowPanel(false, true) {
 
-    fun init(toolWindowId: String, mainActionGroupId: String, autoScrollConfig: AutoScrollConfig) {
-        treeManager.modelManager.addChangeListener {
+    protected val treeManager: TreeManager get() = TreeManager.getInstance(project)
+
+    fun init(toolWindowId: String, mainActionGroupId: String) {
+        treeManager.addChangeListener {
             repaint()
             ActivityTracker.getInstance().inc()
         }
         border = JBUI.Borders.empty(1)
-        addAutoScrollToSource(autoScrollConfig)
+        addAutoScrollToSource(object : AutoScrollConfig {
+            override var isAutoScrollToSource
+                get() = Settings.getInstance(project).isAutoScrollToSource
+                set(value) {
+                    Settings.getInstance(project).isAutoScrollToSource = value
+                }
+            override val tree
+                get() = treeManager.tree
+            override val placeholderActionId = SCROLL_TO_SOURCE_ID
+
+        })
         addToolbar(toolWindowId, mainActionGroupId)
         addPane(treeManager.tree)
     }
 
     override fun uiDataSnapshot(sink: DataSink) {
-        treeManager.uiDataSnapshot(sink)
+        sink[PlatformDataKeys.TREE_EXPANDER] = treeManager.treeExpander
         sink.lazy(CommonDataKeys.NAVIGATABLE) {
             val userObject = treeManager.getSelectedNodeUserObject() as? IssueNodeUserObject? ?: return@lazy null
             val file = VfsUtil.findFile(Path(userObject.file), true) ?: return@lazy null

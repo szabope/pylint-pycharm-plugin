@@ -29,9 +29,7 @@ class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
     private val configurationFactory = PylintConfigurationType.INSTANCE.getFactory()
 
     override suspend fun execute(
-        configuration: ImmutableSettingsData,
-        targets: Collection<VirtualFile>,
-        resultHandler: ToolOutputHandler
+        configuration: ImmutableSettingsData, targets: Collection<VirtualFile>, resultHandler: ToolOutputHandler
     ): Result<Unit> {
         require(configuration.useProjectSdk) { "Configuration mismatch" }
         val environment = createEnvironment(configuration, targets)
@@ -42,7 +40,9 @@ class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
         }
         val processHandler = futureProcessHandler.await()
         processHandler.collectOutput { outputType -> outputType == ProcessOutputType.STDOUT }.let { stdoutFlow ->
-            resultHandler.handle(stdoutFlow).onFailure { ex -> return Result.failure(ex) }
+            resultHandler.handle(stdoutFlow).onFailure { ex ->
+                return Result.failure(ex)
+            }
         }
         return Result.success(Unit)
     }
