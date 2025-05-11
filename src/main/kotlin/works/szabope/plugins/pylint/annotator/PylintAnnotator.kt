@@ -16,11 +16,11 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.DocumentUtil
 import com.intellij.util.io.delete
+import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.PylintBundle
-import works.szabope.plugins.pylint.services.PylintSettings
-import works.szabope.plugins.pylint.services.ScanService
+import works.szabope.plugins.pylint.services.SyncScanService
+import works.szabope.plugins.pylint.services.parser.PylintCollectingToolOutputHandler
 import works.szabope.plugins.pylint.services.parser.PylintMessage
-import works.szabope.plugins.pylint.toRunConfiguration
 import kotlin.io.path.pathString
 import kotlin.io.path.writeText
 
@@ -35,7 +35,7 @@ internal class PylintAnnotator : ExternalAnnotator<PylintAnnotator.AnnotatorInfo
     }
 
     override fun doAnnotate(info: AnnotatorInfo): List<PylintMessage> {
-        val settings = PylintSettings.getInstance(info.project)
+        val settings = Settings.getInstance(info.project)
         settings.ensureValid()
         if (!settings.isComplete()) {
             return emptyList()
@@ -50,12 +50,13 @@ internal class PylintAnnotator : ExternalAnnotator<PylintAnnotator.AnnotatorInfo
         try {
             tempFile.toFile().deleteOnExit()
             tempFile.writeText(document.charsSequence)
-            val service = ScanService.getInstance(info.project)
-            val runConfiguration = settings.toRunConfiguration()
+            val service = SyncScanService.getInstance(info.project)
             val virtualTempFile = requireNotNull(VirtualFileManager.getInstance().findFileByNioPath(tempFile)) {
                 "Could not find virtual file at ${tempFile.toCanonicalPath()}"
             }
-            return service.scan(listOf(virtualTempFile), runConfiguration)
+            val resultHandler = PylintCollectingToolOutputHandler()
+            service.scan(listOf(virtualTempFile), settings.getData(), resultHandler)
+            return resultHandler.getResults()
         } finally {
             tempFile.delete()
         }

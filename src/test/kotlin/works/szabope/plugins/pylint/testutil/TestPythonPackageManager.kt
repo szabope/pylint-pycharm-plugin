@@ -10,40 +10,47 @@ import com.jetbrains.python.packaging.management.PythonRepositoryManager
 import io.mockk.coEvery
 import io.mockk.mockkObject
 import works.szabope.plugins.pylint.services.cli.Cli
+import kotlin.Result.Companion.success
 
 @Suppress("UnstableApiUsage")
 class TestPythonPackageManager(project: Project, sdk: Sdk, private val pathToPylint: String) :
     PythonPackageManager(project, sdk) {
 
     private val testInstalledPackages = mutableListOf<InstalledPackage>()
-    override val installedPackages: List<PythonPackage>
+
+    override var installedPackages: List<PythonPackage> = emptyList()
         get() = testInstalledPackages.map { PythonPackage(it.name, it.version ?: "3.3.4", false) }.toList()
 
     override val repositoryManager: PythonRepositoryManager
         get() = throw NotImplementedError()
 
-    override suspend fun installPackage(
-        specification: PythonPackageSpecification, options: List<String>
-    ): Result<List<PythonPackage>> {
+    override suspend fun installPackageCommand(
+        specification: PythonPackageSpecification,
+        options: List<String>
+    ): Result<Unit> {
         testInstalledPackages.add(InstalledPackage(specification.name, "3.3.4"))
         // if it's installed it should also be found by `which`
         mockkObject(Cli)
         coEvery { Cli.execute("which", "pylint", workDir = any(), env = any()) } returns Cli.Status(
             0, emptyList(), pathToPylint
         )
-        return reloadPackages()
+        return reloadPackages().map { }
     }
 
     override suspend fun reloadPackages(): Result<List<PythonPackage>> {
-        return Result.success(testInstalledPackages.map { PythonPackage(it.name, it.version ?: "3.3.4", false) }
+        return success(testInstalledPackages.map { PythonPackage(it.name, it.version ?: "3.3.4", false) }
             .toList())
     }
 
-    override suspend fun uninstallPackage(pkg: PythonPackage): Result<List<PythonPackage>> {
+    override suspend fun uninstallPackageCommand(pkg: PythonPackage): Result<Unit> {
         throw NotImplementedError()
     }
 
-    override suspend fun updatePackage(specification: PythonPackageSpecification): Result<List<PythonPackage>> {
-        throw NotImplementedError()
+    override suspend fun reloadPackagesCommand(): Result<List<PythonPackage>> {
+        return success(installedPackages)
+    }
+
+    override suspend fun updatePackageCommand(specification: PythonPackageSpecification): Result<Unit> {
+        return success(Unit)
     }
 }

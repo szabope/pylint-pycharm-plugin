@@ -3,26 +3,29 @@ package works.szabope.plugins.pylint.action
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.project.DumbAwareAction
+import works.szabope.plugins.common.services.Settings
+import works.szabope.plugins.common.toolWindow.TreeManager
 import works.szabope.plugins.pylint.services.AsyncScanService
-import works.szabope.plugins.pylint.services.PylintSettings
-import works.szabope.plugins.pylint.toRunConfiguration
-import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
+import works.szabope.plugins.pylint.services.parser.PylintPublishingToolOutputHandler
 
-class RescanAction : AbstractScanAction() {
+class RescanAction : DumbAwareAction() {
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project ?: return
-        val panel = event.getData(PylintToolWindowPanel.PYLINT_PANEL_DATA_KEY) ?: return
-        val latestScanTargets = panel.getScanTargets()
-        val runConfiguration = project.let { PylintSettings.getInstance(it).toRunConfiguration() }
-        panel.initializeResultTree(latestScanTargets)
+        val treeManager = TreeManager.getInstance(project)
+        val latestScanTargets = treeManager.getRootScanPaths()
+        treeManager.reinitialize(latestScanTargets)
         FileDocumentManager.getInstance().saveAllDocuments()
-        AsyncScanService.getInstance(project).scan(latestScanTargets, runConfiguration)
+        AsyncScanService.getInstance(project).scan(
+            latestScanTargets, Settings.getInstance(project).getData(), PylintPublishingToolOutputHandler(project)
+        )
     }
 
     override fun update(event: AnActionEvent) {
         val project = event.project ?: return
-        val panel = event.getData(PylintToolWindowPanel.PYLINT_PANEL_DATA_KEY) ?: return
-        event.presentation.isEnabled = panel.getScanTargets().isNotEmpty() && isReadyToScan(project)
+        val treeManager = TreeManager.getInstance(project)
+        event.presentation.isEnabled =
+            treeManager.getRootScanPaths().isNotEmpty() && ScanActionUtil.isReadyToScan(project)
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {

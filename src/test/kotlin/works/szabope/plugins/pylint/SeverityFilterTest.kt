@@ -1,43 +1,46 @@
 package works.szabope.plugins.pylint
 
-import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.ActionUiKind
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.AnActionWrapper
+import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.actionSystem.ex.ActionUtil
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.TestDataPath
 import com.intellij.testFramework.common.waitUntilAssertSucceeds
 import com.intellij.ui.tree.TreeTestUtil
 import kotlinx.coroutines.runBlocking
+import works.szabope.plugins.common.services.Settings
+import works.szabope.plugins.common.toolWindow.TreeManager
 import works.szabope.plugins.pylint.action.SeverityFiltersActionGroup
-import works.szabope.plugins.pylint.services.PylintSettings
+import works.szabope.plugins.pylint.services.pylintSeverityConfigs
 import works.szabope.plugins.pylint.testutil.scan
-import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
-import works.szabope.plugins.pylint.toolWindow.SeverityConfig
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
 
 @TestDataPath("\$CONTENT_ROOT/testData/severity")
 class SeverityFilterTest : AbstractToolWindowTestCase() {
 
-    private val treeUtil = TreeTestUtil(tree)
-
     override fun getTestDataPath() = "src/test/testData/severity"
 
     override fun setUp() {
         super.setUp()
-        with(PylintSettings.getInstance(project)) {
+        with(Settings.getInstance(project)) {
             reset()
             executablePath = Paths.get(testDataPath).resolve("pylint").absolutePathString()
             projectDirectory = Paths.get(testDataPath).absolutePathString()
         }
         val file = myFixture.configureByText("a.py", "doesn't matter").virtualFile
-        scan(file, project)
+        scan(getContext { it.add(CommonDataKeys.VIRTUAL_FILE_ARRAY, arrayOf(file)) })
+    }
+
+    override fun tearDown() {
+        // set severities back to default
+        with(TreeManager.getInstance(project)) {
+            pylintSeverityConfigs.keys.forEach { setSeverityLevelDisplayed(it, true) }
+        }
+        super.tearDown()
     }
 
     fun `test all filters selected shows all items`() {
-        setSelectedFilters(*SeverityConfig.ALL.map { it.level }.toTypedArray())
+        setSelectedFilters(*pylintSeverityConfigs.keys.toTypedArray())
+        val treeUtil = TreeTestUtil(tree)
         runBlocking {
             waitUntilAssertSucceeds { treeUtil.assertStructure("+Found 6 issue(s) in 1 file(s)\n") }.also {
                 treeUtil.expandAll()
@@ -58,6 +61,7 @@ class SeverityFilterTest : AbstractToolWindowTestCase() {
 
     fun `test no filters selected shows no items`() {
         setSelectedFilters()
+        val treeUtil = TreeTestUtil(tree)
         runBlocking {
             waitUntilAssertSucceeds { treeUtil.assertStructure("Found 0 issue(s) in 0 file(s)\n") }.also {
                 treeUtil.expandAll()
@@ -66,8 +70,9 @@ class SeverityFilterTest : AbstractToolWindowTestCase() {
         }
     }
 
-    fun `test 'convention' selected shows convention-related items only`() {
+    fun `test convention selected shows convention-related items only`() {
         setSelectedFilters("convention")
+        val treeUtil = TreeTestUtil(tree)
         runBlocking {
             waitUntilAssertSucceeds { treeUtil.assertStructure("+Found 1 issue(s) in 1 file(s)\n") }.also {
                 treeUtil.expandAll()
@@ -83,11 +88,8 @@ class SeverityFilterTest : AbstractToolWindowTestCase() {
 
     @Suppress("UnstableApiUsage")
     private fun setSelectedFilters(vararg activeSeverities: String) {
-        val panel =
-            toolWindowManager.getToolWindow(PylintToolWindowPanel.ID)?.contentManager?.getContent(0)?.component as PylintToolWindowPanel
-        val dataContext = SimpleDataContext.builder().add(PylintToolWindowPanel.PYLINT_PANEL_DATA_KEY, panel).build()
         val event =
-            AnActionEvent.createEvent(dataContext, null, ActionPlaces.TOOLWINDOW_TOOLBAR_BAR, ActionUiKind.NONE, null)
+            AnActionEvent.createEvent(getContext(), null, ActionPlaces.TOOLWINDOW_TOOLBAR_BAR, ActionUiKind.NONE, null)
         val actionGroup = ActionUtil.getActionGroup(SeverityFiltersActionGroup.ID) as SeverityFiltersActionGroup
         actionGroup.getChildren(event).filter { it.isSelected(event) != it.getSeverity() in activeSeverities }.forEach {
             with(AnActionWrapper(it)) {

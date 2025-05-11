@@ -10,10 +10,10 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filter
 import org.jetbrains.annotations.TestOnly
+import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.services.IncompleteConfigurationNotificationService
 import works.szabope.plugins.pylint.services.OldPylintSettings
-import works.szabope.plugins.pylint.services.PylintPackageUtil
-import works.szabope.plugins.pylint.services.PylintSettings
+import works.szabope.plugins.pylint.services.PylintPackageManagementFacade
 
 internal class SettingsInitializationActivity : ProjectActivity {
 
@@ -33,14 +33,14 @@ internal class SettingsInitializationActivity : ProjectActivity {
 
     @TestOnly
     suspend fun configurePlugin(project: Project) {
-        PylintPackageUtil.reloadPackages(project)
-        val settings = PylintSettings.getInstance(project)
+        PylintPackageManagementFacade(project).reloadPackages()
+        val settings = Settings.getInstance(project)
         if (!settings.isComplete()) {
             settings.initSettings(OldPylintSettings.getInstance(project))
         }
         if (!settings.isComplete()) {
             val notificationService = IncompleteConfigurationNotificationService.getInstance(project)
-            val canInstall = PylintPackageUtil.canInstall(project)
+            val canInstall = PylintPackageManagementFacade(project).canInstall()
             notificationService.notify(canInstall)
         }
         configurationCalled.send(Unit)

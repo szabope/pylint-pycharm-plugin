@@ -12,7 +12,7 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow id="Pylint " factoryClass="works.szabope.plugins.pylint.toolWindow.PylintToolWindowFactory"
-                    anchor="bottom" canCloseContents="false" icon="/icons/pylintToolWindow.svg"/>
+                    anchor="bottom" canCloseContents="false" icon="/icons/pylintToolWindow.svg" />
         <projectConfigurable
                 id="works.szabope.plugins.pylint.configurable.PylintSettingConfigurable"
                 instance="works.szabope.plugins.pylint.configurable.PylintConfigurable"
@@ -27,10 +27,12 @@
                          bundle="messages.PylintBundle" key="pylint.inspection.name" enabledByDefault="true"/>
         <postStartupActivity implementation="works.szabope.plugins.pylint.activity.SettingsInitializationActivity"/>
         <notificationGroup displayType="STICKY_BALLOON" id="Pylint Group" toolWindowId="PyLint"/>
-        <applicationService serviceInterface="works.szabope.plugins.pylint.dialog.IDialogManager"
+        <applicationService serviceInterface="works.szabope.plugins.common.dialog.IDialogManager"
                             serviceImplementation="works.szabope.plugins.pylint.dialog.DialogManager"
                             testServiceImplementation="works.szabope.plugins.pylint.testutil.TestDialogManager"/>
         <checkinHandlerFactory implementation="works.szabope.plugins.pylint.vcs.PylintCheckinHandlerFactory"/>
+        <projectService serviceInterface="works.szabope.plugins.common.services.Settings"
+                        serviceImplementation="works.szabope.plugins.pylint.services.PylintSettings" />
     </extensions>
 
     <actions>
@@ -46,15 +48,11 @@
                     icon="AllIcons.Actions.Execute"/>
             <separator/>
             <action id="works.szabope.plugins.pylint.action.ScrollToSourceAction"
-                    class="works.szabope.plugins.pylint.action.ScrollToSourceDummyAction"
+                    class="works.szabope.plugins.common.action.ScrollToSourceDummyAction"
                     icon="AllIcons.General.AutoscrollToSource"/>
             <separator/>
-            <action id="works.szabope.plugins.pylint.action.ExpandAllAction"
-                    class="works.szabope.plugins.pylint.action.ExpandAllAction"
-                    icon="AllIcons.Actions.Expandall"/>
-            <action id="works.szabope.plugins.pylint.action.CollapseAllAction"
-                    class="works.szabope.plugins.pylint.action.CollapseAllAction"
-                    icon="AllIcons.Actions.Collapseall"/>
+            <reference ref="ExpandAll"/>
+            <reference ref="CollapseAll"/>
             <separator/>
             <group id="works.szabope.plugins.pylint.ErrorLevelDisplayOptions"
                    icon="AllIcons.Actions.GroupBy"

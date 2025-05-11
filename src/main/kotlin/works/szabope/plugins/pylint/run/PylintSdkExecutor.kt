@@ -14,23 +14,23 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.text.nullize
 import com.jetbrains.python.sdk.pythonSdk
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.future.await
-import kotlinx.coroutines.suspendCancellableCoroutine
+import works.szabope.plugins.common.services.ImmutableSettingsData
+import works.szabope.plugins.common.services.tool.ToolOutputHandler
 import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.services.Exclusions
-import works.szabope.plugins.pylint.services.parser.IPylintOutputHandler
-import works.szabope.plugins.pylint.services.parser.PylintJson2OutputParser
 import java.util.concurrent.CompletableFuture
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
 
     private val configurationFactory = PylintConfigurationType.INSTANCE.getFactory()
 
     override suspend fun execute(
-        configuration: ExecutorConfiguration, targets: Collection<VirtualFile>, resultHandler: IPylintOutputHandler
-    ) {
+        configuration: ImmutableSettingsData, targets: Collection<VirtualFile>, resultHandler: ToolOutputHandler
+    ): Result<Unit> {
         require(configuration.useProjectSdk) { "Configuration mismatch" }
         val environment = createEnvironment(configuration, targets)
         val futureProcessHandler = CompletableFuture<ProcessHandler>()
@@ -39,15 +39,16 @@ class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
             futureProcessHandler.complete(processHandler)
         }
         val processHandler = futureProcessHandler.await()
-        processHandler.collectOutput { outputType -> outputType == ProcessOutputType.STDOUT }.let { stdout ->
-            val result = PylintJson2OutputParser.parse(stdout)
-            resultHandler.handle(result)
+        processHandler.collectOutput { outputType -> outputType == ProcessOutputType.STDOUT }.let { stdoutFlow ->
+            resultHandler.handle(stdoutFlow).onFailure { ex ->
+                return Result.failure(ex)
+            }
         }
+        return Result.success(Unit)
     }
 
     private fun createEnvironment(
-        configuration: ExecutorConfiguration,
-        targets: Collection<VirtualFile>
+        configuration: ImmutableSettingsData, targets: Collection<VirtualFile>
     ): ExecutionEnvironment {
         val conf = configurationFactory.createConfiguration(project, "pylint")
         conf.sdk = project.pythonSdk
@@ -64,13 +65,13 @@ class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
         return ExecutionEnvironmentBuilder.create(executor, settings).runner(PylintRunner.INSTANCE).build()
     }
 
-    private fun buildScriptParameters(configuration: ExecutorConfiguration, targets: Collection<VirtualFile>) =
+    private fun buildScriptParameters(configuration: ImmutableSettingsData, targets: Collection<VirtualFile>) =
         with(configuration) {
             val sb = StringBuilder()
             configFilePath.nullize(true)?.apply { sb.append(" --rcfile").append(" \"$this\"") }
             arguments.nullize(true)?.apply { sb.append(" ").append(arguments) }
             if (excludeNonProjectFiles) {
-                Exclusions(project).findAll(targets).union(customExclusions).joinToString(",").nullize()
+                Exclusions(project).findAll(targets).joinToString(",").nullize()
                     ?.apply { sb.append(" --ignore-paths ").append("\"$this\"") }
             }
             sb.append(" ").append(PylintArgs.PYLINT_MANDATORY_COMMAND_ARGS).append(" ")
@@ -78,30 +79,29 @@ class PylintSdkExecutor(private val project: Project) : IPylintExecutor {
             sb.toString()
         }
 
-    private suspend fun ProcessHandler.collectOutput(handler: (outputType: Key<*>) -> Boolean): String =
-        suspendCancellableCoroutine { continuation ->
-            val wholeOutput = StringBuilder()
-            val stdout = StringBuilder()
-            addProcessListener(object : ProcessListener {
-                override fun startNotified(event: ProcessEvent) {
-                    event.text?.let(wholeOutput::append)
-                }
+    private fun ProcessHandler.collectOutput(handler: (outputType: Key<*>) -> Boolean): Flow<String> = callbackFlow {
+        val wholeOutput = StringBuilder()
+        addProcessListener(object : ProcessListener {
+            override fun startNotified(event: ProcessEvent) {
+                event.text?.let(wholeOutput::append)
+            }
 
-                override fun processTerminated(event: ProcessEvent) {
-                    event.text?.let(wholeOutput::append)
-                    if (event.exitCode == 0) {
-                        continuation.resume(stdout.toString())
-                    } else {
-                        continuation.resumeWithException(IllegalStateException("\n=== CONSOLE ===\n$wholeOutput\n=== CONSOLE END ==="))
-                    }
+            override fun processTerminated(event: ProcessEvent) {
+                event.text?.let(wholeOutput::append)
+                if (event.exitCode == 0) {
+                    close()
+                } else {
+                    throw IllegalStateException("\n=== CONSOLE ===\n$wholeOutput\n=== CONSOLE END ===")
                 }
+            }
 
-                override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
-                    event.text?.let(wholeOutput::append)
-                    if (handler(outputType)) {
-                        event.text?.let(stdout::append)
-                    }
+            override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
+                event.text?.let(wholeOutput::append)
+                if (handler(outputType)) {
+                    event.text?.let { trySend(it) }
                 }
-            })
-        }
+            }
+        })
+        awaitClose()
+    }
 }

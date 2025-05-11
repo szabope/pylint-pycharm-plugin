@@ -10,12 +10,12 @@ import com.jetbrains.python.target.PyTargetAwareAdditionalData
 import io.mockk.*
 import junit.framework.TestCase
 import kotlinx.coroutines.runBlocking
-import works.szabope.plugins.pylint.dialog.IDialogManager
+import works.szabope.plugins.common.dialog.IDialogManager
+import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.dialog.PylintExecutionErrorDialog
 import works.szabope.plugins.pylint.services.OldPylintSettings
-import works.szabope.plugins.pylint.services.PylintPackageUtil
-import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.services.cli.Cli
+import works.szabope.plugins.pylint.testutil.PylintAction
 import works.szabope.plugins.pylint.testutil.TestDialogManager
 import works.szabope.plugins.pylint.testutil.TestDialogWrapper
 import java.io.File
@@ -56,7 +56,7 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
         )
         val oldState = deserializeState(oldStateXml, OldPylintSettings.OldPylintSettingsState::class.java)
         val oldSettings = OldPylintSettings.getInstance(project)
-        val settings = PylintSettings.getInstance(project)
+        val settings = Settings.getInstance(project)
         settings.reset()
         oldSettings.loadState(oldState!!)
         try {
@@ -66,7 +66,7 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
                 assertEquals(oldSettings.executablePath, executablePath)
                 assertEquals(oldSettings.configFilePath, configFilePath)
                 assertEquals(oldSettings.arguments, arguments)
-                assertEquals(oldSettings.isScanBeforeCheckIn, isScanBeforeCheckIn)
+                assertEquals(oldSettings.scanBeforeCheckIn, scanBeforeCheckIn)
             }
         } finally {
             oldSettings.reset()
@@ -74,8 +74,8 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
     }
 
     fun testProjectSdkSelectedWhenSet() = withMockSdk(mockSdkPath) {
-        runBlocking { PylintPackageUtil.install(project) }
-        val settings = PylintSettings.getInstance(project)
+        PylintAction.installPylint(getProjectContext())
+        val settings = Settings.getInstance(project)
         settings.reset()
         runBlocking { triggerReconfiguration() }
         with(settings) {
@@ -85,14 +85,14 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
     }
 
     fun testProjectSdkNotSelectedWhenWsl() = withMockSdk(mockSdkPath) { packageManager ->
-        runBlocking { PylintPackageUtil.install(project) }
+        PylintAction.installPylint(getProjectContext())
         // let's lie that it's WSL
         val mockSdk = packageManager.sdk
         val mockAdditionalData = mockk<PyTargetAwareAdditionalData>()
         every { mockAdditionalData.sdkId } returns "WSL ya know what I'm sayin"
         mockkObject(mockSdk)
         every { mockSdk.sdkAdditionalData } returns mockAdditionalData
-        val settings = PylintSettings.getInstance(project)
+        val settings = Settings.getInstance(project)
         settings.reset()
         runBlocking { triggerReconfiguration() }
         with(settings) {
@@ -102,7 +102,7 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
     }
 
     fun testSdkNotSetIfPylintNotInstalled() = withMockSdk(mockSdkPath) {
-        val settings = PylintSettings.getInstance(project)
+        val settings = Settings.getInstance(project)
         settings.reset()
         runBlocking { triggerReconfiguration() }
         with(settings) {
@@ -112,7 +112,7 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
     }
 
     fun testStartedWithIncorrectConfigResultsInConfigCleanup() = withMockSdk(mockSdkPath) {
-        val settings = PylintSettings.getInstance(project)
+        val settings = Settings.getInstance(project)
         settings.reset()
         settings.useProjectSdk = true
         runBlocking { triggerReconfiguration() }
@@ -123,7 +123,7 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
     }
 
     fun testExistingCliPathTakesPrecedenceOverProjectSdk() = withMockSdk(mockSdkPath) {
-        val settings = PylintSettings.getInstance(project)
+        val settings = Settings.getInstance(project)
         settings.reset()
         settings.executablePath = "$mockSdkPath/bin/pylint"
         runBlocking { triggerReconfiguration() }
@@ -132,15 +132,15 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
     }
 
     fun testObsoleteVersionIsNotSet() {
-        PylintSettings.getInstance(project).executablePath = null
+        Settings.getInstance(project).executablePath = null
         val pathToObsoletePylint = Paths.get(testDataPath).resolve("pylint_obsolete").absolutePathString()
-        PylintSettings.getInstance(project).executablePath = pathToObsoletePylint
-        assertNull(PylintSettings.getInstance(project).executablePath)
+        Settings.getInstance(project).executablePath = pathToObsoletePylint
+        assertNull(Settings.getInstance(project).executablePath)
     }
 
     fun testConfigFileNotExist() {
         assertFalse(File("THIS-FILE-SHOULD-NOT-EXIST").exists())
-        with(PylintSettings.getInstance(project)) {
+        with(Settings.getInstance(project)) {
             {
                 configFilePath = null
                 configFilePath = "THIS-FILE-SHOULD-NOT-EXIST"
@@ -151,7 +151,7 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
 
     fun testConfigFileIsADirectory() {
         myFixture.copyDirectoryToProject("dummy_dir", "/")
-        with(PylintSettings.getInstance(project)) {
+        with(Settings.getInstance(project)) {
             {
                 configFilePath = null
                 configFilePath = "/dummy_dir"
@@ -162,7 +162,7 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
 
     fun testProjectDirectoryIsAFile() {
         myFixture.copyFileToProject("dummy")
-        with(PylintSettings.getInstance(project)) {
+        with(Settings.getInstance(project)) {
             projectDirectory = null
             projectDirectory = "dummy"
             assertNull(projectDirectory)
@@ -185,7 +185,7 @@ class PylintConfigurationTest : AbstractToolWindowTestCase() {
         mockkObject(Cli)
         coEvery { Cli.execute("which", "pylint", workDir = any(), env = any()) } returns Cli.Status(2, emptyList(), "")
         runBlocking {
-            val result = PylintSettings.getInstance(project).autodetectExecutable()
+            val result = Settings.getInstance(project).autodetectExecutable()
             assertNull(result)
             waitUntil {
                 dialogShown.isDone && with(dialogShown.get()) { isShown() && getExitCode() == DialogWrapper.OK_EXIT_CODE }

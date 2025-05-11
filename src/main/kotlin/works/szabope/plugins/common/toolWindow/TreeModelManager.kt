@@ -1,19 +1,22 @@
-package works.szabope.plugins.pylint.toolWindow
+package works.szabope.plugins.common.toolWindow
 
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.treeStructure.Tree
-import works.szabope.plugins.pylint.PylintBundle
+import works.szabope.plugins.common.CommonBundle
 
-class TreeModelManager(private val displayedSeverityLevels: MutableSet<String>) {
+class TreeModelManager(private val isDisplayed: (String) -> Boolean) {
+
+    private val changeListeners = mutableSetOf<() -> Unit>()
     private val logger = logger<TreeModelManager>()
     private val issues = mutableSetOf<TreeModelDataItem>()
-    private val model = TreeModel(PylintBundle.message("pylint.toolwindow.name.empty"))
+    private val model = TreeModel(CommonBundle.message("toolwindow.name.empty"))
 
     fun add(issue: TreeModelDataItem) {
         issues.add(issue)
         if (isDisplayed(issue)) {
             addToTree(issue)
+            triggerChangeListeners()
             logger.debug("Issue added to tree: $issue")
         }
     }
@@ -21,6 +24,7 @@ class TreeModelManager(private val displayedSeverityLevels: MutableSet<String>) 
     fun reload() {
         resetRoot()
         issues.filter { isDisplayed(it) }.forEach { addToTree(it) }
+        triggerChangeListeners()
     }
 
     fun reinitialize(targets: Collection<VirtualFile>) {
@@ -36,9 +40,17 @@ class TreeModelManager(private val displayedSeverityLevels: MutableSet<String>) 
         tree.model = model
     }
 
+    fun addChangeListener(listener: () -> Unit) {
+        changeListeners.add(listener)
+    }
+
+    private fun triggerChangeListeners() {
+        changeListeners.forEach { it() }
+    }
+
     private fun resetRoot(targetsMaybe: Collection<VirtualFile>? = null) {
         val targets = targetsMaybe ?: model.root.targets
-        model.setRoot(RootNode(PylintBundle.message("pylint.toolwindow.root.message", 0, 0), targets))
+        model.setRoot(RootNode(CommonBundle.message("toolwindow.root.message", 0, 0), targets))
     }
 
     private fun addToTree(issue: TreeModelDataItem) {
@@ -46,14 +58,14 @@ class TreeModelManager(private val displayedSeverityLevels: MutableSet<String>) 
         val issueNode = IssueNode(issue)
         model.append(issueNode, fileNode)
         model.updateRootText(
-            PylintBundle.message(
-                "pylint.toolwindow.root.message", model.getIssueCount(), model.getChildCount(model.root)
+            CommonBundle.message(
+                "toolwindow.root.message", model.getIssueCount(), model.getChildCount(model.root)
             )
         )
     }
 
     private fun isDisplayed(issue: TreeModelDataItem): Boolean {
-        return displayedSeverityLevels.contains(issue.severity.level)
+        return isDisplayed(issue.severity.level)
     }
 
     private fun findOrAddFileNode(file: String): StringNode {

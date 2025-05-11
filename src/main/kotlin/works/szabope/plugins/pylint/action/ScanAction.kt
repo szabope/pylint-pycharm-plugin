@@ -4,31 +4,32 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindowManager
 import com.jetbrains.python.PythonFileType
 import com.jetbrains.python.pyi.PyiFileType
+import works.szabope.plugins.common.services.Settings
+import works.szabope.plugins.common.toolWindow.TreeManager
 import works.szabope.plugins.pylint.services.AsyncScanService
-import works.szabope.plugins.pylint.services.PylintSettings
-import works.szabope.plugins.pylint.toRunConfiguration
+import works.szabope.plugins.pylint.services.parser.PylintPublishingToolOutputHandler
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
-import works.szabope.plugins.pylint.toolWindow.getPylintPanel
 
-open class ScanAction : AbstractScanAction() {
+open class ScanAction : DumbAwareAction() {
 
     override fun actionPerformed(event: AnActionEvent) {
         val targets = listTargets(event) ?: return
         val project = event.project ?: return
-        val runConfiguration = PylintSettings.getInstance(project).toRunConfiguration()
-        getPylintPanel(project)?.initializeResultTree(targets)
+        TreeManager.getInstance(project).reinitialize(targets)
         FileDocumentManager.getInstance().saveAllDocuments()
-        AsyncScanService.getInstance(project).scan(targets, runConfiguration)
+        AsyncScanService.getInstance(project)
+            .scan(targets, Settings.getInstance(project).getData(), PylintPublishingToolOutputHandler(project))
         ToolWindowManager.getInstance(project).getToolWindow(PylintToolWindowPanel.ID)?.show()
     }
 
     override fun update(event: AnActionEvent) {
         event.presentation.isEnabled =
-            isEligibleForScanning(listTargets(event)) && event.project?.let { isReadyToScan(it) } == true
+            isEligibleForScanning(listTargets(event)) && event.project?.let { ScanActionUtil.isReadyToScan(it) } == true
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {

@@ -6,25 +6,28 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.Version
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.remote.RemoteSdkProperties
 import com.jetbrains.python.sdk.pythonSdk
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.TestOnly
+import works.szabope.plugins.common.services.BasicSettingsData
+import works.szabope.plugins.common.services.Settings
+import works.szabope.plugins.common.services.SettingsValidationProblem
 import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.PylintBundle
-import works.szabope.plugins.pylint.dialog.IDialogManager
+import works.szabope.plugins.common.dialog.IDialogManager
 import works.szabope.plugins.pylint.services.cli.Cli
 import works.szabope.plugins.pylint.services.cli.PythonEnvironmentAwareCli
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 import java.io.File
 import javax.swing.event.HyperlinkEvent
 
-@Service(Service.Level.PROJECT)
 @State(name = "PylintSettings", storages = [Storage("PylintPlugin.xml")], category = SettingsCategory.PLUGINS)
 class PylintSettings(internal val project: Project) :
-    SimplePersistentStateComponent<PylintSettings.PylintState>(PylintState()) {
+    SimplePersistentStateComponent<PylintSettings.PylintState>(PylintState()), Settings {
 
     @ApiStatus.Internal
     class PylintState : BaseState() {
@@ -35,11 +38,10 @@ class PylintSettings(internal val project: Project) :
         var autoScrollToSource by property(false)
         var excludeNonProjectFiles by property(true)
         var projectDirectory by string()
-        val customExclusions by list<String>() // use scopes instead?
         var scanBeforeCheckIn by property(false)
     }
 
-    var useProjectSdk
+    override var useProjectSdk
         get() = state.useProjectSdk
         set(value) {
             if (!value || validateSdk() == null) {
@@ -47,7 +49,7 @@ class PylintSettings(internal val project: Project) :
             }
         }
 
-    var executablePath
+    override var executablePath
         get() = state.executablePath
         set(value) {
             val validityProblem = validateExecutable(value)
@@ -58,7 +60,7 @@ class PylintSettings(internal val project: Project) :
             }
         }
 
-    var configFilePath
+    override var configFilePath
         get() = state.configFilePath
         set(value) {
             val validityProblem = validateConfigFile(value)
@@ -69,25 +71,25 @@ class PylintSettings(internal val project: Project) :
             }
         }
 
-    var arguments
+    override var arguments
         get() = state.arguments
         set(value) {
             state.arguments = value
         }
 
-    var isAutoScrollToSource
+    override var isAutoScrollToSource
         get() = state.autoScrollToSource
         set(value) {
             state.autoScrollToSource = value
         }
 
-    var isExcludeNonProjectFiles
+    override var excludeNonProjectFiles
         get() = state.excludeNonProjectFiles
         set(value) {
             state.excludeNonProjectFiles = value
         }
 
-    var projectDirectory
+    override var projectDirectory
         get() = state.projectDirectory
         set(value) {
             val validityProblem = validateProjectDirectory(value)
@@ -98,37 +100,26 @@ class PylintSettings(internal val project: Project) :
             }
         }
 
-    val customExclusions
-        get() = state.customExclusions
-
-    fun addExclusion(exclusion: String) {
-        require(exclusion.isNotBlank())
-        if (!customExclusions.contains(exclusion)) {
-            customExclusions.add(exclusion)
-        }
-    }
-
-    fun removeExclusion(exclusion: String) {
-        if (customExclusions.contains(exclusion)) {
-            customExclusions.remove(exclusion)
-        }
-    }
-
-    var isScanBeforeCheckIn
+    override var scanBeforeCheckIn
         get() = state.scanBeforeCheckIn
         set(value) {
             state.scanBeforeCheckIn = value
         }
 
-    @JvmInline
-    value class SettingsValidationProblem(val message: String) {
-        override fun toString() = message
-    }
-
     // TODO: projectDirectory != null is failing for tests: cannot set /src because it does not exist
-    fun isComplete(): Boolean {
+    override fun isComplete(): Boolean {
         return canExecute() && validateConfigFile(executablePath) == null && validateProjectDirectory(projectDirectory) == null
     }
+
+    override fun getData() = PylintExecutorConfiguration(
+        executablePath,
+        useProjectSdk,
+        configFilePath,
+        arguments,
+        projectDirectory!!,
+        excludeNonProjectFiles,
+        scanBeforeCheckIn
+    )
 
     private fun canExecute(): Boolean {
         return if (useProjectSdk) {
@@ -138,7 +129,7 @@ class PylintSettings(internal val project: Project) :
         }
     }
 
-    fun ensureValid(): SettingsValidationProblem? {
+    override fun ensureValid(): SettingsValidationProblem? {
         validateExecutable(executablePath)?.also {
             logger.warn("clearing invalid executablePath $executablePath")
             executablePath = null
@@ -157,29 +148,29 @@ class PylintSettings(internal val project: Project) :
         return null
     }
 
-    suspend fun initSettings(oldPylintSettings: OldPylintSettings?) {
-        if (executablePath == null && oldPylintSettings?.executablePath != null) {
-            executablePath = oldPylintSettings.executablePath
+    override suspend fun initSettings(oldSettings: BasicSettingsData?) {
+        if (executablePath == null && oldSettings?.executablePath != null) {
+            executablePath = oldSettings.executablePath
         }
         useProjectSdk = useProjectSdk || (executablePath == null && project.pythonSdk != null)
         if (!useProjectSdk && executablePath == null) {
             executablePath = autodetectExecutable()
         }
         if (configFilePath == null) {
-            configFilePath = oldPylintSettings?.configFilePath
+            configFilePath = oldSettings?.configFilePath
         }
         if (arguments == null) {
-            arguments = oldPylintSettings?.arguments ?: PylintArgs.PYLINT_RECOMMENDED_COMMAND_ARGS
+            arguments = oldSettings?.arguments ?: PylintArgs.PYLINT_RECOMMENDED_COMMAND_ARGS
         }
-        if (!isScanBeforeCheckIn) {
-            isScanBeforeCheckIn = oldPylintSettings?.isScanBeforeCheckIn ?: false
+        if (!scanBeforeCheckIn) {
+            scanBeforeCheckIn = oldSettings?.scanBeforeCheckIn ?: false
         }
         if (projectDirectory == null) {
             projectDirectory = project.guessProjectDir()?.path
         }
     }
 
-    fun validateExecutable(path: String?): SettingsValidationProblem? {
+    override fun validateExecutable(path: String?): SettingsValidationProblem? {
         if (path == null) return null
         require(path.isNotBlank())
         val file = File(path)
@@ -211,32 +202,32 @@ class PylintSettings(internal val project: Project) :
         if (pylintVersion == null) {
             return SettingsValidationProblem(PylintBundle.message("pylint.settings.path_to_executable.unknown_version"))
         }
-        return validateVersion(pylintVersion)
+        return validateVersion(Version.parseVersion(pylintVersion)!!)
     }
 
-    fun validateSdk(): SettingsValidationProblem? {
+    override fun validateSdk(): SettingsValidationProblem? {
         if ((project.pythonSdk?.sdkAdditionalData as? RemoteSdkProperties)?.sdkId?.startsWith("WSL") == true) {
             return SettingsValidationProblem(PylintBundle.message("pylint.settings.wsl_not_supported"))
         }
-
-        val installedVersion = PylintPackageUtil.getInstalledVersion(project) ?: return SettingsValidationProblem(
-            PylintBundle.message("pylint.settings.pylint_not_installed")
-        )
-        return validateVersion(installedVersion)
+        val installedPackage =
+            PylintPackageManagementFacade(project).getInstalledVersion() ?: return SettingsValidationProblem(
+                PylintBundle.message("pylint.settings.pylint_not_installed")
+            )
+        return validateVersion(installedPackage)
     }
 
-    private fun validateVersion(pylintVersion: String): SettingsValidationProblem? {
-        if (!PylintPackageUtil.isVersionSupported(pylintVersion)) {
+    private fun validateVersion(version: Version): SettingsValidationProblem? {
+        if (!PylintPackageManagementFacade(project).isVersionSupported(version)) {
             return SettingsValidationProblem(
                 PylintBundle.message(
-                    "pylint.settings.pylint_invalid_version", pylintVersion, PylintPackageUtil.MINIMUM_VERSION
+                    "pylint.settings.pylint_invalid_version", "${version.major}.${version.minor}.${version.bugfix}"
                 )
             )
         }
         return null
     }
 
-    fun validateConfigFile(path: String?): SettingsValidationProblem? {
+    override fun validateConfigFile(path: String?): SettingsValidationProblem? {
         if (path != null) {
             require(path.isNotBlank())
             val file = File(path)
@@ -250,7 +241,7 @@ class PylintSettings(internal val project: Project) :
         return null
     }
 
-    fun validateProjectDirectory(path: String?): SettingsValidationProblem? {
+    override fun validateProjectDirectory(path: String?): SettingsValidationProblem? {
         if (path != null) {
             require(path.isNotBlank())
             val file = File(path)
@@ -264,7 +255,7 @@ class PylintSettings(internal val project: Project) :
         return null
     }
 
-    suspend fun autodetectExecutable(): String? {
+    override suspend fun autodetectExecutable(): String? {
         val locateCommand = if (SystemInfo.isWindows) arrayOf("where.exe", "pylint.exe") else arrayOf("which", "pylint")
         val processResult = PythonEnvironmentAwareCli(project).execute(command = locateCommand)
         return when (processResult.resultCode) { // same for linux and windows
@@ -278,7 +269,7 @@ class PylintSettings(internal val project: Project) :
                     null
                 ) {
                     if (it.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-                        IDialogManager.showPylintExecutionErrorDialog(
+                        IDialogManager.showToolExecutionErrorDialog(
                             locateCommand.joinToString(" "), processResult.stderr, processResult.resultCode
                         )
                     }
@@ -289,14 +280,11 @@ class PylintSettings(internal val project: Project) :
     }
 
     @TestOnly
-    fun reset() {
+    override fun reset() {
         loadState(PylintState())
     }
 
     companion object {
-        @JvmStatic
-        fun getInstance(project: Project): PylintSettings = project.service()
-
         val logger = thisLogger()
     }
 }

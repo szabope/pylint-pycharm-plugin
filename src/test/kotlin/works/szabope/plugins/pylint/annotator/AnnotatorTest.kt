@@ -1,8 +1,8 @@
 package works.szabope.plugins.pylint.annotator
 
 import com.intellij.testFramework.TestDataPath
+import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.AbstractPylintTestCase
-import works.szabope.plugins.pylint.services.PylintSettings
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
 
@@ -16,20 +16,20 @@ class AnnotatorTest : AbstractPylintTestCase() {
     }
 
     fun `test file annotated`() {
-        with(PylintSettings.getInstance(myFixture.project)) {
+        with(Settings.getInstance(myFixture.project)) {
             executablePath = Paths.get(testDataPath).resolve("pylint").absolutePathString()
             projectDirectory = Paths.get(testDataPath).absolutePathString()
             useProjectSdk = false
             arguments = null
             configFilePath = null
-            isScanBeforeCheckIn = false
+            scanBeforeCheckIn = false
         }
         myFixture.configureByText("a.py", "tutu = 8")
         assertNotEmpty(myFixture.doHighlighting())
     }
 
     fun `test PylintAnnotator does not fail with incomplete settings`() {
-        with(PylintSettings.getInstance(myFixture.project)) {
+        with(Settings.getInstance(myFixture.project)) {
             executablePath = null
             useProjectSdk = false
         }
@@ -38,7 +38,7 @@ class AnnotatorTest : AbstractPylintTestCase() {
     }
 
     fun `test MypyAnnotator does not fail if mypy executable path has a space in it`() {
-        with(PylintSettings.getInstance(project)) {
+        with(Settings.getInstance(project)) {
             executablePath = Paths.get(testDataPath).resolve("white space/pylint").absolutePathString()
             configFilePath = Paths.get(testDataPath).resolve("white space/configuration.toml").absolutePathString()
             projectDirectory = Paths.get(testDataPath).absolutePathString()

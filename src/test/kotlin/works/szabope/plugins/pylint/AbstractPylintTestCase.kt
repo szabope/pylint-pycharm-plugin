@@ -9,7 +9,7 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
-import works.szabope.plugins.pylint.services.PylintSettings
+import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.testutil.PylintSettingsInitializationTestService
 import works.szabope.plugins.pylint.testutil.PythonMockSdk
 import works.szabope.plugins.pylint.testutil.TestPythonPackageManager
@@ -18,7 +18,7 @@ abstract class AbstractPylintTestCase : BasePlatformTestCase() {
 
     override fun setUp() {
         super.setUp()
-        PylintSettings.getInstance(project).reset()
+        Settings.getInstance(project).reset()
     }
 
     override fun tearDown() {
