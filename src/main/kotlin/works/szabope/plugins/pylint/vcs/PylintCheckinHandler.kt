@@ -1,6 +1,5 @@
 package works.szabope.plugins.pylint.vcs
 
-import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.CheckinProjectPanel
 import com.intellij.openapi.vcs.checkin.*
@@ -75,7 +74,6 @@ class PylintCheckinHandler(private val panel: CheckinProjectPanel) : CheckinHand
                 scanResults.map { PylintMessageConverter.convert(it) }.forEach {
                     treeManager.add(it)
                 }
-                ActivityTracker.getInstance().inc()
                 with(PylintToolWindowPanel.getInstance(project)) {
                     isVisible = true
                     requestFocusInWindow()

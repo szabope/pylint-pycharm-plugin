@@ -1,10 +1,8 @@
 package works.szabope.plugins.common.services.tool
 
-import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import works.szabope.plugins.common.messages.MessageConverter
 import works.szabope.plugins.common.services.ToolResultItem
@@ -22,11 +20,5 @@ abstract class PublishingToolOutputHandler<I : ToolResultItem>(
         withContext(Dispatchers.EDT) {
             TreeManager.getInstance(project).add(item)
         }
-    }
-
-    override suspend fun handle(stdout: Flow<String>): Result<Unit> {
-        super.handle(stdout).onFailure { return Result.failure(it) }
-        ActivityTracker.getInstance().inc()
-        return Result.success(Unit)
     }
 }
