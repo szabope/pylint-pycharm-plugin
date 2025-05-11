@@ -1,4 +1,4 @@
-@file:Suppress("removal")
+@file:Suppress("removal", "DEPRECATION")
 
 package works.szabope.plugins.common.action
 

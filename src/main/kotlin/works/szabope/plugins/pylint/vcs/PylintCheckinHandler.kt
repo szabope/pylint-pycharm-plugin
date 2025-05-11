@@ -65,9 +65,9 @@ class PylintCheckinHandler(private val panel: CheckinProjectPanel) : CheckinHand
         if (scanResults.isEmpty()) return null
         return object : CommitProblemWithDetails {
             override val text: String
-                get() = "Hey, this is a TODO" //TODO
+                get() = PylintBundle.message("dialog.pre-checkin-confirmation.text", scanResults.size)
             override val showDetailsAction: String
-                get() = "Review" //TODO
+                get() = PylintBundle.message("dialog.pre-checkin-confirmation.review")
 
             override fun showDetails(project: Project) {
                 val treeManager = TreeManager.getInstance(project)
@@ -76,7 +76,10 @@ class PylintCheckinHandler(private val panel: CheckinProjectPanel) : CheckinHand
                     treeManager.add(it)
                 }
                 ActivityTracker.getInstance().inc()
-                PylintToolWindowPanel.getInstance(project).isVisible = true
+                with(PylintToolWindowPanel.getInstance(project)) {
+                    isVisible = true
+                    requestFocusInWindow()
+                }
             }
         }
     }

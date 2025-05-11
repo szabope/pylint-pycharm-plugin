@@ -1,4 +1,4 @@
-@file:Suppress("UnstableApiUsage", "removal")
+@file:Suppress("UnstableApiUsage", "removal", "DEPRECATION")
 
 package works.szabope.plugins.common.services
 

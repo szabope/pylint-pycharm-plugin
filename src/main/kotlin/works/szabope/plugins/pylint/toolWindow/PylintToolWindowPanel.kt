@@ -16,8 +16,7 @@ class PylintToolWindowPanel(project: Project) : AbstractToolWindowPanel(project)
         const val SCROLL_TO_SOURCE_ID = "works.szabope.plugins.pylint.action.ScrollToSourceAction"
 
         @JvmStatic
-        fun getInstance(project: Project) = requireNotNull(ToolWindowManager.getInstance(project).getToolWindow(ID)) {
-            "todo" //TODO
-        }.contentManager.contents.single().component
+        fun getInstance(project: Project) =
+            ToolWindowManager.getInstance(project).getToolWindow(ID)!!.contentManager.contents.single().component
     }
 }
