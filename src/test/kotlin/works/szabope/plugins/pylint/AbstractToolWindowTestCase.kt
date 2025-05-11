@@ -8,6 +8,8 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.treeStructure.Tree
+import works.szabope.plugins.common.toolWindow.TreeManager
+import works.szabope.plugins.pylint.services.pylintSeverityConfigs
 import works.szabope.plugins.pylint.testutil.TestToolWindowHeadlessManagerImpl
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowFactory
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
@@ -27,6 +29,10 @@ abstract class AbstractToolWindowTestCase : AbstractPylintTestCase() {
         tree = panel.getTree()
         val panelContext = IdeUiService.getInstance().createUiDataContext(panel)
         testContext = SimpleDataContext.builder().setParent(panelContext).add(CommonDataKeys.PROJECT, project).build()
+        // ensure severities are on default setting
+        with(TreeManager.getInstance(project)) {
+            pylintSeverityConfigs.keys.forEach { assertTrue(isSeverityLevelDisplayed(it)) }
+        }
     }
 
     override fun tearDown() {

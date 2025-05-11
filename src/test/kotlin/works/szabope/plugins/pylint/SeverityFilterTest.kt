@@ -7,6 +7,7 @@ import com.intellij.testFramework.common.waitUntilAssertSucceeds
 import com.intellij.ui.tree.TreeTestUtil
 import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.common.services.Settings
+import works.szabope.plugins.common.toolWindow.TreeManager
 import works.szabope.plugins.pylint.action.SeverityFiltersActionGroup
 import works.szabope.plugins.pylint.services.pylintSeverityConfigs
 import works.szabope.plugins.pylint.testutil.scan
@@ -27,6 +28,14 @@ class SeverityFilterTest : AbstractToolWindowTestCase() {
         }
         val file = myFixture.configureByText("a.py", "doesn't matter").virtualFile
         scan(getContext { it.add(CommonDataKeys.VIRTUAL_FILE_ARRAY, arrayOf(file)) })
+    }
+
+    override fun tearDown() {
+        // set severities back to default
+        with(TreeManager.getInstance(project)) {
+            pylintSeverityConfigs.keys.forEach { setSeverityLevelDisplayed(it, true) }
+        }
+        super.tearDown()
     }
 
     fun `test all filters selected shows all items`() {
