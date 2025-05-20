@@ -7,7 +7,7 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
-import com.intellij.ui.treeStructure.Tree
+import com.intellij.ui.tree.TreeTestUtil
 import works.szabope.plugins.common.toolWindow.TreeManager
 import works.szabope.plugins.pylint.services.pylintSeverityConfigs
 import works.szabope.plugins.pylint.testutil.TestToolWindowHeadlessManagerImpl
@@ -16,7 +16,7 @@ import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 
 abstract class AbstractToolWindowTestCase : AbstractPylintTestCase() {
 
-    protected lateinit var tree: Tree
+    protected lateinit var treeUtil: TreeTestUtil
     protected lateinit var toolWindowManager: TestToolWindowHeadlessManagerImpl
     private lateinit var testContext: DataContext
 
@@ -25,8 +25,8 @@ abstract class AbstractToolWindowTestCase : AbstractPylintTestCase() {
         toolWindowManager = TestToolWindowHeadlessManagerImpl(project)
         project.replaceService(ToolWindowManager::class.java, toolWindowManager, testRootDisposable)
         setUpToolWindow()
+        treeUtil = TreeTestUtil(TreeManager.getInstance(project).tree)
         val panel = PylintToolWindowPanel.getInstance(project) as PylintToolWindowPanel
-        tree = panel.getTree()
         val panelContext = IdeUiService.getInstance().createUiDataContext(panel)
         testContext = SimpleDataContext.builder().setParent(panelContext).add(CommonDataKeys.PROJECT, project).build()
         // ensure severities are on default setting

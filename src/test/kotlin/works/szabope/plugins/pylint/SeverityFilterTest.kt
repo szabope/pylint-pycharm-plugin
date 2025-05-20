@@ -4,7 +4,6 @@ import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.testFramework.TestDataPath
 import com.intellij.testFramework.common.waitUntilAssertSucceeds
-import com.intellij.ui.tree.TreeTestUtil
 import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.common.toolWindow.TreeManager
@@ -40,7 +39,6 @@ class SeverityFilterTest : AbstractToolWindowTestCase() {
 
     fun `test all filters selected shows all items`() {
         setSelectedFilters(*pylintSeverityConfigs.keys.toTypedArray())
-        val treeUtil = TreeTestUtil(tree)
         runBlocking {
             waitUntilAssertSucceeds { treeUtil.assertStructure("+Found 6 issue(s) in 1 file(s)\n") }.also {
                 treeUtil.expandAll()
@@ -61,7 +59,6 @@ class SeverityFilterTest : AbstractToolWindowTestCase() {
 
     fun `test no filters selected shows no items`() {
         setSelectedFilters()
-        val treeUtil = TreeTestUtil(tree)
         runBlocking {
             waitUntilAssertSucceeds { treeUtil.assertStructure("Found 0 issue(s) in 0 file(s)\n") }.also {
                 treeUtil.expandAll()
@@ -72,7 +69,6 @@ class SeverityFilterTest : AbstractToolWindowTestCase() {
 
     fun `test convention selected shows convention-related items only`() {
         setSelectedFilters("convention")
-        val treeUtil = TreeTestUtil(tree)
         runBlocking {
             waitUntilAssertSucceeds { treeUtil.assertStructure("+Found 1 issue(s) in 1 file(s)\n") }.also {
                 treeUtil.expandAll()

@@ -13,7 +13,6 @@ import com.intellij.platform.workspace.storage.url.VirtualFileUrl
 import com.intellij.testFramework.TestDataPath
 import com.intellij.testFramework.common.waitUntilAssertSucceeds
 import com.intellij.testFramework.workspaceModel.updateProjectModel
-import com.intellij.ui.tree.TreeTestUtil
 import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.common.dialog.IDialogManager
 import works.szabope.plugins.common.services.Settings
@@ -74,7 +73,6 @@ class ScanSdkTest : AbstractToolWindowTestCase() {
         }
         val target = workspaceModel.currentSnapshot.entities(ContentRootEntity::class.java).first().url.virtualFile!!
         scan(getContext { it.add(CommonDataKeys.VIRTUAL_FILE_ARRAY, arrayOf(target)) })
-        val treeUtil = TreeTestUtil(tree)
         runBlocking {
             waitUntilAssertSucceeds {
                 treeUtil.assertStructure("+Found 2 issue(s) in 1 file(s)\n")

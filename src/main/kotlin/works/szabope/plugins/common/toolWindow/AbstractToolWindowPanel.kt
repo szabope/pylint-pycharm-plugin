@@ -13,7 +13,6 @@ import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.EditSourceOnDoubleClickHandler
 import com.intellij.util.EditSourceOnEnterKeyHandler
 import com.intellij.util.ui.JBUI
-import org.jetbrains.annotations.TestOnly
 import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel.Companion.SCROLL_TO_SOURCE_ID
 import java.awt.BorderLayout
@@ -48,15 +47,12 @@ abstract class AbstractToolWindowPanel(private val project: Project) : SimpleToo
     override fun uiDataSnapshot(sink: DataSink) {
         sink[PlatformDataKeys.TREE_EXPANDER] = treeManager.treeExpander
         sink.lazy(CommonDataKeys.NAVIGATABLE) {
-            val userObject = treeManager.getSelectedNodeUserObject() as? IssueNodeUserObject? ?: return@lazy null
+            val userObject = treeManager.getSelectedNodeUserObject() ?: return@lazy null
             val file = VfsUtil.findFile(Path(userObject.file), true) ?: return@lazy null
             OpenFileDescriptor(project, file, userObject.line, userObject.column)
         }
         super.uiDataSnapshot(sink)
     }
-
-    @TestOnly
-    fun getTree() = treeManager.tree
 
     private fun addPane(tree: Tree) {
         add(JBScrollPane(tree), BorderLayout.CENTER)
