@@ -7,9 +7,6 @@ import com.jetbrains.python.packaging.common.PythonPackage
 import com.jetbrains.python.packaging.common.PythonPackageSpecification
 import com.jetbrains.python.packaging.management.PythonPackageManager
 import com.jetbrains.python.packaging.management.PythonRepositoryManager
-import io.mockk.coEvery
-import io.mockk.mockkObject
-import works.szabope.plugins.pylint.services.cli.Cli
 import kotlin.Result.Companion.success
 
 @Suppress("UnstableApiUsage")
@@ -19,27 +16,21 @@ class PythonPackageManagerStub(project: Project, sdk: Sdk, private val pathToPyl
     private val testInstalledPackages = mutableListOf<InstalledPackage>()
 
     override var installedPackages: List<PythonPackage> = emptyList()
-        get() = testInstalledPackages.map { PythonPackage(it.name, it.version ?: "3.3.4", false) }.toList()
+        get() = testInstalledPackages.map { PythonPackage(it.name, it.version!!, false) }.toList()
 
     override val repositoryManager: PythonRepositoryManager
         get() = throw NotImplementedError()
 
     override suspend fun installPackageCommand(
-        specification: PythonPackageSpecification,
-        options: List<String>
+        specification: PythonPackageSpecification, options: List<String>
     ): Result<Unit> {
         testInstalledPackages.add(InstalledPackage(specification.name, "3.3.4"))
-        // if it's installed it should also be found by `which`
-        mockkObject(Cli)
-        coEvery { Cli.execute("which", "pylint", workDir = any(), env = any()) } returns Cli.Status(
-            0, emptyList(), pathToPylint
-        )
+        testInstalledPackages.add(InstalledPackage(specification.name, specification.versionSpecs!!))
         return reloadPackages().map { }
     }
 
     override suspend fun reloadPackages(): Result<List<PythonPackage>> {
-        return success(testInstalledPackages.map { PythonPackage(it.name, it.version ?: "3.3.4", false) }
-            .toList())
+        return success(testInstalledPackages.map { PythonPackage(it.name, it.version!!, false) }.toList())
     }
 
     override suspend fun uninstallPackageCommand(pkg: PythonPackage): Result<Unit> {

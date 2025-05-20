@@ -18,7 +18,7 @@ class InstallPylintAction : AbstractInstallToolAction(
         PylintBundle.message("action.InstallPylintAction.fail_html")
     )
 ) {
-    override fun getPackageManager(project: Project) = PylintPackageManagementFacade(project)
+    override fun getPackageManagerFacade(project: Project) = PylintPackageManagementFacade(project)
 
     override suspend fun notifyPanel(project: Project, message: String) {
         ToolWindowManager.getInstance(project).notifyByBalloon(

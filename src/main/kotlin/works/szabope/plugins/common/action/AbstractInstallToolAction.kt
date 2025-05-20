@@ -22,13 +22,13 @@ class InstallationToolActionConfig(
 
 @Suppress("removal")
 abstract class AbstractInstallToolAction(private val config: InstallationToolActionConfig) : DumbAwareAction() {
-    abstract fun getPackageManager(project: Project): PackageManagementFacade
+    abstract fun getPackageManagerFacade(project: Project): PackageManagementFacade
 
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
         runWithModalProgressBlocking(project, config.messageInstalling) {
             withContext(Dispatchers.EDT) {
-                val errorDescription = getPackageManager(project).installRequirement()
+                val errorDescription = getPackageManagerFacade(project).installRequirement()
                 if (errorDescription == null) {
                     notifyPanel(project, config.messageInstalled)
                     migrateSettings(project)
@@ -45,7 +45,7 @@ abstract class AbstractInstallToolAction(private val config: InstallationToolAct
     }
 
     override fun update(event: AnActionEvent) {
-        event.presentation.isEnabled = event.project?.let { getPackageManager(it).canInstall() } ?: false
+        event.presentation.isEnabled = event.project?.let { getPackageManagerFacade(it).canInstall() } ?: false
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {
