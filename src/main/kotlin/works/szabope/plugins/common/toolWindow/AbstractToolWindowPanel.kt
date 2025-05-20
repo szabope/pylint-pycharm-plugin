@@ -13,8 +13,6 @@ import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.EditSourceOnDoubleClickHandler
 import com.intellij.util.EditSourceOnEnterKeyHandler
 import com.intellij.util.ui.JBUI
-import works.szabope.plugins.common.services.Settings
-import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel.Companion.SCROLL_TO_SOURCE_ID
 import java.awt.BorderLayout
 import javax.swing.Box
 import kotlin.io.path.Path
@@ -23,23 +21,13 @@ abstract class AbstractToolWindowPanel(private val project: Project) : SimpleToo
 
     protected val treeManager: TreeManager get() = TreeManager.getInstance(project)
 
-    fun init(toolWindowId: String, mainActionGroupId: String) {
+    fun init(toolWindowId: String, mainActionGroupId: String, autoScrollConfig: AutoScrollConfig) {
         treeManager.addChangeListener {
             repaint()
             ActivityTracker.getInstance().inc()
         }
         border = JBUI.Borders.empty(1)
-        addAutoScrollToSource(object : AutoScrollConfig {
-            override var isAutoScrollToSource
-                get() = Settings.getInstance(project).isAutoScrollToSource
-                set(value) {
-                    Settings.getInstance(project).isAutoScrollToSource = value
-                }
-            override val tree
-                get() = treeManager.tree
-            override val placeholderActionId = SCROLL_TO_SOURCE_ID
-
-        })
+        addAutoScrollToSource(autoScrollConfig)
         addToolbar(toolWindowId, mainActionGroupId)
         addPane(treeManager.tree)
     }
