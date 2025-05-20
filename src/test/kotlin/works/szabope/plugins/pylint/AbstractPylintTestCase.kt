@@ -12,7 +12,7 @@ import io.mockk.unmockkAll
 import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.testutil.PylintSettingsInitializationTestService
 import works.szabope.plugins.pylint.testutil.PythonMockSdk
-import works.szabope.plugins.pylint.testutil.TestPythonPackageManager
+import works.szabope.plugins.pylint.testutil.PythonPackageManagerStub
 
 abstract class AbstractPylintTestCase : BasePlatformTestCase() {
 
@@ -32,14 +32,14 @@ abstract class AbstractPylintTestCase : BasePlatformTestCase() {
     }
 
     @Suppress("UnstableApiUsage")
-    fun withMockSdk(path: String, action: (TestPythonPackageManager) -> Unit) {
+    fun withMockSdk(path: String, action: (PythonPackageManagerStub) -> Unit) {
         val mockSdk = PythonMockSdk.create(path)
         runWriteActionAndWait {
             ProjectJdkTable.getInstance().addJdk(mockSdk)
         }
         project.pythonSdk = mockSdk
         module.pythonSdk = mockSdk
-        val packageManager = TestPythonPackageManager(project, mockSdk, "$testDataPath/bin/pylint")
+        val packageManager = PythonPackageManagerStub(project, mockSdk, "$testDataPath/bin/pylint")
         mockkObject(PythonPackageManager)
         every { PythonPackageManager.forSdk(any(), any()) } returns packageManager
         try {

@@ -13,7 +13,7 @@ import works.szabope.plugins.pylint.services.cli.Cli
 import kotlin.Result.Companion.success
 
 @Suppress("UnstableApiUsage")
-class TestPythonPackageManager(project: Project, sdk: Sdk, private val pathToPylint: String) :
+class PythonPackageManagerStub(project: Project, sdk: Sdk, private val pathToPylint: String) :
     PythonPackageManager(project, sdk) {
 
     private val testInstalledPackages = mutableListOf<InstalledPackage>()
