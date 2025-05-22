@@ -17,7 +17,7 @@ version = providers.gradleProperty("pluginVersion").get()
 
 // Set the JVM language level used to build the project.
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 // Configure project's dependencies
@@ -27,6 +27,12 @@ repositories {
     // IntelliJ Platform Gradle Plugin Repositories Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-repositories-extension.html
     intellijPlatform {
         defaultRepositories()
+    }
+    maven {
+        url = uri("https://jitpack.io")
+        content {
+            excludeGroupByRegex("^(works\\.szabope\\.plugins)")
+        }
     }
 }
 
@@ -51,6 +57,7 @@ dependencies {
         testFramework(TestFrameworkType.Platform)
     }
     implementation(libs.kotlinProcess)
+    implementation("com.github.szabope:pycharm-tool-integration-plugin-base:0.0.1")
 }
 
 // Configure IntelliJ Platform Gradle Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-extension.html

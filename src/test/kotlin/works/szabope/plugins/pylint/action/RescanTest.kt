@@ -4,7 +4,6 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.testFramework.TestDataPath
 import com.intellij.testFramework.common.waitUntil
 import com.intellij.testFramework.common.waitUntilAssertSucceeds
-import com.intellij.ui.tree.TreeTestUtil
 import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.AbstractToolWindowTestCase
@@ -39,7 +38,6 @@ class RescanTest : AbstractToolWindowTestCase() {
         Settings.getInstance(project).executablePath =
             Paths.get(testDataPath).resolve("pylint2").absolutePathString()
         rescan(getContext())
-        val treeUtil = TreeTestUtil(tree)
         runBlocking {
             waitUntilAssertSucceeds { treeUtil.assertStructure("+Found 1 issue(s) in 1 file(s)\n") }.also {
                 treeUtil.expandAll()

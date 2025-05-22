@@ -10,7 +10,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.jetbrains.python.PythonFileType
 import com.jetbrains.python.pyi.PyiFileType
 import works.szabope.plugins.common.services.Settings
-import works.szabope.plugins.common.toolWindow.TreeManager
+import works.szabope.plugins.common.toolWindow.ITreeService
 import works.szabope.plugins.pylint.services.AsyncScanService
 import works.szabope.plugins.pylint.services.parser.PylintPublishingToolOutputHandler
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
@@ -20,7 +20,7 @@ open class ScanAction : DumbAwareAction() {
     override fun actionPerformed(event: AnActionEvent) {
         val targets = listTargets(event) ?: return
         val project = event.project ?: return
-        TreeManager.getInstance(project).reinitialize(targets)
+        ITreeService.getInstance(project).reinitialize(targets)
         FileDocumentManager.getInstance().saveAllDocuments()
         AsyncScanService.getInstance(project)
             .scan(targets, Settings.getInstance(project).getData(), PylintPublishingToolOutputHandler(project))

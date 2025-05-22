@@ -12,7 +12,7 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow id="Pylint " factoryClass="works.szabope.plugins.pylint.toolWindow.PylintToolWindowFactory"
-                    anchor="bottom" canCloseContents="false" icon="/icons/pylintToolWindow.svg" />
+                    anchor="bottom" canCloseContents="false" icon="/icons/pylintToolWindow.svg"/>
         <projectConfigurable
                 id="works.szabope.plugins.pylint.configurable.PylintSettingConfigurable"
                 instance="works.szabope.plugins.pylint.configurable.PylintConfigurable"
@@ -32,7 +32,9 @@
                             testServiceImplementation="works.szabope.plugins.pylint.testutil.TestDialogManager"/>
         <checkinHandlerFactory implementation="works.szabope.plugins.pylint.vcs.PylintCheckinHandlerFactory"/>
         <projectService serviceInterface="works.szabope.plugins.common.services.Settings"
-                        serviceImplementation="works.szabope.plugins.pylint.services.PylintSettings" />
+                        serviceImplementation="works.szabope.plugins.pylint.services.PylintSettings"/>
+        <projectService serviceInterface="works.szabope.plugins.common.toolWindow.ITreeService"
+                        serviceImplementation="works.szabope.plugins.pylint.toolWindow.PylintTreeService"/>
     </extensions>
 
     <actions>

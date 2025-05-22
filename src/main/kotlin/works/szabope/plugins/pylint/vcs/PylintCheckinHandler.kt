@@ -10,7 +10,7 @@ import com.intellij.ui.dsl.builder.panel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import works.szabope.plugins.common.services.Settings
-import works.szabope.plugins.common.toolWindow.TreeManager
+import works.szabope.plugins.common.toolWindow.ITreeService
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.messages.PylintMessageConverter
 import works.szabope.plugins.pylint.services.SyncScanService
@@ -70,10 +70,10 @@ class PylintCheckinHandler(private val panel: CheckinProjectPanel) : CheckinHand
                 get() = PylintBundle.message("dialog.pre-checkin-confirmation.review")
 
             override fun showDetails(project: Project) {
-                val treeManager = TreeManager.getInstance(project)
-                treeManager.reinitialize(files)
+                val treeService = ITreeService.getInstance(project)
+                treeService.reinitialize(files)
                 scanResults.map { PylintMessageConverter.convert(it) }.forEach {
-                    treeManager.add(it)
+                    treeService.add(it)
                 }
                 ToolWindowManager.getInstance(project).getToolWindow(PylintToolWindowPanel.ID)?.show()
             }
