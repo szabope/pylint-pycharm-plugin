@@ -5,8 +5,9 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.treeStructure.Tree
 import works.szabope.plugins.common.CommonBundle
 
-class TreeModelManager(private val isDisplayed: (String) -> Boolean) {
+class TreeModelManager(severities: Set<String>) {
 
+    private val displayedSeverityLevels = severities.toMutableSet()
     private val changeListeners = mutableSetOf<() -> Unit>()
     private val logger = logger<TreeModelManager>()
     private val issues = mutableSetOf<TreeModelDataItem>()
@@ -44,6 +45,22 @@ class TreeModelManager(private val isDisplayed: (String) -> Boolean) {
         changeListeners.add(listener)
     }
 
+    fun isSeverityLevelDisplayed(severityLevel: String): Boolean {
+        return displayedSeverityLevels.contains(severityLevel)
+    }
+
+    fun setSeverityLevelDisplayed(severityLevel: String, isDisplayed: Boolean): Boolean {
+        val hadEffect = if (isDisplayed) {
+            displayedSeverityLevels.add(severityLevel)
+        } else {
+            displayedSeverityLevels.remove(severityLevel)
+        }
+        if (hadEffect) {
+            reload()
+        }
+        return hadEffect
+    }
+
     private fun triggerChangeListeners() {
         changeListeners.forEach { it() }
     }
@@ -65,7 +82,7 @@ class TreeModelManager(private val isDisplayed: (String) -> Boolean) {
     }
 
     private fun isDisplayed(issue: TreeModelDataItem): Boolean {
-        return isDisplayed(issue.severity.level)
+        return isSeverityLevelDisplayed(issue.severity.level)
     }
 
     private fun findOrAddFileNode(file: String): StringNode {

@@ -6,7 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import works.szabope.plugins.common.messages.MessageConverter
 import works.szabope.plugins.common.services.ToolResultItem
-import works.szabope.plugins.common.toolWindow.TreeManager
+import works.szabope.plugins.common.toolWindow.ITreeService
 import works.szabope.plugins.common.toolWindow.TreeModelDataItem
 
 abstract class PublishingToolOutputHandler<I : ToolResultItem>(
@@ -18,7 +18,7 @@ abstract class PublishingToolOutputHandler<I : ToolResultItem>(
     override suspend fun handleResult(message: I) {
         val item = convert(message)
         withContext(Dispatchers.EDT) {
-            TreeManager.getInstance(project).add(item)
+            ITreeService.getInstance(project).add(item)
         }
     }
 }

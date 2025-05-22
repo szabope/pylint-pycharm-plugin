@@ -1,6 +1,7 @@
 package works.szabope.plugins.common.toolWindow
 
 import com.intellij.ide.ActivityTracker
+import com.intellij.ide.DefaultTreeExpander
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
@@ -13,34 +14,40 @@ import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.EditSourceOnDoubleClickHandler
 import com.intellij.util.EditSourceOnEnterKeyHandler
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.tree.TreeUtil
 import java.awt.BorderLayout
 import javax.swing.Box
 import kotlin.io.path.Path
 
-abstract class AbstractToolWindowPanel(private val project: Project) : SimpleToolWindowPanel(false, true) {
+abstract class AbstractToolWindowPanel(private val project: Project, private val tree: Tree) :
+    SimpleToolWindowPanel(false, true) {
 
-    protected val treeManager: TreeManager get() = TreeManager.getInstance(project)
+    private val treeExpander = DefaultTreeExpander(tree)
+    private val treeService: ITreeService get() = ITreeService.getInstance(project)
 
     fun init(toolWindowId: String, mainActionGroupId: String, autoScrollConfig: AutoScrollConfig) {
-        treeManager.addChangeListener {
+        treeService.install(tree)
+        treeService.addChangeListener {
             repaint()
             ActivityTracker.getInstance().inc()
         }
         border = JBUI.Borders.empty(1)
         addAutoScrollToSource(autoScrollConfig)
         addToolbar(toolWindowId, mainActionGroupId)
-        addPane(treeManager.tree)
+        addPane(tree)
     }
 
     override fun uiDataSnapshot(sink: DataSink) {
-        sink[PlatformDataKeys.TREE_EXPANDER] = treeManager.treeExpander
+        sink[PlatformDataKeys.TREE_EXPANDER] = treeExpander
         sink.lazy(CommonDataKeys.NAVIGATABLE) {
-            val userObject = treeManager.getSelectedNodeUserObject() ?: return@lazy null
+            val userObject = getSelectedNodeUserObject() ?: return@lazy null
             val file = VfsUtil.findFile(Path(userObject.file), true) ?: return@lazy null
             OpenFileDescriptor(project, file, userObject.line, userObject.column)
         }
         super.uiDataSnapshot(sink)
     }
+
+    private fun getSelectedNodeUserObject() = TreeUtil.getLastUserObject(tree.selectionPath) as? IssueNodeUserObject?
 
     private fun addPane(tree: Tree) {
         add(JBScrollPane(tree), BorderLayout.CENTER)

@@ -6,7 +6,7 @@ import com.intellij.testFramework.TestDataPath
 import com.intellij.testFramework.common.waitUntilAssertSucceeds
 import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.common.services.Settings
-import works.szabope.plugins.common.toolWindow.TreeManager
+import works.szabope.plugins.common.toolWindow.ITreeService
 import works.szabope.plugins.pylint.action.SeverityFiltersActionGroup
 import works.szabope.plugins.pylint.services.pylintSeverityConfigs
 import works.szabope.plugins.pylint.testutil.scan
@@ -31,7 +31,7 @@ class SeverityFilterTest : AbstractToolWindowTestCase() {
 
     override fun tearDown() {
         // set severities back to default
-        with(TreeManager.getInstance(project)) {
+        with(ITreeService.getInstance(project)) {
             pylintSeverityConfigs.keys.forEach { setSeverityLevelDisplayed(it, true) }
         }
         super.tearDown()

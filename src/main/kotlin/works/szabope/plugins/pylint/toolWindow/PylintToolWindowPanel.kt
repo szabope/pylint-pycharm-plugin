@@ -2,10 +2,13 @@ package works.szabope.plugins.pylint.toolWindow
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.ui.treeStructure.Tree
+import org.jetbrains.annotations.VisibleForTesting
 import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.common.toolWindow.AbstractToolWindowPanel
 
-class PylintToolWindowPanel(project: Project) : AbstractToolWindowPanel(project) {
+class PylintToolWindowPanel(project: Project, @VisibleForTesting val tree: Tree = Tree()) :
+    AbstractToolWindowPanel(project, tree) {
 
     init {
         super.init(ID, MAIN_ACTION_GROUP, object : AutoScrollConfig {
@@ -15,7 +18,7 @@ class PylintToolWindowPanel(project: Project) : AbstractToolWindowPanel(project)
                     Settings.getInstance(project).isAutoScrollToSource = value
                 }
             override val tree
-                get() = treeManager.tree
+                get() = this@PylintToolWindowPanel.tree
             override val placeholderActionId = SCROLL_TO_SOURCE_ID
         })
     }
