@@ -1,6 +1,4 @@
-package works.szabope.plugins.pylint.testutil
-
-import works.szabope.plugins.common.dialog.PluginDialog
+package works.szabope.plugins.common.dialog
 
 class TestDialogWrapper(private val lie: Class<out Any>, vararg args: Any) : PluginDialog {
     private val arguments = args

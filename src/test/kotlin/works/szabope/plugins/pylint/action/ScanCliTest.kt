@@ -21,7 +21,7 @@ import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.AbstractToolWindowTestCase
 import works.szabope.plugins.pylint.dialog.PylintParseErrorDialog
 import works.szabope.plugins.pylint.testutil.TestDialogManager
-import works.szabope.plugins.pylint.testutil.TestDialogWrapper
+import works.szabope.plugins.common.dialog.TestDialogWrapper
 import works.szabope.plugins.pylint.testutil.scan
 import java.net.URL
 import java.nio.file.Paths
