@@ -10,7 +10,7 @@ import com.jetbrains.python.target.PyTargetAwareAdditionalData
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import works.szabope.plugins.common.dialog.IDialogManager
-import works.szabope.plugins.common.dialog.TestDialogWrapper
+import works.szabope.plugins.common.test.dialog.TestDialogWrapper
 import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.dialog.PylintExecutionErrorDialog
 import works.szabope.plugins.pylint.services.OldPylintSettings

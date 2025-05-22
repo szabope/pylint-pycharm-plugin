@@ -9,7 +9,7 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
-import works.szabope.plugins.common.sdk.PythonMockSdk
+import works.szabope.plugins.common.test.sdk.PythonMockSdk
 import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.testutil.PylintSettingsInitializationTestService
 import works.szabope.plugins.pylint.testutil.PythonPackageManagerStub

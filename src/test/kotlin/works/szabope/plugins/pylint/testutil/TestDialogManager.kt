@@ -7,8 +7,8 @@ import com.intellij.webcore.packaging.PackageManagementService
 import com.intellij.webcore.packaging.PackagingErrorDialog
 import com.jetbrains.python.packaging.PyPackageInstallationErrorDialog
 import com.jetbrains.python.packaging.ui.PyPackageManagementService
-import works.szabope.plugins.common.dialog.AbstractTestDialogManager
-import works.szabope.plugins.common.dialog.TestDialogWrapper
+import works.szabope.plugins.common.test.dialog.AbstractTestDialogManager
+import works.szabope.plugins.common.test.dialog.TestDialogWrapper
 import works.szabope.plugins.common.services.ImmutableSettingsData
 import works.szabope.plugins.pylint.dialog.PylintExecutionErrorDialog
 import works.szabope.plugins.pylint.dialog.PylintParseErrorDialog
