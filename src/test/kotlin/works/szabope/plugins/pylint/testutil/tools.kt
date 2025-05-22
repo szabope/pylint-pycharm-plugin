@@ -12,7 +12,7 @@ import works.szabope.plugins.pylint.action.RescanAction
 import works.szabope.plugins.pylint.action.ScanAction
 import works.szabope.plugins.pylint.action.StopScanAction
 
-fun scan(context: DataContext) {// TODO: something's bleeding from here: only first run works, can't find cause; the feature is working
+fun scan(context: DataContext) {
     val action = ActionUtil.getAction(ScanAction.ID)!! as ScanAction
     val actionEvent = AnActionEvent.createEvent(context, null, ActionPlaces.EDITOR_TAB, ActionUiKind.NONE, null)
     action.update(actionEvent)
