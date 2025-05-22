@@ -10,7 +10,7 @@ import com.jetbrains.python.packaging.management.PythonRepositoryManager
 import kotlin.Result.Companion.success
 
 @Suppress("UnstableApiUsage")
-class PythonPackageManagerStub(project: Project, sdk: Sdk, private val pathToPylint: String) :
+class PythonPackageManagerStub(project: Project, sdk: Sdk) :
     PythonPackageManager(project, sdk) {
 
     private val testInstalledPackages = mutableListOf<InstalledPackage>()
