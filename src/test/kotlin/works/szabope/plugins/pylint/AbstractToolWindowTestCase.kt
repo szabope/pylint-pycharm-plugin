@@ -25,7 +25,8 @@ abstract class AbstractToolWindowTestCase : AbstractPylintTestCase() {
         toolWindowManager = TestToolWindowHeadlessManagerImpl(project)
         project.replaceService(ToolWindowManager::class.java, toolWindowManager, testRootDisposable)
         setUpToolWindow()
-        val panel = PylintToolWindowPanel.getInstance(project) as PylintToolWindowPanel
+        val panel = ToolWindowManager.getInstance(project)
+            .getToolWindow(PylintToolWindowPanel.ID)!!.contentManager.contents.single().component as PylintToolWindowPanel
         treeUtil = TreeTestUtil(panel.tree)
         val panelContext = IdeUiService.getInstance().createUiDataContext(panel)
         testContext = SimpleDataContext.builder().setParent(panelContext).add(CommonDataKeys.PROJECT, project).build()
