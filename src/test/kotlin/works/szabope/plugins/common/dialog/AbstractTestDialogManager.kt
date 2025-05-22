@@ -5,7 +5,7 @@ import com.intellij.testFramework.requireIs
 import org.junit.Assert.assertNull
 
 abstract class AbstractTestDialogManager : IDialogManager {
-    
+
     private val myHandlers = hashMapOf<Class<out DialogWrapper>, (TestDialogWrapper) -> Int>()
     private var myAnyHandler: ((TestDialogWrapper) -> Int)? = null
 
@@ -30,11 +30,7 @@ abstract class AbstractTestDialogManager : IDialogManager {
     fun onAnyDialog(handler: (TestDialogWrapper) -> Any) {
         myAnyHandler = fun(h: TestDialogWrapper): Int {
             val res = handler.invoke(h)
-            return if (res is Int) {
-                res
-            } else {
-                DialogWrapper.OK_EXIT_CODE
-            }
+            return res as? Int ?: DialogWrapper.OK_EXIT_CODE
         }
     }
 
