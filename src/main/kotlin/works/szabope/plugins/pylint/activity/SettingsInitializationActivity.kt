@@ -1,5 +1,6 @@
 package works.szabope.plugins.pylint.activity
 
+import androidx.annotation.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
@@ -31,7 +32,7 @@ internal class SettingsInitializationActivity : ProjectActivity {
         }
     }
 
-    @TestOnly
+    @VisibleForTesting
     suspend fun configurePlugin(project: Project) {
         PylintPackageManagementFacade(project).reloadPackages()
         val settings = Settings.getInstance(project)
