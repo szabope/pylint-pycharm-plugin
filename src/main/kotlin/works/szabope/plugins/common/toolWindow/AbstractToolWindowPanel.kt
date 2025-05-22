@@ -15,6 +15,7 @@ import com.intellij.util.EditSourceOnDoubleClickHandler
 import com.intellij.util.EditSourceOnEnterKeyHandler
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeUtil
+import works.szabope.plugins.common.services.Settings
 import java.awt.BorderLayout
 import javax.swing.Box
 import kotlin.io.path.Path
@@ -25,14 +26,23 @@ abstract class AbstractToolWindowPanel(private val project: Project, private val
     private val treeExpander = DefaultTreeExpander(tree)
     private val treeService: ITreeService get() = ITreeService.getInstance(project)
 
-    fun init(toolWindowId: String, mainActionGroupId: String, autoScrollConfig: AutoScrollConfig) {
+    fun init(toolWindowId: String, mainActionGroupId: String, scrollSourceId: String) {
         treeService.install(tree)
         treeService.addChangeListener {
             repaint()
             ActivityTracker.getInstance().inc()
         }
         border = JBUI.Borders.empty(1)
-        addAutoScrollToSource(autoScrollConfig)
+        addAutoScrollToSource(object : AutoScrollConfig {
+            override var isAutoScrollToSource
+                get() = Settings.getInstance(project).isAutoScrollToSource
+                set(value) {
+                    Settings.getInstance(project).isAutoScrollToSource = value
+                }
+            override val tree
+                get() = this@AbstractToolWindowPanel.tree
+            override val placeholderActionId = scrollSourceId
+        })
         addToolbar(toolWindowId, mainActionGroupId)
         addPane(tree)
     }
