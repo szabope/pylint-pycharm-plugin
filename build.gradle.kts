@@ -57,7 +57,7 @@ dependencies {
         testFramework(TestFrameworkType.Platform)
     }
     implementation(libs.kotlinProcess)
-    implementation("com.github.szabope:pycharm-tool-integration-plugin-base:0.0.1")
+    implementation("com.github.szabope:pycharm-tool-integration-plugin-base:0.0.2")
 }
 
 // Configure IntelliJ Platform Gradle Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-extension.html

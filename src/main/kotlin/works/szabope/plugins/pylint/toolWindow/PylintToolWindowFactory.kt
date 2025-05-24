@@ -6,11 +6,9 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.ui.content.ContentFactory
-import org.jetbrains.annotations.VisibleForTesting
 import works.szabope.plugins.pylint.PylintBundle
 
-@VisibleForTesting
-internal open class PylintToolWindowFactory : ToolWindowFactory, DumbAware {
+class PylintToolWindowFactory : ToolWindowFactory, DumbAware {
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val panel = PylintToolWindowPanel(project)
