@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.0.0] - 2025-12-06
+
+- Changelog update - `v0.1.2` by @github-actions[bot] in https://github.com/szabope/pylint-pycharm-plugin/pull/24
+- Support for 2025.3 by @szabope in https://github.com/szabope/pylint-pycharm-plugin/pull/32
+
 ## [0.1.2] - 2025-05-22
 
 - Changelog update - `v0.1.1` by @github-actions in https://github.com/szabope/pylint-pycharm-plugin/pull/21
@@ -34,7 +39,8 @@
 - bump version to test release workflow by @szabope in https://github.com/szabope/pylint-pycharm-plugin/pull/2
 - @szabope made their first contribution in https://github.com/szabope/pylint-pycharm-plugin/pull/1
 
-[Unreleased]: https://github.com/szabope/pylint-pycharm-plugin/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/szabope/pylint-pycharm-plugin/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/szabope/pylint-pycharm-plugin/compare/v0.1.2...v2.0.0
 [0.1.2]: https://github.com/szabope/pylint-pycharm-plugin/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/szabope/pylint-pycharm-plugin/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/szabope/pylint-pycharm-plugin/compare/v0.0.4...v0.1.0
