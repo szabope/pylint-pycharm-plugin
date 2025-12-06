@@ -7,7 +7,6 @@ import com.intellij.ui.layout.ValidationInfoBuilder
 import works.szabope.plugins.common.configurable.ConfigurableConfiguration
 import works.szabope.plugins.common.configurable.GeneralConfigurable
 import works.szabope.plugins.common.trimToNull
-import works.szabope.plugins.pylint.PylintArgs
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.action.InstallPylintAction
 import works.szabope.plugins.pylint.services.PylintPluginPackageManagementService
