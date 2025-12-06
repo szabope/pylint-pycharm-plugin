@@ -1,35 +1,13 @@
 package works.szabope.plugins.pylint.action
 
-import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.project.DumbAwareAction
-import works.szabope.plugins.common.services.Settings
-import works.szabope.plugins.common.toolWindow.ITreeService
-import works.szabope.plugins.pylint.services.AsyncScanService
-import works.szabope.plugins.pylint.services.parser.PylintPublishingToolOutputHandler
+import com.intellij.openapi.vfs.VirtualFile
+import works.szabope.plugins.pylint.toolWindow.PylintTreeService
 
-class RescanAction : DumbAwareAction() {
-    override fun actionPerformed(event: AnActionEvent) {
-        val project = event.project ?: return
-        val treeService = ITreeService.getInstance(project)
-        val latestScanTargets = treeService.getRootScanPaths()
-        treeService.reinitialize(latestScanTargets)
-        FileDocumentManager.getInstance().saveAllDocuments()
-        AsyncScanService.getInstance(project).scan(
-            latestScanTargets, Settings.getInstance(project).getData(), PylintPublishingToolOutputHandler(project)
-        )
-    }
+class RescanAction : ScanAction() {
 
-    override fun update(event: AnActionEvent) {
-        val project = event.project ?: return
-        val treeService = ITreeService.getInstance(project)
-        event.presentation.isEnabled =
-            treeService.getRootScanPaths().isNotEmpty() && ScanActionUtil.isReadyToScan(project)
-    }
-
-    override fun getActionUpdateThread(): ActionUpdateThread {
-        return ActionUpdateThread.BGT
+    override fun listTargets(event: AnActionEvent): Collection<VirtualFile> {
+        return PylintTreeService.getInstance(event.project ?: return emptyList()).getRootScanPaths()
     }
 
     companion object {

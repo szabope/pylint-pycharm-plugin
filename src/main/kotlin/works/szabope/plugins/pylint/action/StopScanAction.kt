@@ -2,17 +2,22 @@ package works.szabope.plugins.pylint.action
 
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.progress.currentThreadCoroutineScope
 import com.intellij.openapi.project.DumbAwareAction
-import works.szabope.plugins.pylint.services.AsyncScanService
+import kotlinx.coroutines.future.future
+import works.szabope.plugins.pylint.toolWindow.PylintTreeService
 
 class StopScanAction : DumbAwareAction() {
 
     override fun actionPerformed(event: AnActionEvent) {
-        AsyncScanService.getInstance(event.project ?: return).cancelScan()
+        currentThreadCoroutineScope().future {
+            ScanJobRegistry.INSTANCE.cancel()
+            event.project?.let { PylintTreeService.getInstance(it) }?.lock()
+        }.get()
     }
 
     override fun update(event: AnActionEvent) {
-        event.presentation.isEnabled = AsyncScanService.getInstance(event.project ?: return).scanInProgress
+        event.presentation.isEnabled = ScanJobRegistry.INSTANCE.isActive()
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {

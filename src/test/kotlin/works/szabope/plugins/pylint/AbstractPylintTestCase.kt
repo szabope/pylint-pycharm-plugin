@@ -1,24 +1,44 @@
 package works.szabope.plugins.pylint
 
 import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.ProjectJdkTable
+import com.intellij.openapi.projectRoots.Sdk
+import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
+import com.intellij.testFramework.LightProjectDescriptor
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
-import com.jetbrains.python.packaging.management.PythonPackageManager
 import com.jetbrains.python.sdk.pythonSdk
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
+import works.szabope.plugins.common.services.AbstractPluginPackageManagementService
 import works.szabope.plugins.common.test.sdk.PythonMockSdk
-import works.szabope.plugins.common.services.Settings
-import works.szabope.plugins.pylint.testutil.PylintSettingsInitializationTestService
-import works.szabope.plugins.pylint.testutil.PythonPackageManagerStub
+import works.szabope.plugins.pylint.services.PylintPluginPackageManagementService
+import works.szabope.plugins.pylint.services.PylintSettings
+import works.szabope.plugins.pylint.testutil.PylintPluginPackageManagementServiceStub
 
 abstract class AbstractPylintTestCase : BasePlatformTestCase() {
 
+    // local variables are not supported in mockk answer, yet
+    private lateinit var packageManagementServiceStub: AbstractPluginPackageManagementService
+
     override fun setUp() {
+        // FIXME: this is a duct tape for
+        //  com.intellij.python.community.services.systemPython.searchPythonsPhysicallyNoCache
+        //  accessing /usr/bin/python3(\.\d+)? which is not allowed from tests
+        VfsRootAccess.allowRootAccess(testRootDisposable, "/usr/bin")
+        mockkObject(PylintPluginPackageManagementService.Companion)
+        every { PylintPluginPackageManagementService.getInstance(any(Project::class)) } answers {
+            if (!::packageManagementServiceStub.isInitialized) {
+                packageManagementServiceStub = PylintPluginPackageManagementServiceStub(
+                    firstArg<Project>()
+                )
+            }
+            packageManagementServiceStub
+        }
         super.setUp()
-        Settings.getInstance(project).reset()
+        PylintSettings.getInstance(project).reset()
     }
 
     override fun tearDown() {
@@ -27,23 +47,22 @@ abstract class AbstractPylintTestCase : BasePlatformTestCase() {
         super.tearDown()
     }
 
-    protected suspend fun triggerReconfiguration() {
-        PylintSettingsInitializationTestService.getInstance(project).triggerReconfiguration()
+    /**
+     * https://youtrack.jetbrains.com/issue/IJPL-197007
+     */
+    override fun getProjectDescriptor(): LightProjectDescriptor? {
+        return LightProjectDescriptor()
     }
 
-    @Suppress("UnstableApiUsage")
-    fun withMockSdk(path: String, action: (PythonPackageManagerStub) -> Unit) {
+    fun withMockSdk(path: String, action: (Sdk) -> Unit) {
         val mockSdk = PythonMockSdk.create(path)
         runWriteActionAndWait {
             ProjectJdkTable.getInstance().addJdk(mockSdk)
         }
         project.pythonSdk = mockSdk
         module.pythonSdk = mockSdk
-        val packageManager = PythonPackageManagerStub(project, mockSdk)
-        mockkObject(PythonPackageManager)
-        every { PythonPackageManager.forSdk(any(), any()) } returns packageManager
         try {
-            action(packageManager)
+            action(mockSdk)
         } finally {
             project.pythonSdk = null
             module.pythonSdk = null

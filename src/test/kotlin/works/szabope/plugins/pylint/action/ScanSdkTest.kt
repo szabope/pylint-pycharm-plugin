@@ -1,77 +1,57 @@
 package works.szabope.plugins.pylint.action
 
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.application.runWriteActionAndWait
-import com.intellij.openapi.components.service
-import com.intellij.platform.backend.workspace.WorkspaceModel
-import com.intellij.platform.backend.workspace.virtualFile
-import com.intellij.platform.workspace.jps.entities.ContentRootEntity
-import com.intellij.platform.workspace.jps.entities.ExcludeUrlEntity
-import com.intellij.platform.workspace.storage.EntitySource
-import com.intellij.platform.workspace.storage.WorkspaceEntity
-import com.intellij.platform.workspace.storage.url.VirtualFileUrl
+import com.intellij.openapi.vfs.ex.temp.TempFileSystem
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.TestDataPath
 import com.intellij.testFramework.common.waitUntilAssertSucceeds
-import com.intellij.testFramework.workspaceModel.updateProjectModel
+import io.mockk.every
+import io.mockk.mockkObject
+import junit.framework.Assert
+import junit.framework.AssertionFailedError
 import kotlinx.coroutines.runBlocking
-import works.szabope.plugins.common.dialog.IDialogManager
-import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.AbstractToolWindowTestCase
-import works.szabope.plugins.pylint.testutil.PylintAction
-import works.szabope.plugins.pylint.testutil.TestDialogManager
-import java.net.URL
+import works.szabope.plugins.pylint.PylintBundle
+import works.szabope.plugins.pylint.dialog.DialogManager
+import works.szabope.plugins.pylint.services.PylintSettings
+import works.szabope.plugins.pylint.testutil.*
 import java.nio.file.Paths
-import javax.swing.event.HyperlinkEvent
 import kotlin.io.path.absolutePathString
 
-@TestDataPath("\$CONTENT_ROOT/testData/action/scan_sdk")
+@Suppress("removal")
+@TestDataPath($$"$CONTENT_ROOT/testData/action/scan_sdk")
 class ScanSdkTest : AbstractToolWindowTestCase() {
 
-    private lateinit var dialogManager: TestDialogManager
+    private val dialogManager = TestDialogManager()
 
     override fun getTestDataPath() = "src/test/testData/action/scan_sdk"
 
     override fun setUp() {
+        mockkObject(DialogManager.Companion)
+        every { DialogManager.dialogManager } answers { dialogManager }
         super.setUp()
-        dialogManager = service<IDialogManager>() as TestDialogManager
-    }
-
-    override fun tearDown() {
-        if (::dialogManager.isInitialized) dialogManager.cleanup()
-        super.tearDown()
     }
 
     fun testManualScan() = withMockSdk("${Paths.get(testDataPath).absolutePathString()}/MockSdk") {
         myFixture.copyDirectoryToProject("/", "/")
-        PylintAction.installPylint(getProjectContext())
+        installPylint(dataContext(project) { add(CommonDataKeys.PROJECT, project) })
         setUpSettings()
-        val workspaceModel = WorkspaceModel.getInstance(project)
-        val excludedDir = workspaceModel.currentSnapshot.entities(ContentRootEntity::class.java).first().url.append(
-            "/excluded_dir"
-        )
-        val excludedEntity = ExcludeUrlEntity(excludedDir, object : EntitySource {
-            override val virtualFileUrl: VirtualFileUrl?
-                get() = excludedDir
-        })
-        lateinit var exclusionWorkspaceEntity: WorkspaceEntity
-        runWriteActionAndWait {
-            workspaceModel.updateProjectModel { model ->
-                exclusionWorkspaceEntity = model.addEntity(excludedEntity)
+        val excludedDir = TempFileSystem.getInstance().findFileByPath("/src/excluded_dir")!!
+        val exclusionContext = dataContext(project) {
+            add(CommonDataKeys.VIRTUAL_FILE_ARRAY, arrayOf(excludedDir))
+        }
+        markExcluded(exclusionContext)
+        var assertionError: Error? = null
+        toolWindowManager.onBalloon {
+            val expected = PylintBundle.message("action.InstallPylintAction.done_html")
+            if (expected != it.htmlBody) {
+                assertionError = AssertionFailedError(Assert.format("Should not happen", expected, it.htmlBody))
             }
         }
-
-        toolWindowManager.onBalloon {
-            it.listener?.hyperlinkUpdate(
-                HyperlinkEvent(
-                    "dumb", HyperlinkEvent.EventType.ACTIVATED, URL("http://localhost")
-                )
-            )
-        }
-        dialogManager.onAnyDialog {
-            fail(it.toString())
-        }
-        val target = workspaceModel.currentSnapshot.entities(ContentRootEntity::class.java).first().url.virtualFile!!
-        PylintAction.tryScan(getContext { it.add(CommonDataKeys.VIRTUAL_FILE_ARRAY, arrayOf(target)) })
+        val target = TempFileSystem.getInstance().findFileByPath("/src")!!
+        scan(dataContext(project) { add(CommonDataKeys.VIRTUAL_FILE_ARRAY, arrayOf(target)) })
+        PlatformTestUtil.waitWhileBusy { ScanJobRegistry.INSTANCE.isActive() }
+        assertionError?.let { throw it }
         runBlocking {
             waitUntilAssertSucceeds {
                 treeUtil.assertStructure("+Found 2 issue(s) in 1 file(s)\n")
@@ -86,23 +66,17 @@ class ScanSdkTest : AbstractToolWindowTestCase() {
                 )
             }
         }
-        runWriteActionAndWait {
-            workspaceModel.updateProjectModel { model ->
-                model.removeEntity(
-                    exclusionWorkspaceEntity
-                )
-            }
-        }
+        unmark(exclusionContext)
     }
 
     private fun setUpSettings() {
-        with(Settings.getInstance(project)) {
-            executablePath = null
-            projectDirectory = Paths.get(testDataPath).absolutePathString()
+        with(PylintSettings.getInstance(project)) {
+            executablePath = ""
+            workingDirectory = Paths.get(testDataPath).absolutePathString()
             useProjectSdk = true
-            configFilePath = null
+            configFilePath = ""
             scanBeforeCheckIn = false
-            arguments = null
+            arguments = ""
             excludeNonProjectFiles = true
         }
     }

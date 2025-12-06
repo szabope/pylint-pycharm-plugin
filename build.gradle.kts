@@ -7,7 +7,6 @@ plugins {
     alias(libs.plugins.kotlin) // Kotlin support
     alias(libs.plugins.intelliJPlatform) // IntelliJ Platform Gradle Plugin
     alias(libs.plugins.changelog) // Gradle Changelog Plugin
-    alias(libs.plugins.qodana) // Gradle Qodana Plugin
     alias(libs.plugins.kover) // Gradle Kover Plugin
     alias(libs.plugins.serialization) // Gradle Kotlin Serialization Plugin
 }
@@ -25,6 +24,7 @@ kotlin {
 
 // Configure project's dependencies
 repositories {
+    mavenLocal()
     mavenCentral()
 
     maven {
@@ -70,7 +70,6 @@ dependencies {
         zipSigner()
         testFramework(TestFrameworkType.Platform)
     }
-    implementation(libs.kotlinProcess)
     implementation(libs.myPluginCommon)
 }
 
@@ -159,5 +158,11 @@ tasks {
 
     publishPlugin {
         dependsOn(patchChangelog)
+    }
+}
+
+tasks.register("printClasspath") {
+    doLast {
+        println(sourceSets.main.get().runtimeClasspath.asPath)
     }
 }
