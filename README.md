@@ -2,7 +2,6 @@
 [![Apache-2.0 license](https://img.shields.io/github/license/szabope/pylint-pycharm-plugin.svg?style=plastic)](https://github.com/szabope/pylint-pycharm-plugin/blob/master/LICENSE)
 
 <!-- Plugin description -->
-### Warning: *BETA* - should be working but some unexpected behavior is expected
 This plugin provides PyCharm with both real-time and on-demand scanning capabilities using an external Pylint tool.\
 It is the rework of [Roberto Leinardi](https://github.com/szabope/pylint-pycharm-plugin?tab=readme-ov-file#acknowledgements)'s [pylint-pycharm](https://github.com/leinardi/pylint-pycharm) plugin.[ Click here](https://github.com/szabope/pylint-pycharm-plugin?tab=readme-ov-file#differences-from-the-original-plugin) to see differences.
 
