@@ -7,6 +7,7 @@ import com.intellij.ui.layout.ValidationInfoBuilder
 import works.szabope.plugins.common.configurable.ConfigurableConfiguration
 import works.szabope.plugins.common.configurable.GeneralConfigurable
 import works.szabope.plugins.common.trimToNull
+import works.szabope.plugins.common.validator.FileValidator
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.action.InstallPylintAction
 import works.szabope.plugins.pylint.services.PylintPluginPackageManagementService
@@ -49,7 +50,7 @@ class PylintConfigurable(private val project: Project) : GeneralConfigurable(
 
     override fun validateConfigFilePath(
         builder: ValidationInfoBuilder, field: TextFieldWithBrowseButton
-    ) = PylintConfigFileValidator().validateConfigFilePath(field.text.trimToNull())?.let { builder.error(it) }
+    ) = FileValidator().validateConfigFilePath(field.text.trimToNull())?.let { builder.error(it) }
 
     companion object {
         const val ID = "Settings.Pylint"

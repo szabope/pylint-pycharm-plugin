@@ -24,7 +24,7 @@ kotlin {
 
 // Configure project's dependencies
 repositories {
-    mavenLocal()
+    mavenLocal() //TODO
     mavenCentral()
 
     maven {
@@ -158,11 +158,5 @@ tasks {
 
     publishPlugin {
         dependsOn(patchChangelog)
-    }
-}
-
-tasks.register("printClasspath") {
-    doLast {
-        println(sourceSets.main.get().runtimeClasspath.asPath)
     }
 }

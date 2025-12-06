@@ -1,6 +1,7 @@
 package works.szabope.plugins.pylint.annotator
 
 import com.intellij.openapi.project.Project
+import works.szabope.plugins.common.annotator.ToolAnnotator
 import works.szabope.plugins.common.services.ImmutableSettingsData
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.services.ScanService
@@ -13,7 +14,7 @@ internal class PylintAnnotator : ToolAnnotator<PylintMessage>() {
         info: AnnotatorInfo, configuration: ImmutableSettingsData
     ) = ScanService.getInstance(info.project).scan(listOf(info.file), configuration)
 
-    override val inspectionId = "PylintInspection"
+    override val inspectionId = PylintInspectionId
 
     override fun createIntention(message: PylintMessage) = null
 }
