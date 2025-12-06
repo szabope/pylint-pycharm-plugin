@@ -1,18 +1,19 @@
 package works.szabope.plugins.pylint.action
 
+import com.intellij.notification.Notification
 import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.options.ShowSettingsUtil
-import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.wm.ToolWindowManager
 import works.szabope.plugins.pylint.configurable.PylintConfigurable
 
-class OpenSettingsAction : DumbAwareAction() {
+class OpenSettingsAction : AnAction() {
     override fun actionPerformed(e: AnActionEvent) {
-        ToolWindowManager.getInstance(e.project ?: return).invokeLater {
-            ShowSettingsUtil.getInstance().showSettingsDialog(
-                e.project, PylintConfigurable::class.java
-            )
+        val project = e.project ?: return
+        ToolWindowManager.getInstance(project).invokeLater {
+            e.getData(Notification.KEY)?.expire()
+            ShowSettingsUtil.getInstance().showSettingsDialog(project, PylintConfigurable::class.java)
         }
     }
 

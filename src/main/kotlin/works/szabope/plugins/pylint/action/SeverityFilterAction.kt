@@ -5,8 +5,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareToggleAction
 import org.jetbrains.annotations.VisibleForTesting
 import works.szabope.plugins.common.services.SeverityConfig
-import works.szabope.plugins.common.toolWindow.ITreeService
 import works.szabope.plugins.pylint.PylintBundle
+import works.szabope.plugins.pylint.toolWindow.PylintTreeService
 
 class SeverityFilterAction(private val config: SeverityConfig) :
     DumbAwareToggleAction(config.text, config.description, config.icon) {
@@ -17,14 +17,14 @@ class SeverityFilterAction(private val config: SeverityConfig) :
 
     override fun isSelected(event: AnActionEvent): Boolean {
         val project = event.project ?: return true
-        return ITreeService.getInstance(project).isSeverityLevelDisplayed(config.level)
+        return PylintTreeService.getInstance(project).isSeverityLevelDisplayed(config.level)
     }
 
     override fun setSelected(event: AnActionEvent, selected: Boolean) {
         val project = requireNotNull(event.project) {
             PylintBundle.message("pylint.please_report_this_issue")
         }
-        ITreeService.getInstance(project).setSeverityLevelDisplayed(config.level, selected)
+        PylintTreeService.getInstance(project).setSeverityLevelDisplayed(config.level, selected)
     }
 
     @VisibleForTesting
