@@ -10,10 +10,12 @@ import kotlinx.coroutines.future.future
 import kotlinx.serialization.SerializationException
 import works.szabope.plugins.common.run.ToolExecutionTerminatedException
 import works.szabope.plugins.common.services.ImmutableSettingsData
+import works.szabope.plugins.common.services.showClickableBalloonError
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.dialog.DialogManager
 import works.szabope.plugins.pylint.services.parser.PylintMessage
 import works.szabope.plugins.pylint.services.parser.PylintOutputParser
+import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 
 @Service(Service.Level.PROJECT)
 class ScanService(private val project: Project, private val cs: CoroutineScope) {
@@ -31,7 +33,7 @@ class ScanService(private val project: Project, private val cs: CoroutineScope) 
             .transform { if (it.isError) stdErr.append(it.text) else emit(it) }.catch {
                 if (it is ToolExecutionTerminatedException) {
                     showClickableBalloonError(
-                        project, PylintBundle.message("pylint.toolwindow.balloon.external_error")
+                        project, PylintToolWindowPanel.ID, PylintBundle.message("pylint.toolwindow.balloon.external_error")
                     ) {
                         DialogManager.showToolExecutionErrorDialog(
                             configuration, stdErr.toString(), it.exitCode
@@ -40,7 +42,7 @@ class ScanService(private val project: Project, private val cs: CoroutineScope) 
                 } else {
                     // Unexpected exception
                     showClickableBalloonError(
-                        project, PylintBundle.message("pylint.toolwindow.balloon.failed_to_execute")
+                        project, PylintToolWindowPanel.ID, PylintBundle.message("pylint.toolwindow.balloon.failed_to_execute")
                     ) {
                         DialogManager.showFailedToExecuteErrorDialog(
                             it.message ?: PylintBundle.message("pylint.please_report_this_issue")
@@ -53,7 +55,7 @@ class ScanService(private val project: Project, private val cs: CoroutineScope) 
         } catch (it: SerializationException) {
             // Unexpected exception
             showClickableBalloonError(
-                project, PylintBundle.message("pylint.toolwindow.balloon.failed_to_execute")
+                project, PylintToolWindowPanel.ID, PylintBundle.message("pylint.toolwindow.balloon.failed_to_execute")
             ) {
                 DialogManager.showToolOutputParseErrorDialog(
                     configuration, targets.joinToString { it.path }, stdOut, it.message ?: "N/A"

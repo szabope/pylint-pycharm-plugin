@@ -50,7 +50,7 @@ class ScanSdkTest : AbstractToolWindowTestCase() {
         }
         val target = TempFileSystem.getInstance().findFileByPath("/src")!!
         scan(dataContext(project) { add(CommonDataKeys.VIRTUAL_FILE_ARRAY, arrayOf(target)) })
-        PlatformTestUtil.waitWhileBusy { ScanJobRegistry.INSTANCE.isActive() }
+        PlatformTestUtil.waitWhileBusy { PylintScanJobRegistryService.getInstance(project).isActive() }
         assertionError?.let { throw it }
         runBlocking {
             waitUntilAssertSucceeds {

@@ -10,14 +10,11 @@ class SeverityFiltersActionGroup : DumbAware, ActionGroup() {
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-    lateinit var children: Array<out SeverityFilterAction>
-
-    override fun getChildren(e: AnActionEvent?): Array<out SeverityFilterAction> {
-        if (!::children.isInitialized) {
-            children = pylintSeverityConfigs.map { SeverityFilterAction(it.value) }.toTypedArray()
-        }
-        return children
+    private val children: Array<out SeverityFilterAction> by lazy {
+        pylintSeverityConfigs.map { SeverityFilterAction(it.value) }.toTypedArray()
     }
+
+    override fun getChildren(e: AnActionEvent?): Array<out SeverityFilterAction> = children
 
     companion object {
         const val ID = "works.szabope.plugins.pylint.ErrorLevelDisplayOptions.SeverityFilters"

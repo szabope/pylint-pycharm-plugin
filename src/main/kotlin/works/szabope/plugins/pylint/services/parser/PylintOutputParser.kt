@@ -29,19 +29,8 @@ object PylintOutputParser {
      */
     private fun adjustForPlatform(message: PylintMessage): PylintMessage {
         return message.copy(
-            type = message.type,
-            message = message.message,
-            messageId = message.messageId,
-            symbol = message.symbol,
-            confidence = message.confidence,
-            module = message.module,
-            path = message.path,
-            absolutePath = message.absolutePath,
             line = message.line - 1,
             endLine = message.endLine?.let { it - 1 },
-            column = message.column,
-            endColumn = message.endColumn,
-            obj = message.obj,
         )
     }
 }
