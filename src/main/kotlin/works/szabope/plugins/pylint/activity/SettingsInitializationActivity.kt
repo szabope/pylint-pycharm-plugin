@@ -1,28 +1,24 @@
 package works.szabope.plugins.pylint.activity
 
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.ProjectActivity
+import works.szabope.plugins.common.activity.AbstractSettingsInitializationActivity
+import works.szabope.plugins.common.services.AbstractPluginPackageManagementService
+import works.szabope.plugins.common.services.BasicSettingsData
+import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.pylint.services.IncompleteConfigurationNotifier
 import works.szabope.plugins.pylint.services.OldPylintSettings
 import works.szabope.plugins.pylint.services.PylintPluginPackageManagementService
 import works.szabope.plugins.pylint.services.PylintSettings
 
-class SettingsInitializationActivity : ProjectActivity {
+class SettingsInitializationActivity : AbstractSettingsInitializationActivity() {
 
-    override suspend fun execute(project: Project) {
-        if (project.isDefault) {
-            return
-        }
-        if (!ApplicationManager.getApplication().isUnitTestMode) {
-            PylintPluginPackageManagementService.getInstance(project).reloadPackages()
-        }
-        val settings = PylintSettings.getInstance(project)
-        // we trust in old settings validity
-        settings.initSettings(OldPylintSettings.getInstance(project))
-        if (settings.getValidConfiguration().isFailure) {
-            val canInstall = PylintPluginPackageManagementService.getInstance(project).canInstall()
-            IncompleteConfigurationNotifier.notify(project, canInstall)
-        }
-    }
+    override fun getPackageManagementService(project: Project): AbstractPluginPackageManagementService =
+        PylintPluginPackageManagementService.getInstance(project)
+
+    override fun getSettings(project: Project): Settings = PylintSettings.getInstance(project)
+
+    override suspend fun getOldSettings(project: Project): BasicSettingsData = OldPylintSettings.getInstance(project)
+
+    override fun notifyIncomplete(project: Project, canInstall: Boolean) =
+        IncompleteConfigurationNotifier.notify(project, canInstall)
 }
