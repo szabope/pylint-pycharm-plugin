@@ -7,7 +7,9 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
+import com.intellij.testFramework.replaceService
 import works.szabope.plugins.common.services.AbstractPluginPackageManagementService
+import works.szabope.plugins.pylint.action.PylintScanJobRegistryService
 import works.szabope.plugins.pylint.services.PylintPluginPackageManagementService
 import works.szabope.plugins.pylint.testutil.PylintPluginPackageManagementServiceStub
 
@@ -28,6 +30,7 @@ abstract class AbstractPylintHeavyPlatformTestCase : HeavyPlatformTestCase() {
             pylintPackageManagementServiceStub
         }
         super.setUp()
+        project.replaceService(PylintScanJobRegistryService::class.java, PylintScanJobRegistryService(), testRootDisposable)
     }
 
     override fun tearDown() {

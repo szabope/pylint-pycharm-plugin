@@ -24,7 +24,7 @@ class RescanTest : AbstractToolWindowTestCase() {
         }
         val file = myFixture.configureByText("a.py", "doesn't matter").virtualFile
         scan(dataContext(project) { add(CommonDataKeys.VIRTUAL_FILE_ARRAY, arrayOf(file)) })
-        PlatformTestUtil.waitWhileBusy { ScanJobRegistry.INSTANCE.isActive() }
+        PlatformTestUtil.waitWhileBusy { PylintScanJobRegistryService.getInstance(project).isActive() }
     }
 
     /**
@@ -35,7 +35,7 @@ class RescanTest : AbstractToolWindowTestCase() {
         PylintSettings.getInstance(project).executablePath =
             Paths.get(testDataPath).resolve("pylint2").absolutePathString()
         PlatformTestUtil.invokeNamedAction(RescanAction.ID)
-        PlatformTestUtil.waitWhileBusy { ScanJobRegistry.INSTANCE.isActive() }
+        PlatformTestUtil.waitWhileBusy { PylintScanJobRegistryService.getInstance(project).isActive() }
         treeUtil.assertStructure("+Found 1 issue(s) in 1 file(s)\n")
         treeUtil.expandAll()
         treeUtil.assertStructure(

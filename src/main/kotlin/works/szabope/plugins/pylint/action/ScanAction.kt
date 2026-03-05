@@ -42,7 +42,7 @@ open class ScanAction : DumbAwareAction() {
             }
             treeService.lock()
         }
-        ScanJobRegistry.INSTANCE.set(job)
+        PylintScanJobRegistryService.getInstance(project).set(job)
         ToolWindowManager.getInstance(project).getToolWindow(PylintToolWindowPanel.ID)?.show()
     }
 
@@ -60,7 +60,7 @@ open class ScanAction : DumbAwareAction() {
     }
 
     private fun isReadyToScan(project: Project, targets: Collection<VirtualFile>): Boolean {
-        return targets.isNotEmpty() && ScanJobRegistry.INSTANCE.isAvailable() && PylintSettings.getInstance(project)
+        return targets.isNotEmpty() && PylintScanJobRegistryService.getInstance(project).isAvailable() && PylintSettings.getInstance(project)
             .getValidConfiguration().isSuccess && isEligibleTargets(targets)
     }
 

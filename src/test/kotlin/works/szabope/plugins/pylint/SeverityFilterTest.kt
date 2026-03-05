@@ -4,7 +4,7 @@ import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.TestDataPath
-import works.szabope.plugins.pylint.action.ScanJobRegistry
+import works.szabope.plugins.pylint.action.PylintScanJobRegistryService
 import works.szabope.plugins.pylint.action.SeverityFiltersActionGroup
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.services.pylintSeverityConfigs
@@ -28,7 +28,7 @@ class SeverityFilterTest : AbstractToolWindowTestCase() {
         }
         val file = myFixture.configureByText("a.py", "doesn't matter").virtualFile
         scan(dataContext(project) { add(CommonDataKeys.VIRTUAL_FILE_ARRAY, arrayOf(file)) })
-        PlatformTestUtil.waitWhileBusy { ScanJobRegistry.INSTANCE.isActive() }
+        PlatformTestUtil.waitWhileBusy { PylintScanJobRegistryService.getInstance(project).isActive() }
     }
 
     override fun tearDown() {
