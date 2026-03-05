@@ -1,6 +1,5 @@
 package works.szabope.plugins.pylint.dialog
 
-import com.jetbrains.rd.generator.nova.GenerationSpec.Companion.nullIfEmpty
 import works.szabope.plugins.common.dialog.PluginErrorDescription
 import works.szabope.plugins.common.dialog.PluginErrorDialog
 import works.szabope.plugins.common.services.ImmutableSettingsData
@@ -30,13 +29,13 @@ class PylintParseErrorDialog(
 ) : PluginErrorDialog(
     PylintBundle.message("pylint.dialog.parse_error.title"), PluginErrorDescription(
         PylintBundle.message("pylint.dialog.parse_error.details", configuration, targets, json),
-        error.nullIfEmpty()?.let { PylintBundle.message("pylint.dialog.parse_error.message", it) })
+        error.ifEmpty { null }?.let { PylintBundle.message("pylint.dialog.parse_error.message", it) })
 )
 
 class PylintGeneralErrorDialog(throwable: Throwable) : PluginErrorDialog(
     PylintBundle.message("pylint.dialog.general_error.title"), PluginErrorDescription(
         PylintBundle.message(
-            "pylint.dialog.general_error.details", throwable.message!!, throwable.stackTraceToString()
+            "pylint.dialog.general_error.details", throwable.message ?: throwable.toString(), throwable.stackTraceToString()
         ), PylintBundle.message("pylint.please_report_this_issue")
     )
 )
