@@ -10,17 +10,17 @@ class PylintInitializationFromOldConfigurationTest : AbstractPylintHeavyPlatform
 
     override fun setUpProject() {
         VfsRootAccess.allowRootAccess(testRootDisposable, "/usr/bin")
-        myProject = PlatformTestUtil.loadAndOpenProject(Path.of(PROJECT_PATH), getTestRootDisposable())
+        myProject = PlatformTestUtil.loadAndOpenProject(Path.of(PROJECT_PATH).toAbsolutePath(), getTestRootDisposable())
     }
 
     fun `test plugin initialized from old configuration`() {
         with(PylintSettings.getInstance(project)) {
             PlatformTestUtil.waitWhileBusy { !isInitialized() }
             assertFalse(useProjectSdk)
-            assertEquals("$PROJECT_PATH/.venv/bin/pylint", executablePath)
+            assertEquals("${project.basePath}/.venv/bin/pylint", executablePath)
             assertEquals("--ignore-comments=y", arguments)
             assertFalse(scanBeforeCheckIn)
-            assertEquals("$PROJECT_PATH/.pylintrc", configFilePath)
+            assertEquals("${project.basePath}/.pylintrc", configFilePath)
         }
     }
 
