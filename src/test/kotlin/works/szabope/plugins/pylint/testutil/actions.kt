@@ -3,10 +3,20 @@ package works.szabope.plugins.pylint.testutil
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.actionSystem.ex.ActionUtil.performAction
 import com.intellij.openapi.actionSystem.ex.ActionUtil.updateAction
+import com.intellij.testFramework.PlatformTestUtil
 import org.junit.Assert
 import works.szabope.plugins.pylint.action.InstallPylintAction
 import works.szabope.plugins.pylint.action.ScanAction
 import works.szabope.plugins.pylint.action.StopScanAction
+
+fun waitForIt(actionId: String, context: DataContext) {
+    val action = ActionManager.getInstance().getAction(actionId)
+    val event = AnActionEvent.createEvent(context, null, "", ActionUiKind.NONE, null)
+    PlatformTestUtil.waitWhileBusy {
+        updateAction(action, event)
+        !event.presentation.isEnabled
+    }
+}
 
 fun scan(context: DataContext) {
     val action = ActionManager.getInstance().getAction(ScanAction.ID)
