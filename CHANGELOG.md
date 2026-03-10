@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-03-10
+
+- Refactor CodeQL workflow for improved analysis and caching by @szabope in https://github.com/szabope/pylint-pycharm-plugin/pull/38
+- Cleanup dependency on common by @szabope in https://github.com/szabope/pylint-pycharm-plugin/pull/37
+- Lift code to common base by @szabope in https://github.com/szabope/pylint-pycharm-plugin/pull/39
+- Add support for IU 261 by @szabope in https://github.com/szabope/pylint-pycharm-plugin/pull/40
+
 ## [2.0.0] - 2025-12-06
 
 - Changelog update - `v0.1.2` by @github-actions[bot] in https://github.com/szabope/pylint-pycharm-plugin/pull/24
@@ -39,7 +46,8 @@
 - bump version to test release workflow by @szabope in https://github.com/szabope/pylint-pycharm-plugin/pull/2
 - @szabope made their first contribution in https://github.com/szabope/pylint-pycharm-plugin/pull/1
 
-[Unreleased]: https://github.com/szabope/pylint-pycharm-plugin/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/szabope/pylint-pycharm-plugin/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/szabope/pylint-pycharm-plugin/compare/v2.0.0...v2.2.0
 [2.0.0]: https://github.com/szabope/pylint-pycharm-plugin/compare/v0.1.2...v2.0.0
 [0.1.2]: https://github.com/szabope/pylint-pycharm-plugin/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/szabope/pylint-pycharm-plugin/compare/v0.1.0...v0.1.1
