@@ -8,7 +8,7 @@ import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.TestOnly
 import works.szabope.plugins.common.blankToSingleSpace
 import works.szabope.plugins.common.services.BasicSettingsData
-import works.szabope.plugins.common.services.ImmutableSettingsData
+import works.szabope.plugins.common.services.ToolExecutorConfiguration
 import works.szabope.plugins.common.services.Settings
 import works.szabope.plugins.common.services.ToolSettingsInvalidException
 
@@ -92,7 +92,7 @@ class PylintSettings(internal val project: Project) :
         initialized = true
     }
 
-    override suspend fun getValidConfiguration(): Result<ImmutableSettingsData> {
+    override suspend fun getValidConfiguration(): Result<ToolExecutorConfiguration> {
         val workingDirectory = workingDirectory
         if (workingDirectory.isNullOrBlank()) {
             return Result.failure(ToolSettingsInvalidException("Working directory is required"))
@@ -101,7 +101,7 @@ class PylintSettings(internal val project: Project) :
             return Result.failure(ToolSettingsInvalidException("Pylint tool is not set"))
         }
 
-        return PylintExecutorConfiguration(
+        return ToolExecutorConfiguration(
             executablePath,
             useProjectSdk,
             configFilePath,

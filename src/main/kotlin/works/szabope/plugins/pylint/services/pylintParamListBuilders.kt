@@ -8,14 +8,14 @@ import com.intellij.platform.workspace.jps.entities.ExcludeUrlEntity
 import com.intellij.util.execution.ParametersListUtil
 import com.intellij.util.text.nullize
 import works.szabope.plugins.common.run.Exclusions
-import works.szabope.plugins.common.services.ImmutableSettingsData
+import works.szabope.plugins.common.services.ToolExecutorConfiguration
 import works.szabope.plugins.pylint.PylintArgs
 import java.nio.file.Path
 import kotlin.io.path.Path
 
 context(project: Project)
 fun buildParamList(
-    configuration: ImmutableSettingsData, targets: Collection<VirtualFile>
+    configuration: ToolExecutorConfiguration, targets: Collection<VirtualFile>
 ) = with(configuration) {
     val params = mutableListOf<String>()
     configFilePath.nullize(true)?.let { params.add("--rcfile"); params.add(it) }
