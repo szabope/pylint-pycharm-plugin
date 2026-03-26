@@ -1,12 +1,14 @@
 package works.szabope.plugins.pylint
 
 import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.progress.withCurrentThreadCoroutineScopeBlocking
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
 import com.intellij.testFramework.LightProjectDescriptor
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
+import com.intellij.util.ThrowableRunnable
 import com.jetbrains.python.sdk.pythonSdk
 import io.mockk.clearAllMocks
 import io.mockk.every
@@ -42,6 +44,10 @@ abstract class AbstractPylintTestCase : BasePlatformTestCase() {
         super.setUp()
         PylintSettings.getInstance(project).reset()
         project.replaceService(PylintScanJobRegistryService::class.java, PylintScanJobRegistryService(), testRootDisposable)
+    }
+
+    override fun runTestRunnable(testRunnable: ThrowableRunnable<Throwable>) {
+        withCurrentThreadCoroutineScopeBlocking { super.runTestRunnable(testRunnable) }
     }
 
     override fun tearDown() {

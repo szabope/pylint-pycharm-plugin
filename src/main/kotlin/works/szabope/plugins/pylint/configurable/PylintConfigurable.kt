@@ -46,7 +46,7 @@ class PylintConfigurable(private val project: Project) : GeneralConfigurable(
         }
     }
 
-    override fun validateLocalSdk() = PylintValidator(project).validateProjectSdk()
+    override suspend fun validateLocalSdk() = PylintValidator(project).validateProjectSdk()
 
     override fun validateConfigFilePath(
         builder: ValidationInfoBuilder, field: TextFieldWithBrowseButton

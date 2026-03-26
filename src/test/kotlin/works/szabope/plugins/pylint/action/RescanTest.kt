@@ -6,6 +6,7 @@ import com.intellij.testFramework.TestDataPath
 import works.szabope.plugins.pylint.AbstractToolWindowTestCase
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.testutil.dataContext
+import works.szabope.plugins.pylint.testutil.invokeNamedActionWithScope
 import works.szabope.plugins.pylint.testutil.scan
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
@@ -34,7 +35,7 @@ class RescanTest : AbstractToolWindowTestCase() {
     fun `test rescan running for the same file scan did`() {
         PylintSettings.getInstance(project).executablePath =
             Paths.get(testDataPath).resolve("pylint2").absolutePathString()
-        PlatformTestUtil.invokeNamedAction(RescanAction.ID)
+        invokeNamedActionWithScope(RescanAction.ID)
         PlatformTestUtil.waitWhileBusy { PylintScanJobRegistryService.getInstance(project).isActive() }
         treeUtil.assertStructure("+Found 1 issue(s) in 1 file(s)\n")
         treeUtil.expandAll()

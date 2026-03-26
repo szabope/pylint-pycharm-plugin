@@ -15,8 +15,8 @@ data class PylintMessage(
     val module: String,
     val path: String,
     val absolutePath: String,
-    override var line: Int,
-    var endLine: Int?,
+    override val line: Int,
+    val endLine: Int?,
     override val column: Int,
     val endColumn: Int?,
     val obj: String
