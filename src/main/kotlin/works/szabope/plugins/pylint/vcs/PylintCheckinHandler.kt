@@ -49,13 +49,15 @@ class PylintCheckinHandler(panel: CheckinProjectPanel) : CheckinHandler(), Commi
 
     override fun getExecutionOrder() = CommitCheck.ExecutionOrder.EARLY
 
-    override fun isEnabled() = settings.scanBeforeCheckIn && settings.getValidConfiguration().isSuccess
+    override fun isEnabled() = settings.scanBeforeCheckIn
 
     override suspend fun runCheck(commitInfo: CommitInfo): CommitProblem? {
         val changes = commitInfo.committedChanges
         if (changes.isEmpty()) return null
         val files = changes.mapNotNull { it.afterRevision?.file?.virtualFile }
-        val configuration = settings.getValidConfiguration().getOrThrow()
+        val configuration = settings.getValidConfiguration().getOrElse {
+            return TextCommitProblem(PylintBundle.message("pylint.notification.incomplete_configuration"))
+        }
         val scanResults = withProgressText(PylintBundle.message("pylint.checkin-handler.in-progress")) {
             withContext(Dispatchers.Default) {
                 scanService.scan(files, configuration)

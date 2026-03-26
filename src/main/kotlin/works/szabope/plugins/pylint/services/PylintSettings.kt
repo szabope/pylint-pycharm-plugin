@@ -91,7 +91,7 @@ class PylintSettings(internal val project: Project) :
         initialized = true
     }
 
-    override fun getValidConfiguration(): Result<ImmutableSettingsData> {
+    override suspend fun getValidConfiguration(): Result<ImmutableSettingsData> {
         val workingDirectory = workingDirectory
         if (workingDirectory.isNullOrBlank()) {
             return Result.failure(PylintSettingsInvalid("Working directory is required"))
@@ -111,7 +111,7 @@ class PylintSettings(internal val project: Project) :
         ).let { Result.success(it) }
     }
 
-    private fun isToolSet(): Boolean {
+    private suspend fun isToolSet(): Boolean {
         return if (useProjectSdk) {
             project.pythonSdk != null && PylintPluginPackageManagementService.getInstance(project)
                 .checkInstalledRequirement().isSuccess
