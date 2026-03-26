@@ -1,9 +1,9 @@
 package works.szabope.plugins.pylint.services.parser
 
 import works.szabope.plugins.common.messages.MessageConverter
+import works.szabope.plugins.common.toolWindow.DefaultTreeModelDataItem
 import works.szabope.plugins.common.toolWindow.TreeModelDataItem
 import works.szabope.plugins.pylint.services.pylintSeverityConfigs
-import works.szabope.plugins.pylint.toolWindow.PylintTreeModelDataItem
 
 object PylintMessageConverter : MessageConverter<PylintMessage, TreeModelDataItem> {
     override fun convert(message: PylintMessage): TreeModelDataItem {
@@ -12,7 +12,7 @@ object PylintMessageConverter : MessageConverter<PylintMessage, TreeModelDataIte
                     |https://github.com/szabope/pylint-pycharm-plugin/issues""".trimMargin()
         }
         return with(message) {
-            PylintTreeModelDataItem(absolutePath, line, column, this.message, symbol, severity)
+            DefaultTreeModelDataItem(absolutePath, line, column, this.message, symbol, severity)
         }
     }
 }
