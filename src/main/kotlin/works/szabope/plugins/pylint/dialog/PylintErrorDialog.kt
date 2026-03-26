@@ -2,7 +2,7 @@ package works.szabope.plugins.pylint.dialog
 
 import works.szabope.plugins.common.dialog.PluginErrorDescription
 import works.szabope.plugins.common.dialog.PluginErrorDialog
-import works.szabope.plugins.common.services.ImmutableSettingsData
+import works.szabope.plugins.common.services.ToolExecutorConfiguration
 import works.szabope.plugins.pylint.PylintBundle
 
 class PylintPackageInstallationErrorDialog(message: String) : PluginErrorDialog(
@@ -17,7 +17,7 @@ class FailedToExecuteErrorDialog(message: String) : PluginErrorDialog(
 )
 
 class PylintExecutionErrorDialog(
-    configuration: ImmutableSettingsData, result: String, resultCode: Int?
+    configuration: ToolExecutorConfiguration, result: String, resultCode: Int?
 ) : PluginErrorDialog(
     PylintBundle.message("pylint.dialog.execution_error.title"), PluginErrorDescription(
         PylintBundle.message("pylint.dialog.execution_error.content", configuration, result),
@@ -25,7 +25,7 @@ class PylintExecutionErrorDialog(
 )
 
 class PylintParseErrorDialog(
-    configuration: ImmutableSettingsData, targets: String, json: String, error: String
+    configuration: ToolExecutorConfiguration, targets: String, json: String, error: String
 ) : PluginErrorDialog(
     PylintBundle.message("pylint.dialog.parse_error.title"), PluginErrorDescription(
         PylintBundle.message("pylint.dialog.parse_error.details", configuration, targets, json),

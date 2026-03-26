@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.future.future
 import kotlinx.serialization.SerializationException
 import works.szabope.plugins.common.run.ToolExecutionTerminatedException
-import works.szabope.plugins.common.services.ImmutableSettingsData
+import works.szabope.plugins.common.services.ToolExecutorConfiguration
 import works.szabope.plugins.common.services.showClickableBalloonError
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.dialog.DialogManager
@@ -20,13 +20,13 @@ import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 @Service(Service.Level.PROJECT)
 class ScanService(private val project: Project, private val cs: CoroutineScope) {
 
-    fun scan(targets: Collection<VirtualFile>, configuration: ImmutableSettingsData): List<PylintMessage> {
+    fun scan(targets: Collection<VirtualFile>, configuration: ToolExecutorConfiguration): List<PylintMessage> {
         return cs.future {
             scanAsync(targets, configuration)
         }.get()
     }
 
-    suspend fun scanAsync(targets: Collection<VirtualFile>, configuration: ImmutableSettingsData): List<PylintMessage> {
+    suspend fun scanAsync(targets: Collection<VirtualFile>, configuration: ToolExecutorConfiguration): List<PylintMessage> {
         val parameters = with(project) { buildParamList(configuration, targets) }
         val stdErr = StringBuilder()
         val stdOut = PylintExecutor(project).execute(configuration, parameters).filter { it.text.isNotBlank() }
