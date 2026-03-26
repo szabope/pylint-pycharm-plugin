@@ -15,8 +15,4 @@ object PylintBundle {
     fun message(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any) =
         bundle.getMessage(key, *params)
 
-    @Suppress("unused")
-    @JvmStatic
-    fun messagePointer(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any) =
-        bundle.getLazyMessage(key, *params)
 }
