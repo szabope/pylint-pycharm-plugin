@@ -10,6 +10,7 @@ import works.szabope.plugins.common.blankToSingleSpace
 import works.szabope.plugins.common.services.BasicSettingsData
 import works.szabope.plugins.common.services.ImmutableSettingsData
 import works.szabope.plugins.common.services.Settings
+import works.szabope.plugins.common.services.ToolSettingsInvalidException
 
 @Service(Service.Level.PROJECT)
 @State(name = "PylintSettings", storages = [Storage("PylintPlugin.xml")], category = SettingsCategory.PLUGINS)
@@ -94,10 +95,10 @@ class PylintSettings(internal val project: Project) :
     override suspend fun getValidConfiguration(): Result<ImmutableSettingsData> {
         val workingDirectory = workingDirectory
         if (workingDirectory.isNullOrBlank()) {
-            return Result.failure(PylintSettingsInvalid("Working directory is required"))
+            return Result.failure(ToolSettingsInvalidException("Working directory is required"))
         }
         if (!isToolSet()) {
-            return Result.failure(PylintSettingsInvalid("Pylint tool is not set"))
+            return Result.failure(ToolSettingsInvalidException("Pylint tool is not set"))
         }
 
         return PylintExecutorConfiguration(
