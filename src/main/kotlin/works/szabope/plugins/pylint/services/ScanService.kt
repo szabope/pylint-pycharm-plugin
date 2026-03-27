@@ -40,14 +40,8 @@ class ScanService(private val project: Project, private val cs: CoroutineScope) 
                         )
                     }
                 } else {
-                    // Unexpected exception
-                    showClickableBalloonError(
-                        project, PylintToolWindowPanel.ID, PylintBundle.message("pylint.toolwindow.balloon.failed_to_execute")
-                    ) {
-                        DialogManager.showFailedToExecuteErrorDialog(
-                            it.message ?: PylintBundle.message("pylint.please_report_this_issue")
-                        )
-                    }
+                    // Unexpected exception - tool likely gone
+                    PylintIncompleteConfigurationNotifier.getInstance(project).showWarningBubble(false)
                 }
             }.map { it.text }.toList().joinToString("\n")
         return try {
