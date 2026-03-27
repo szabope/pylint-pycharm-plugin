@@ -22,10 +22,11 @@ import works.szabope.plugins.pylint.toolWindow.PylintTreeService
 
 open class ScanAction : AbstractScanAction() {
 
+    override val toolWindowId = PylintToolWindowPanel.ID
+
     override fun getTreeService(project: Project): ITreeService = PylintTreeService.getInstance(project)
     override fun getSettings(project: Project): Settings = PylintSettings.getInstance(project)
     override fun getScanJobRegistry(project: Project): AbstractScanJobRegistry = PylintScanJobRegistryService.getInstance(project)
-    override fun getToolWindowId(): String = PylintToolWindowPanel.ID
     override fun getIncompleteConfigurationNotifier(project: Project): IncompleteConfigurationNotifier = PylintIncompleteConfigurationNotifier.getInstance(project)
     override fun getPackageManagementService(project: Project): AbstractPluginPackageManagementService = PylintPluginPackageManagementService.getInstance(project)
 
