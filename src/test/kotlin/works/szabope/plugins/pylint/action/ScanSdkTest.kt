@@ -14,6 +14,9 @@ import works.szabope.plugins.pylint.AbstractToolWindowTestCase
 import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.dialog.DialogManager
 import works.szabope.plugins.pylint.services.PylintSettings
+import works.szabope.plugins.common.test.action.markExcluded
+import works.szabope.plugins.common.test.action.unmark
+import works.szabope.plugins.common.test.action.waitForIt
 import works.szabope.plugins.pylint.testutil.*
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
