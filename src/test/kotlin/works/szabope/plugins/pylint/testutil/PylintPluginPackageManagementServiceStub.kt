@@ -7,7 +7,5 @@ import com.jetbrains.python.packaging.requirement.PyRequirementRelation
 import works.szabope.plugins.common.test.services.AbstractPluginPackageManagementServiceStub
 
 class PylintPluginPackageManagementServiceStub(project: Project) : AbstractPluginPackageManagementServiceStub(project) {
-    override fun getRequirement(): PyRequirement {
-        return pyRequirement("pylint", PyRequirementRelation.GTE, "3.0")
-    }
+    override fun getRequirement(): PyRequirement = pyRequirement("pylint", PyRequirementRelation.GTE, "3.0")
 }

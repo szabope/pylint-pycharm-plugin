@@ -12,7 +12,7 @@ import works.szabope.plugins.pylint.action.StopScanAction
 
 fun invokeNamedActionWithScope(actionId: String) {
     val action = ActionManager.getInstance().getAction(actionId)!!
-    @Suppress("DEPRECATION") val context = DataManager.getInstance().getDataContext()
+    @Suppress("DEPRECATION") val context = DataManager.getInstance().dataContext
     val event = AnActionEvent.createEvent(action, context, null, "", ActionUiKind.NONE, null)
     PerformWithDocumentsCommitted.commitDocumentsIfNeeded(action, event)
     updateActionForTest(action, event)
