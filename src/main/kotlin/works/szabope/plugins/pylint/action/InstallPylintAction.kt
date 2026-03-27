@@ -2,8 +2,6 @@ package works.szabope.plugins.pylint.action
 
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.MessageType
-import com.intellij.openapi.wm.ToolWindowManager
 import works.szabope.plugins.common.action.AbstractInstallToolAction
 import works.szabope.plugins.common.services.PluginPackageManagementException
 import works.szabope.plugins.pylint.PylintBundle
@@ -12,6 +10,7 @@ import works.szabope.plugins.pylint.services.PylintPluginPackageManagementServic
 import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 
 class InstallPylintAction : AbstractInstallToolAction(PylintBundle.message("action.InstallPylintAction.done_html")) {
+    override val toolWindowId = PylintToolWindowPanel.ID
     override fun getPackageManager(project: Project) = PylintPluginPackageManagementService.getInstance(project)
 
     override fun handleFailure(failure: Throwable) {
@@ -25,12 +24,6 @@ class InstallPylintAction : AbstractInstallToolAction(PylintBundle.message("acti
                 DialogManager.showGeneralErrorDialog(failure)
             }
         }
-    }
-
-    override fun notifyPanel(project: Project, message: String) {
-        ToolWindowManager.getInstance(project).notifyByBalloon(
-            PylintToolWindowPanel.ID, MessageType.INFO, message
-        )
     }
 
     companion object {
