@@ -5,8 +5,8 @@ import works.szabope.plugins.common.activity.AbstractSettingsInitializationActiv
 import works.szabope.plugins.common.services.AbstractPluginPackageManagementService
 import works.szabope.plugins.common.services.BasicSettingsData
 import works.szabope.plugins.common.services.Settings
-import works.szabope.plugins.pylint.services.PylintIncompleteConfigurationNotifier
 import works.szabope.plugins.pylint.services.OldPylintSettings
+import works.szabope.plugins.pylint.services.PylintIncompleteConfigurationNotifier
 import works.szabope.plugins.pylint.services.PylintPluginPackageManagementService
 import works.szabope.plugins.pylint.services.PylintSettings
 
@@ -19,6 +19,6 @@ class SettingsInitializationActivity : AbstractSettingsInitializationActivity() 
 
     override suspend fun getOldSettings(project: Project): BasicSettingsData = OldPylintSettings.getInstance(project)
 
-    override fun notifyIncomplete(project: Project, canInstall: Boolean) =
-        PylintIncompleteConfigurationNotifier.getInstance(project).showWarningBubble(canInstall)
+    override fun getIncompleteConfigurationNotifier(project: Project) =
+        PylintIncompleteConfigurationNotifier.getInstance(project)
 }
