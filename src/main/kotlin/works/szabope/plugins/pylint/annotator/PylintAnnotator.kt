@@ -8,7 +8,7 @@ import works.szabope.plugins.pylint.services.ScanService
 import works.szabope.plugins.pylint.services.parser.PylintMessage
 
 internal class PylintAnnotator : ToolAnnotator<PylintMessage>() {
-    override fun getSettingsInstance(project: Project) = PylintSettings.getInstance(project)
+    override fun getSettings(project: Project) = PylintSettings.getInstance(project)
 
     override fun scan(
         info: AnnotatorInfo, configuration: ToolExecutorConfiguration
