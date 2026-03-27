@@ -24,7 +24,7 @@ fun buildParamList(
         }.joinToString(",").nullize()?.apply { params.add("--ignore-paths"); params.add(this) }
     }
     // mandatory args to take precedence
-    params.addAll(PylintArgs.PYLINT_MANDATORY_COMMAND_ARGS.split(" "))
+    params.addAll(PylintArgs.MANDATORY_ARGS)
     targets.map { requireNotNull(it.canonicalPath) }.let { params.addAll(it) }
     params
 }
