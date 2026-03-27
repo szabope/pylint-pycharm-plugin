@@ -10,12 +10,6 @@ class PylintPackageInstallationErrorDialog(message: String) : PluginErrorDialog(
     PluginErrorDescription(message, PylintBundle.message("pylint.dialog.installation_error.message"))
 )
 
-class FailedToExecuteErrorDialog(message: String) : PluginErrorDialog(
-    PylintBundle.message("pylint.dialog.failed_to_execute.title"), PluginErrorDescription(
-        message, PylintBundle.message("pylint.dialog.failed_to_execute.message")
-    )
-)
-
 class PylintExecutionErrorDialog(
     configuration: ToolExecutorConfiguration, result: String, resultCode: Int?
 ) : PluginErrorDialog(
