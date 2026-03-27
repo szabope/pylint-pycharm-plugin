@@ -58,16 +58,12 @@ class PylintCheckinHandler(panel: CheckinProjectPanel) : CheckinHandler(), Commi
         }
         if (scanResults.isEmpty()) return null
         return object : CommitProblemWithDetails {
-            override val text: String
-                get() = PylintBundle.message("dialog.pre-checkin-confirmation.text", scanResults.size)
-            override val showDetailsAction: String
-                get() = PylintBundle.message("dialog.pre-checkin-confirmation.review")
+            override val text get() = PylintBundle.message("dialog.pre-checkin-confirmation.text", scanResults.size)
+            override val showDetailsAction get() = PylintBundle.message("dialog.pre-checkin-confirmation.review")
 
             override fun showDetails(project: Project) {
                 treeService.reinitialize(files)
-                scanResults.map { PylintMessageConverter.convert(it) }.forEach {
-                    treeService.add(it)
-                }
+                scanResults.map(PylintMessageConverter::convert).forEach(treeService::add)
                 ToolWindowManager.getInstance(project).getToolWindow(PylintToolWindowPanel.ID)?.show()
             }
         }

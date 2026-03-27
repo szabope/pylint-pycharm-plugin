@@ -16,21 +16,16 @@ object PylintOutputParser {
     )
 
     @Throws(SerializationException::class)
-    fun parse(json: String): List<PylintMessage> {
-        return withUnknownKeys.decodeFromString<PylintResult>(json).messages.map {
-            adjustForPlatform(it)
-        }
-    }
+    fun parse(json: String): List<PylintMessage> =
+        withUnknownKeys.decodeFromString<PylintResult>(json).messages.map(::adjustForPlatform)
 
     /**
      * Adjust line numbers
      *   from pylint: 1-based
      *   to intellij: 0-based
      */
-    private fun adjustForPlatform(message: PylintMessage): PylintMessage {
-        return message.copy(
-            line = message.line - 1,
-            endLine = message.endLine?.let { it - 1 },
-        )
-    }
+    private fun adjustForPlatform(message: PylintMessage): PylintMessage = message.copy(
+        line = message.line - 1,
+        endLine = message.endLine?.let { it - 1 },
+    )
 }

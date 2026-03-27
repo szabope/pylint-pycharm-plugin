@@ -19,7 +19,7 @@ class PylintToolWindowPanel(project: Project, @VisibleForTesting val tree: Tree 
     }
 
     companion object {
-        private const val MAIN_ACTION_GROUP: String = "works.szabope.plugins.pylint.PylintPluginActions"
+        private const val MAIN_ACTION_GROUP = "works.szabope.plugins.pylint.PylintPluginActions"
         const val ID = "Pylint "
         const val SCROLL_TO_SOURCE_ID = "works.szabope.plugins.pylint.action.ScrollToSourceAction"
     }

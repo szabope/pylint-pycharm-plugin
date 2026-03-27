@@ -20,11 +20,8 @@ import works.szabope.plugins.pylint.toolWindow.PylintToolWindowPanel
 @Service(Service.Level.PROJECT)
 class ScanService(private val project: Project, private val cs: CoroutineScope) {
 
-    fun scan(targets: Collection<VirtualFile>, configuration: ToolExecutorConfiguration): List<PylintMessage> {
-        return cs.future {
-            scanAsync(targets, configuration)
-        }.get()
-    }
+    fun scan(targets: Collection<VirtualFile>, configuration: ToolExecutorConfiguration): List<PylintMessage> =
+        cs.future { scanAsync(targets, configuration) }.get()
 
     suspend fun scanAsync(targets: Collection<VirtualFile>, configuration: ToolExecutorConfiguration): List<PylintMessage> {
         val parameters = with(project) { buildParamList(configuration, targets) }

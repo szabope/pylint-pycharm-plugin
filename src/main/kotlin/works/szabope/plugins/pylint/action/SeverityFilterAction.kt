@@ -11,9 +11,7 @@ import works.szabope.plugins.pylint.toolWindow.PylintTreeService
 class SeverityFilterAction(private val config: SeverityConfig) :
     DumbAwareToggleAction(config.text, config.description, config.icon) {
 
-    override fun getActionUpdateThread(): ActionUpdateThread {
-        return ActionUpdateThread.EDT
-    }
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
     override fun isSelected(event: AnActionEvent): Boolean {
         val project = event.project ?: return true
