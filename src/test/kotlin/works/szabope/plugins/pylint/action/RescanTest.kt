@@ -6,7 +6,7 @@ import com.intellij.testFramework.TestDataPath
 import works.szabope.plugins.pylint.AbstractToolWindowTestCase
 import works.szabope.plugins.pylint.services.PylintSettings
 import works.szabope.plugins.pylint.testutil.dataContext
-import works.szabope.plugins.pylint.testutil.invokeNamedActionWithScope
+import works.szabope.plugins.common.test.action.invokeNamedActionWithScope
 import works.szabope.plugins.pylint.testutil.scan
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
