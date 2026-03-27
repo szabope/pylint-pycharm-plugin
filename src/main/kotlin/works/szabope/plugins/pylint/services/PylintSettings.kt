@@ -5,6 +5,7 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.ApiStatus
 import works.szabope.plugins.common.blankToSingleSpace
 import works.szabope.plugins.common.services.AbstractToolSettings
+import works.szabope.plugins.pylint.PylintBundle
 
 @Service(Service.Level.PROJECT)
 @State(name = "PylintSettings", storages = [Storage("PylintPlugin.xml")], category = SettingsCategory.PLUGINS)
@@ -55,7 +56,7 @@ class PylintSettings(private val project: Project) : AbstractToolSettings<Pylint
         set(value) { state.scanBeforeCheckIn = value }
 
     override fun getPackageManagementService() = PylintPluginPackageManagementService.getInstance(project)
-    override fun toolNotSetMessage() = "Pylint tool is not set"
+    override fun toolNotSetMessage() = PylintBundle.message("pylint.configuration.tool_not_set")
     override fun isExecutableStateNull() = state.executablePath == null
     override fun isConfigFileStateNull() = state.configFilePath == null
     override fun isArgumentsStateNull() = state.arguments == null
