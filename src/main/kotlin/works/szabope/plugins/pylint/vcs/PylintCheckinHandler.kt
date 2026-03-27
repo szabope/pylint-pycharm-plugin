@@ -6,7 +6,6 @@ import com.intellij.openapi.vcs.checkin.*
 import com.intellij.openapi.vcs.ui.RefreshableOnComponent
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.platform.util.progress.withProgressText
-import com.intellij.ui.dsl.builder.panel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import works.szabope.plugins.pylint.PylintBundle
@@ -37,13 +36,7 @@ class PylintCheckinHandler(panel: CheckinProjectPanel) : CheckinHandler(), Commi
                 checkbox.isSelected = settings.scanBeforeCheckIn
             }
 
-            override fun getComponent(): JComponent {
-                return panel {
-                    row {
-                        cell(checkbox)
-                    }
-                }
-            }
+            override fun getComponent(): JComponent = checkbox
         }
     }
 
