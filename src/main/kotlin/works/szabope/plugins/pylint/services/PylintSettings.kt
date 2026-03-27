@@ -9,7 +9,7 @@ import works.szabope.plugins.pylint.PylintBundle
 
 @Service(Service.Level.PROJECT)
 @State(name = "PylintSettings", storages = [Storage("PylintPlugin.xml")], category = SettingsCategory.PLUGINS)
-class PylintSettings(private val project: Project) : AbstractToolSettings<PylintSettings.PylintState>(project, PylintState()) {
+class PylintSettings(project: Project) : AbstractToolSettings<PylintSettings.PylintState>(project, PylintState()) {
 
     @ApiStatus.Internal
     class PylintState : BaseState() {
