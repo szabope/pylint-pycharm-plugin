@@ -9,7 +9,7 @@ private const val BUNDLE = "messages.PylintBundle"
 
 object PylintBundle {
 
-    private val bundle = DynamicBundle(PylintBundle.javaClass, BUNDLE)
+    private val bundle = DynamicBundle(PylintBundle::class.java, BUNDLE)
 
     @JvmStatic
     fun message(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any) =
