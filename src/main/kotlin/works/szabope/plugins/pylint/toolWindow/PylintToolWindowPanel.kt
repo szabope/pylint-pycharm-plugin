@@ -8,14 +8,11 @@ import works.szabope.plugins.common.toolWindow.AbstractToolWindowPanel
 import works.szabope.plugins.common.toolWindow.ITreeService
 import works.szabope.plugins.pylint.services.PylintSettings
 
-class PylintToolWindowPanel(private val project: Project, @VisibleForTesting val tree: Tree = Tree()) :
+class PylintToolWindowPanel(project: Project, @VisibleForTesting val tree: Tree = Tree()) :
     AbstractToolWindowPanel(project, tree) {
 
-    override val treeService: ITreeService
-        get() = PylintTreeService.getInstance(project)
-    override val settings: Settings
-        get() = PylintSettings.getInstance(project)
-
+    override val treeService: ITreeService = PylintTreeService.getInstance(project)
+    override val settings: Settings = PylintSettings.getInstance(project)
 
     init {
         super.init(ID, MAIN_ACTION_GROUP, SCROLL_TO_SOURCE_ID)
