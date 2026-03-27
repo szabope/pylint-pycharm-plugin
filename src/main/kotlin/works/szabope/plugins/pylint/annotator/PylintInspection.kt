@@ -7,7 +7,5 @@ const val PylintInspectionId = "PylintInspection"
 
 internal class PylintInspection : PyInspection(), ExternalAnnotatorBatchInspection {
     // Mind plugin.xml when changing the value of pylint.inspection.id
-    override fun getShortName(): String {
-        return PylintInspectionId
-    }
+    override fun getShortName(): String = PylintInspectionId
 }

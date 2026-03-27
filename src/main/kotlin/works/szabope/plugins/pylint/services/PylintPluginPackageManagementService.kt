@@ -11,9 +11,7 @@ import works.szabope.plugins.common.services.AbstractPluginPackageManagementServ
 @Service(Service.Level.PROJECT)
 class PylintPluginPackageManagementService(override val project: Project) : AbstractPluginPackageManagementService() {
 
-    override fun getRequirement(): PyRequirement {
-        return pyRequirement("pylint", PyRequirementRelation.GTE, MINIMUM_VERSION)
-    }
+    override fun getRequirement(): PyRequirement = pyRequirement("pylint", PyRequirementRelation.GTE, MINIMUM_VERSION)
 
     companion object {
         const val MINIMUM_VERSION = "3.0"
