@@ -25,6 +25,6 @@ fun buildParamList(
     }
     // mandatory args to take precedence
     params.addAll(PylintArgs.MANDATORY_ARGS)
-    targets.map { requireNotNull(it.canonicalPath) }.let { params.addAll(it) }
+    params.addAll(targets.map { requireNotNull(it.canonicalPath) })
     params
 }
