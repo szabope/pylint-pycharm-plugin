@@ -26,14 +26,15 @@ class ScanService(private val project: Project, private val cs: CoroutineScope) 
     suspend fun scanAsync(targets: Collection<VirtualFile>, configuration: ToolExecutorConfiguration, silent: Boolean = false): List<PylintMessage> {
         val parameters = with(project) { buildParamList(configuration, targets) }
         val stdErr = StringBuilder()
-        val stdOut = PylintExecutor(project).execute(configuration, parameters).filter { it.text.isNotBlank() }
+        val executor = PylintExecutor(project)
+        val stdOut = executor.execute(configuration, parameters).filter { it.text.isNotBlank() }
             .transform { if (it.isError) stdErr.append(it.text) else emit(it) }.catch {
                 if (it is ToolExecutionTerminatedException) {
                     if (!silent) showClickableBalloonError(
                         project, PylintToolWindowPanel.ID, PylintBundle.message("pylint.toolwindow.balloon.external_error")
                     ) {
                         DialogManager.showToolExecutionErrorDialog(
-                            configuration, stdErr.toString(), it.exitCode
+                            executor.commandLine ?: "", stdErr.toString(), it.exitCode
                         )
                     }
                 } else {
@@ -48,7 +49,7 @@ class ScanService(private val project: Project, private val cs: CoroutineScope) 
                 project, PylintToolWindowPanel.ID, PylintBundle.message("pylint.toolwindow.balloon.failed_to_execute")
             ) {
                 DialogManager.showToolOutputParseErrorDialog(
-                    configuration, targets.joinToString { it.path }, stdOut, it.message ?: "N/A"
+                    executor.commandLine ?: "", targets.joinToString { it.path }, stdOut, it.message ?: "N/A"
                 )
             }
             emptyList()
