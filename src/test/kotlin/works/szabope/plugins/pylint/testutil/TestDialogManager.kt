@@ -11,7 +11,7 @@ class TestDialogManager : AbstractTestDialogManager() {
     override fun createPyPackageInstallationErrorDialog(exception: PluginPackageManagementException.InstallationFailedException) =
         TestDialogWrapper(PylintPackageInstallationErrorDialog::class.java, exception)
 
-    override fun createToolExecutionErrorDialog(configuration: ToolExecutorConfiguration, result: String, resultCode: Int) =
+    override fun createToolExecutionErrorDialog(configuration: ToolExecutorConfiguration, result: String, resultCode: Int?) =
         TestDialogWrapper(PylintExecutionErrorDialog::class.java, configuration, result, resultCode)
 
     override fun createToolOutputParseErrorDialog(
