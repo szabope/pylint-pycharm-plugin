@@ -12,7 +12,7 @@ internal class PylintAnnotator : ToolAnnotator<PylintMessage>() {
 
     override fun scan(
         info: AnnotatorInfo, configuration: ToolExecutorConfiguration
-    ) = ScanService.getInstance(info.project).scan(listOf(info.file), configuration)
+    ) = ScanService.getInstance(info.project).scan(listOf(info.file), configuration, silent = true)
 
     override val inspectionId = PylintInspectionId
 
