@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-03-28
+
+- Changelog update - `v2.2.0` by @github-actions[bot] in https://github.com/szabope/pylint-pycharm-plugin/pull/41
+- Support Intellij 261 by @szabope in https://github.com/szabope/pylint-pycharm-plugin/pull/43
+
 ## [2.2.0] - 2026-03-10
 
 - Refactor CodeQL workflow for improved analysis and caching by @szabope in https://github.com/szabope/pylint-pycharm-plugin/pull/38
@@ -46,7 +51,8 @@
 - bump version to test release workflow by @szabope in https://github.com/szabope/pylint-pycharm-plugin/pull/2
 - @szabope made their first contribution in https://github.com/szabope/pylint-pycharm-plugin/pull/1
 
-[Unreleased]: https://github.com/szabope/pylint-pycharm-plugin/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/szabope/pylint-pycharm-plugin/compare/v2.2.1...HEAD
+[2.2.1]: https://github.com/szabope/pylint-pycharm-plugin/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/szabope/pylint-pycharm-plugin/compare/v2.0.0...v2.2.0
 [2.0.0]: https://github.com/szabope/pylint-pycharm-plugin/compare/v0.1.2...v2.0.0
 [0.1.2]: https://github.com/szabope/pylint-pycharm-plugin/compare/v0.1.1...v0.1.2
