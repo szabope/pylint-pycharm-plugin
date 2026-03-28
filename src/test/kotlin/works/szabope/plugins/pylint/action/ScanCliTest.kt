@@ -1,5 +1,6 @@
 package works.szabope.plugins.pylint.action
 
+import com.intellij.notification.ActionCenter
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.vfs.ex.temp.TempFileSystem
@@ -14,6 +15,7 @@ import junit.framework.AssertionFailedError
 import org.jetbrains.concurrency.asPromise
 import works.szabope.plugins.common.test.dialog.TestDialogWrapper
 import works.szabope.plugins.pylint.AbstractToolWindowTestCase
+import works.szabope.plugins.pylint.PylintBundle
 import works.szabope.plugins.pylint.dialog.DialogManager
 import works.szabope.plugins.pylint.dialog.PylintExecutionErrorDialog
 import works.szabope.plugins.pylint.dialog.PylintParseErrorDialog
@@ -125,6 +127,34 @@ class ScanCliTest : AbstractToolWindowTestCase() {
         scan(dataContext(project) { add(CommonDataKeys.VIRTUAL_FILE_ARRAY, arrayOf(target)) })
         PlatformTestUtil.assertPromiseSucceeds(dialogShown.asPromise())
         assertTrue(dialogShown.isDone && with(dialogShown.get()) { isShown() && getExitCode() == DialogWrapper.OK_EXIT_CODE })
+    }
+
+    fun `test incomplete configuration notification is not shown if already visible`() {
+        myFixture.copyDirectoryToProject("/", "/")
+        with(PylintSettings.getInstance(project)) {
+            executablePath = "/does/not/exist"
+            workingDirectory = Paths.get(testDataPath).absolutePathString()
+            useProjectSdk = false
+            configFilePath = ""
+            scanBeforeCheckIn = false
+            arguments = ""
+            excludeNonProjectFiles = true
+        }
+        val target = WorkspaceModel.getInstance(project).currentSnapshot.entities(ContentRootEntity::class.java)
+            .first().url.virtualFile!!
+        val dataContext = dataContext(project) { add(CommonDataKeys.VIRTUAL_FILE_ARRAY, arrayOf(target)) }
+        scan(dataContext)
+        PlatformTestUtil.waitWhileBusy { PylintScanJobRegistryService.getInstance(project).isActive() }
+        val notificationsAfterFirst = ActionCenter.getNotifications(project).count { isIncompleteConfigNotification(it) }
+        scan(dataContext)
+        PlatformTestUtil.waitWhileBusy { PylintScanJobRegistryService.getInstance(project).isActive() }
+        assertEquals(notificationsAfterFirst, ActionCenter.getNotifications(project).count { isIncompleteConfigNotification(it) })
+    }
+
+    private fun isIncompleteConfigNotification(notification: com.intellij.notification.Notification): Boolean {
+        return PylintBundle.message("notification.group.pylint.group") == notification.groupId &&
+                PylintBundle.message("pylint.notification.incomplete_configuration") == notification.content &&
+                !notification.isExpired
     }
 
     private fun setUpSettings(executable: String) {
