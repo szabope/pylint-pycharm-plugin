@@ -60,4 +60,36 @@ class AnnotatorTest : AbstractToolWindowTestCase() {
         myFixture.doHighlighting()
         assertionError?.let { throw it }
     }
+
+    fun `test PylintAnnotator does not show ToolWindow error when pylint outputs invalid stdout`() {
+        with(PylintSettings.getInstance(project)) {
+            executablePath = Paths.get(testDataPath).resolve("pylint_err_on_stdout").absolutePathString()
+            workingDirectory = Paths.get(testDataPath).absolutePathString()
+            arguments = ""
+            useProjectSdk = false
+        }
+        var assertionError: Error? = null
+        toolWindowManager.onBalloon {
+            assertionError = AssertionFailedError("Should not happen: $it")
+        }
+        myFixture.configureByFile("dummy.py")
+        myFixture.doHighlighting()
+        assertionError?.let { throw it }
+    }
+
+    fun `test PylintAnnotator does not show ToolWindow error when pylint exits with error code`() {
+        with(PylintSettings.getInstance(project)) {
+            executablePath = Paths.get(testDataPath).resolve("pylint_exit_1").absolutePathString()
+            workingDirectory = Paths.get(testDataPath).absolutePathString()
+            arguments = ""
+            useProjectSdk = false
+        }
+        var assertionError: Error? = null
+        toolWindowManager.onBalloon {
+            assertionError = AssertionFailedError("Should not happen: $it")
+        }
+        myFixture.configureByFile("dummy.py")
+        myFixture.doHighlighting()
+        assertionError?.let { throw it }
+    }
 }
