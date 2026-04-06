@@ -3,6 +3,7 @@
 package works.szabope.plugins.pylint.initialization
 
 import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.SdkAdditionalData
 import com.intellij.testFramework.PlatformTestUtil
@@ -22,8 +23,7 @@ class PylintInitializationWithRemotePythonSdkTest : AbstractPylintHeavyPlatformT
     private interface RemoteSdkAdditionalData : SdkAdditionalData, PyRemoteSdkAdditionalDataMarker
 
     override fun tearDown() {
-        val mockSdk = project.pythonSdk!!
-        project.pythonSdk = null
+        val mockSdk = module.pythonSdk!!
         module?.pythonSdk = null
         runWriteActionAndWait {
             ProjectJdkTable.getInstance().removeJdk(mockSdk)
@@ -45,6 +45,9 @@ class PylintInitializationWithRemotePythonSdkTest : AbstractPylintHeavyPlatformT
             ProjectJdkTable.getInstance().addJdk(mockSdk)
         }
         myProject = PlatformTestUtil.loadAndOpenProject(Path.of(PROJECT_PATH).toAbsolutePath(), getTestRootDisposable())
+        runWriteActionAndWait {
+            myModule = ModuleManager.getInstance(myProject).modules.first()
+        }
     }
 
     fun `test plugin initialized for project with python sdk results in notification`() {
