@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.2.3] - 2026-04-06
+
+- update to common-base latest to determine SDK based on module instead of project by @szabope in https://github.com/szabope/pylint-pycharm-plugin/pull/47
+- Changelog update - `v2.2.2` by @github-actions[bot] in https://github.com/szabope/pylint-pycharm-plugin/pull/46
+
 ## [2.2.2] - 2026-03-29
 
 - Changelog update - `v2.2.1` by @github-actions[bot] in https://github.com/szabope/pylint-pycharm-plugin/pull/44
@@ -56,7 +61,8 @@
 - bump version to test release workflow by @szabope in https://github.com/szabope/pylint-pycharm-plugin/pull/2
 - @szabope made their first contribution in https://github.com/szabope/pylint-pycharm-plugin/pull/1
 
-[Unreleased]: https://github.com/szabope/pylint-pycharm-plugin/compare/v2.2.2...HEAD
+[Unreleased]: https://github.com/szabope/pylint-pycharm-plugin/compare/v2.2.3...HEAD
+[2.2.3]: https://github.com/szabope/pylint-pycharm-plugin/compare/v2.2.2...v2.2.3
 [2.2.2]: https://github.com/szabope/pylint-pycharm-plugin/compare/v2.2.1...v2.2.2
 [2.2.1]: https://github.com/szabope/pylint-pycharm-plugin/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/szabope/pylint-pycharm-plugin/compare/v2.0.0...v2.2.0
