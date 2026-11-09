@@ -6,4 +6,5 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.lang</depends>
     <depends optional="true" config-file="works.szabope.pylint-PythonCore.xml">com.intellij.modules.python</depends>
+    <depends optional="true" config-file="works.szabope.pylint-vcs.xml">com.intellij.platform.vcs</depends>
 </idea-plugin>
