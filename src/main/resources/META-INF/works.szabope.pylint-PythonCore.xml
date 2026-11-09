@@ -20,7 +20,6 @@
         <notificationGroup displayType="STICKY_BALLOON" id="Pylint group" toolWindowId="PyLint"
                            bundle="messages.PylintBundle"
                            key="notification.group.pylint.group"/>
-        <checkinHandlerFactory implementation="works.szabope.plugins.pylint.vcs.PylintCheckinHandlerFactory"/>
     </extensions>
 
     <actions>
